@@ -1,4 +1,4 @@
-# TrakingTransfers.pt
+.# TrakingTransfers.pt
 
 A modern web application built with SvelteKit 5 and Paraglide for internationalization.
 

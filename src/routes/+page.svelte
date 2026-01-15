@@ -2,6 +2,8 @@
 	import { language } from '$lib/stores/language';
 	import { translations } from '$lib/translations';
 	import { STAGES, generateRoute, formatDate, type Stage } from '$lib/trail';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 
 	$: t = translations[$language];
 
@@ -43,18 +45,218 @@
 	let completedSteps: number[] = [];
 	let fieldErrors: Record<string, string> = {};
 
-	// Map old departure values to stage IDs
-	const departureValueToStageId: Record<string, string> = {
-		porto_covo: 'PC',
-		vila_nova: 'VM',
-		almograve: 'AL',
-		zambujeira: 'ZM',
-		odeceixe: 'OD',
-		arrifana: 'AR',
-		carrapateira: 'CP',
-		sagres: 'SA',
-		lagos: 'LG'
+	// Stripe payment state
+	const STRIPE_PUBLISHABLE_KEY = 'pk_test_51SpqLL6iYKZWJHuzVhpIYqd7WqeI4zXy6yzqWEw8D5dIDjdJKqYeRAJ5x9RItSVbbXExhKrtrI3wPQEI50016GAr00ZPCgGAPy';
+	let stripe: any = null;
+	let elements: any = null;
+	let paymentElement: any = null;
+	let paymentProcessing = false;
+	let paymentError: string | null = null;
+	let paymentSuccess = false;
+	let paymentIntentClientSecret: string | null = null;
+
+	// Helper function to get booking summary
+	const getBookingSummary = () => {
+		const startName = stageNames[formData.aboutTrip.departure] || formData.aboutTrip.departure || 'Not selected';
+		const endName = stageNames[formData.aboutTrip.destination] || formData.aboutTrip.destination || 'Not selected';
+		const routeDisplay = route && route.length > 0 ? `${startName} → ${endName}` : 'Not selected';
+		const duration = route ? route.length : 0;
+		const hotelsCount = formData.accommodation.provideLater ? 0 : formData.accommodation.hotels.length;
+		
+		return {
+			route: routeDisplay,
+			departureDate: formData.aboutTrip.departureDate || 'Not selected',
+			duration,
+			bags: formData.basicDetails.bags || '0',
+			hotelsCount,
+			hotelsLater: formData.accommodation.provideLater
+		};
 	};
+
+	// Diagnostic state
+	let stripeDiagnostics = {
+		currentStep: 1,
+		browser: false,
+		stripeJsLoaded: false,
+		stripeInitialized: false,
+		paymentElementExists: false,
+		paymentElementMounted: false,
+		error: null as string | null
+	};
+
+	// Update diagnostics reactively
+	$: stripeDiagnostics = {
+		currentStep: currentStep,
+		browser: browser,
+		stripeJsLoaded: browser && typeof window !== 'undefined' ? !!(window as any).Stripe : false,
+		stripeInitialized: !!stripe,
+		paymentElementExists: browser ? !!document.getElementById('payment-element') : false,
+		paymentElementMounted: !!paymentElement,
+		error: stripeDiagnostics.error
+	};
+
+	// Initialize Stripe when Step 4 becomes active
+	$: if (browser && currentStep === 4) {
+		// Wait for Stripe.js to load and DOM to be ready
+		if (typeof window !== 'undefined' && (window as any).Stripe) {
+			setTimeout(() => {
+				initializeStripe();
+			}, 100); // Small delay to ensure DOM is ready
+		}
+	}
+
+	async function initializeStripe() {
+		if (stripe || !browser) {
+			return; // Already initialized or not in browser
+		}
+
+		try {
+			// Wait for Stripe.js to be available
+			if (typeof window === 'undefined' || !(window as any).Stripe) {
+				stripeDiagnostics.error = 'Stripe.js not loaded';
+				return;
+			}
+
+			// Initialize Stripe
+			stripe = (window as any).Stripe(STRIPE_PUBLISHABLE_KEY);
+			
+			// Wait for payment element container to exist
+			const paymentElementContainer = document.getElementById('payment-element');
+			
+			if (!paymentElementContainer) {
+				stripeDiagnostics.error = 'Payment element container not found in DOM';
+				return;
+			}
+			
+			// Try to create payment intent from backend first
+			try {
+				// Calculate a test amount (you can adjust this)
+				const testAmount = 5000; // 50.00 EUR in cents
+				const response = await fetch('/api/create-payment-intent', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ 
+						amount: testAmount, 
+						currency: 'eur' 
+					})
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					paymentIntentClientSecret = data.clientSecret;
+				} else {
+					throw new Error(`Backend returned ${response.status}`);
+				}
+			} catch (backendError: any) {
+				// For testing without backend, we'll create Elements without clientSecret
+				// This allows the Payment Element to mount, but payment will need backend
+				paymentIntentClientSecret = null;
+			}
+			
+			// Create Elements instance
+			// If we have a client secret, use it. Otherwise, create Elements without it (for testing UI)
+			const elementsOptions: any = {
+				appearance: {
+					theme: 'stripe',
+					variables: {
+						colorPrimary: '#007bff',
+						colorBackground: '#ffffff',
+						colorText: '#333333',
+						colorDanger: '#df1b41',
+						fontFamily: 'system-ui, sans-serif',
+						spacingUnit: '4px',
+						borderRadius: '8px'
+					}
+				}
+			};
+
+			if (paymentIntentClientSecret) {
+				elementsOptions.clientSecret = paymentIntentClientSecret;
+			}
+
+			elements = stripe.elements(elementsOptions);
+
+			// Create and mount Payment Element
+			paymentElement = elements.create('payment');
+			
+			try {
+				paymentElement.mount('#payment-element');
+				stripeDiagnostics.error = null;
+			} catch (mountError: any) {
+				stripeDiagnostics.error = `Mount error: ${mountError.message}`;
+				paymentError = `Failed to mount payment form: ${mountError.message}`;
+			}
+		} catch (error: any) {
+			stripeDiagnostics.error = error.message || 'Unknown error';
+			paymentError = error.message || 'Failed to initialize payment system. Please refresh the page.';
+		}
+	}
+
+	async function handlePayment() {
+		if (!stripe || !paymentElement) {
+			paymentError = 'Payment system not ready. Please refresh the page.';
+			return;
+		}
+
+		// If we don't have a client secret, we need to create a payment intent first
+		if (!paymentIntentClientSecret) {
+			try {
+				const testAmount = 5000; // 50.00 EUR in cents
+				const response = await fetch('/api/create-payment-intent', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ 
+						amount: testAmount, 
+						currency: 'eur' 
+					})
+				});
+
+				if (response.ok) {
+					const data = await response.json();
+					paymentIntentClientSecret = data.clientSecret;
+				} else {
+					throw new Error(`Backend returned ${response.status}. Please create the /api/create-payment-intent endpoint.`);
+				}
+			} catch (backendError: any) {
+				paymentError = backendError.message || 'Backend endpoint not available. Please create /api/create-payment-intent endpoint.';
+				return;
+			}
+		}
+
+		paymentProcessing = true;
+		paymentError = null;
+
+		try {
+			const { error: submitError } = await stripe.confirmPayment({
+				elements,
+				clientSecret: paymentIntentClientSecret,
+				confirmParams: {
+					return_url: `${window.location.origin}/booking-success`
+				},
+				redirect: 'if_required'
+			});
+
+			if (submitError) {
+				paymentError = submitError.message || t.booking_payment_error;
+				paymentProcessing = false;
+			} else {
+				// Payment succeeded
+				paymentSuccess = true;
+				paymentProcessing = false;
+				// You can redirect or show success message here
+			}
+		} catch (error: any) {
+			paymentError = error.message || t.booking_payment_error;
+			paymentProcessing = false;
+		}
+	}
+
+	// Cleanup Stripe when component unmounts or step changes
+	$: if (currentStep !== 4 && paymentElement) {
+		paymentElement.unmount();
+		paymentElement = null;
+		elements = null;
+	}
 
 	// Map stage IDs to names for display
 	const stageNames = Object.fromEntries(STAGES.map((s: Stage) => [s.id, s.name]));
@@ -62,29 +264,18 @@
 	// Generate route using generateRoute from trail.ts
 	// Use reactive statement with explicit dependencies so Svelte tracks changes
 	$: route = (() => {
-		console.log('DEBUG: generateItinerary called', {
-			departure: formData.aboutTrip.departure,
-			destination: formData.aboutTrip.destination
-		});
-
 		if (!formData.aboutTrip.departure || !formData.aboutTrip.destination) {
-			console.log('DEBUG: Missing departure or destination');
 			return null;
 		}
 
-		const startId = departureValueToStageId[formData.aboutTrip.departure] || formData.aboutTrip.departure;
-		const endId = departureValueToStageId[formData.aboutTrip.destination] || formData.aboutTrip.destination;
-
-		console.log('DEBUG: Mapped IDs', { startId, endId });
+		const startId = formData.aboutTrip.departure;
+		const endId = formData.aboutTrip.destination;
 
 		if (startId === endId) {
-			console.log('DEBUG: Start and end are the same');
 			return null;
 		}
 
-		const generatedRoute = generateRoute(startId, endId);
-		console.log('DEBUG: Generated route', generatedRoute);
-		return generatedRoute;
+		return generateRoute(startId, endId);
 	})();
 
 	// Calculate travel dates based on departure date and route length
@@ -122,16 +313,7 @@
 		const currentRoute = route;
 		const currentDepartureDate = formData.aboutTrip.departureDate;
 
-		console.log('🔍 DIAGNOSTIC: generateHotels reactive statement triggered', {
-			route: currentRoute,
-			routeLength: currentRoute?.length,
-			departureDate: currentDepartureDate,
-			hasRoute: !!currentRoute,
-			hasDate: !!currentDepartureDate
-		});
-
 		if (!currentRoute || currentRoute.length === 0 || !currentDepartureDate) {
-			console.log('❌ DIAGNOSTIC: generateHotels() returning null - missing data');
 			return null;
 		}
 
@@ -145,7 +327,7 @@
 			address: string;
 		}> = [];
 
-		// Night 0: Starting location (first segment's start point)
+		// Night 0: Starting location (first segment's start point) - Departure Date
 		const startLocationId = currentRoute[0][0];
 		const startDate = new Date(currentDepartureDate);
 		const startDateStr = startDate.toISOString().split('T')[0];
@@ -160,49 +342,42 @@
 		});
 
 		// Nights 1+: Each segment's destination
+		// Hotel 2 (nightIndex 1) should have the same date as departure date
+		// Hotel 3+ (nightIndex 2+) should increment from there
 		currentRoute.forEach(([from, to]: [string, string], index: number) => {
+			const nightIndex = index + 1;
 			const checkInDate = new Date(currentDepartureDate);
-			checkInDate.setDate(checkInDate.getDate() + index + 1);
+			// For nightIndex 1 (second hotel), use departure date (same as first hotel)
+			// For nightIndex 2+, add (nightIndex - 1) days so hotel 3 = departure + 1, hotel 4 = departure + 2, etc.
+			if (nightIndex === 1) {
+				// Second hotel: same date as departure (day 0)
+				checkInDate.setDate(checkInDate.getDate());
+			} else {
+				// Third hotel onwards: departure + (nightIndex - 1) days
+				checkInDate.setDate(checkInDate.getDate() + (nightIndex - 1));
+			}
 			const checkInDateStr = checkInDate.toISOString().split('T')[0];
 			hotels.push({
-				nightIndex: index + 1,
+				nightIndex: nightIndex,
 				locationId: to,
 				locationName: stageNames[to] || to,
 				checkInDate: checkInDateStr,
-				checkInDateFormatted: formatDate(currentDepartureDate, index + 1),
+				checkInDateFormatted: formatDate(currentDepartureDate, nightIndex === 1 ? 0 : (nightIndex - 1)),
 				name: '',
 				address: ''
 			});
 		});
 
-		console.log('✅ DIAGNOSTIC: generateHotels() returning', hotels.length, 'hotels', hotels);
 		return hotels;
 	})();
 
-	$: console.log('🔍 DIAGNOSTIC: generatedHotels reactive updated', {
-		generatedHotels: generatedHotels,
-		length: generatedHotels?.length,
-		route: route,
-		routeLength: route?.length,
-		departureDate: formData.aboutTrip.departureDate
-	});
-
 	// Reactive: Populate/update accommodation.hotels when generatedHotels changes
 	$: {
-		console.log('🔍 DIAGNOSTIC: Reactive statement for accommodation.hotels triggered', {
-			generatedHotels: generatedHotels,
-			generatedHotelsLength: generatedHotels?.length,
-			currentHotelsLength: formData.accommodation.hotels.length,
-			condition: generatedHotels && generatedHotels.length > 0
-		});
 		if (generatedHotels && generatedHotels.length > 0) {
 			if (formData.accommodation.hotels.length === 0) {
-				console.log('✅ DIAGNOSTIC: First time - populating hotels array');
 				// First time: populate with generated structure
 				formData.accommodation.hotels = generatedHotels;
-				console.log('✅ DIAGNOSTIC: Hotels populated, new length:', formData.accommodation.hotels.length);
 			} else if (formData.accommodation.hotels.length !== generatedHotels.length) {
-				console.log('🔄 DIAGNOSTIC: Route changed - regenerating hotels');
 			// Route changed: regenerate but try to preserve user input where possible
 			formData.accommodation.hotels = generatedHotels.map((newHotel: {
 				nightIndex: number;
@@ -241,7 +416,6 @@
 			}));
 			}
 		} else if (!generatedHotels) {
-			console.log('❌ DIAGNOSTIC: No generatedHotels - clearing hotels array');
 			// Route cleared: clear hotels
 			formData.accommodation.hotels = [];
 		}
@@ -253,7 +427,7 @@
 			return true;
 		}
 
-		// Otherwise, all hotels must have name and address
+		// Otherwise, all hotels must have name and contact
 		if (!formData.accommodation.hotels || formData.accommodation.hotels.length === 0) {
 			return false;
 		}
@@ -272,7 +446,7 @@
 				errors[`hotel_${index}_name`] = t.booking_hotel_name_error;
 			}
 			if (!hotel.address.trim()) {
-				errors[`hotel_${index}_address`] = t.booking_hotel_address_error;
+				errors[`hotel_${index}_contact`] = t.booking_hotel_contact_error;
 			}
 		});
 
@@ -647,15 +821,9 @@
 								onchange={() => validateField('departure', formData.aboutTrip.departure)}
 							>
 								<option value="">{t.booking_departure_placeholder}</option>
-								<option value="porto_covo">{t.booking_departure_porto_covo}</option>
-								<option value="vila_nova">{t.booking_departure_vila_nova}</option>
-								<option value="almograve">{t.booking_departure_almograve}</option>
-								<option value="zambujeira">{t.booking_departure_zambujeira}</option>
-								<option value="odeceixe">{t.booking_departure_odeceixe}</option>
-								<option value="arrifana">{t.booking_departure_arrifana}</option>
-								<option value="carrapateira">{t.booking_departure_carrapateira}</option>
-								<option value="sagres">{t.booking_departure_sagres}</option>
-								<option value="lagos">{t.booking_departure_lagos}</option>
+								{#each STAGES as stage}
+									<option value={stage.id}>{stage.name}</option>
+								{/each}
 							</select>
 							{#if fieldErrors.departure}
 								<span class="error-message">{fieldErrors.departure}</span>
@@ -672,15 +840,9 @@
 								onchange={() => validateField('destination', formData.aboutTrip.destination)}
 							>
 								<option value="">{t.booking_destination_placeholder || 'Select your destination'}</option>
-								<option value="porto_covo">{t.booking_departure_porto_covo}</option>
-								<option value="vila_nova">{t.booking_departure_vila_nova}</option>
-								<option value="almograve">{t.booking_departure_almograve}</option>
-								<option value="zambujeira">{t.booking_departure_zambujeira}</option>
-								<option value="odeceixe">{t.booking_departure_odeceixe}</option>
-								<option value="arrifana">{t.booking_departure_arrifana}</option>
-								<option value="carrapateira">{t.booking_departure_carrapateira}</option>
-								<option value="sagres">{t.booking_departure_sagres}</option>
-								<option value="lagos">{t.booking_departure_lagos}</option>
+								{#each STAGES as stage}
+									<option value={stage.id}>{stage.name}</option>
+								{/each}
 							</select>
 							{#if fieldErrors.destination}
 								<span class="error-message">{fieldErrors.destination}</span>
@@ -810,7 +972,7 @@
 														{#if !isComplete}✗{/if}
 													</span>
 													<span class="hotel-label">
-														{t.booking_hotel_label} {hotel.nightIndex + 1} - {hotel.locationName}
+														{hotel.locationName} - {hotel.checkInDateFormatted}
 													</span>
 												</div>
 												<span class="hotel-status-text">
@@ -823,11 +985,6 @@
 											</div>
 
 											<div class="hotel-content">
-												<div class="form-group">
-													<div class="form-label">{t.booking_hotel_checkin_label}</div>
-													<div class="hotel-checkin-display">{hotel.checkInDateFormatted}</div>
-												</div>
-
 												<div class="form-group">
 													<label for="hotel_name_{index}" class="form-label">{t.booking_hotel_name_label}</label>
 													<input
@@ -852,25 +1009,25 @@
 												</div>
 
 												<div class="form-group">
-													<label for="hotel_address_{index}" class="form-label">{t.booking_hotel_address_label}</label>
+													<label for="hotel_contact_{index}" class="form-label">{t.booking_hotel_contact_label}</label>
 													<input
 														type="text"
-														id="hotel_address_{index}"
+														id="hotel_contact_{index}"
 														class="form-input"
-														class:error={fieldErrors[`hotel_${index}_address`]}
-														placeholder={t.booking_hotel_address_placeholder}
+														class:error={fieldErrors[`hotel_${index}_contact`]}
+														placeholder={t.booking_hotel_contact_placeholder}
 														bind:value={hotel.address}
 														onblur={() => {
 															if (hotel.address.trim()) {
-																delete fieldErrors[`hotel_${index}_address`];
+																delete fieldErrors[`hotel_${index}_contact`];
 																fieldErrors = { ...fieldErrors };
 															} else {
 																validateAccommodation();
 															}
 														}}
 													/>
-													{#if fieldErrors[`hotel_${index}_address`]}
-														<span class="error-message">{fieldErrors[`hotel_${index}_address`]}</span>
+													{#if fieldErrors[`hotel_${index}_contact`]}
+														<span class="error-message">{fieldErrors[`hotel_${index}_contact`]}</span>
 													{/if}
 												</div>
 											</div>
@@ -887,7 +1044,160 @@
 			{#if currentStep === 4}
 				<div class="booking-step">
 					<h3 class="step-title">{t.booking_step_payment_title}</h3>
-					<p class="step-placeholder">Payment form will be added here</p>
+					
+					<!-- DIAGNOSTIC BANNER -->
+					<div class="diagnostic-banner payment-diagnostic">
+						<h4>🔍 PAYMENT SECTION DIAGNOSTICS</h4>
+						<div class="diagnostic-grid">
+							<div class="diagnostic-item">
+								<strong>Current Step:</strong> {stripeDiagnostics.currentStep} {stripeDiagnostics.currentStep === 4 ? '✅' : '❌'}
+							</div>
+							<div class="diagnostic-item">
+								<strong>Browser:</strong> {stripeDiagnostics.browser ? '✅ Yes' : '❌ No'}
+							</div>
+							<div class="diagnostic-item">
+								<strong>Stripe.js Loaded:</strong> {stripeDiagnostics.stripeJsLoaded ? '✅ Yes' : '❌ No'}
+							</div>
+							<div class="diagnostic-item">
+								<strong>Stripe Initialized:</strong> {stripeDiagnostics.stripeInitialized ? '✅ Yes' : '❌ No'}
+							</div>
+							<div class="diagnostic-item">
+								<strong>Payment Element Exists:</strong> {stripeDiagnostics.paymentElementExists ? '✅ Yes' : '❌ No'}
+							</div>
+							<div class="diagnostic-item">
+								<strong>Payment Element Mounted:</strong> {stripeDiagnostics.paymentElementMounted ? '✅ Yes' : '❌ No'}
+							</div>
+							<div class="diagnostic-item">
+								<strong>Elements:</strong> {elements ? '✅ Yes' : '❌ No'}
+							</div>
+							<div class="diagnostic-item">
+								<strong>Client Secret:</strong> {paymentIntentClientSecret ? '✅ Set' : '❌ Not set'}
+							</div>
+							{#if stripeDiagnostics.error}
+								<div class="diagnostic-item error">
+									<strong>Error:</strong> {stripeDiagnostics.error}
+								</div>
+							{/if}
+						</div>
+						<div class="diagnostic-actions">
+							<button 
+								type="button" 
+								class="diagnostic-button"
+								onclick={() => {
+									stripe = null;
+									elements = null;
+									paymentElement = null;
+									initializeStripe();
+								}}
+							>
+								🔄 Retry Initialization
+							</button>
+							<button 
+								type="button" 
+								class="diagnostic-button"
+								onclick={() => {
+									const el = document.getElementById('payment-element');
+									// DOM check for diagnostics
+									stripeDiagnostics.paymentElementExists = !!el;
+								}}
+							>
+								🔍 Check DOM
+							</button>
+						</div>
+					</div>
+					
+					{#if paymentSuccess}
+						<div class="payment-success">
+							<div class="success-icon">✓</div>
+							<h4>{t.booking_payment_success}</h4>
+							<p>Your booking has been confirmed. We'll send you a confirmation email shortly.</p>
+						</div>
+					{:else}
+						<div class="payment-container">
+							<!-- Booking Summary -->
+							{#if true}
+								{@const summary = getBookingSummary()}
+								<div class="booking-summary">
+									<h4 class="summary-title">{t.booking_payment_summary_title}</h4>
+									<div class="summary-item">
+										<span class="summary-label">{t.booking_payment_route_label}:</span>
+										<span class="summary-value">{summary.route}</span>
+									</div>
+									<div class="summary-item">
+										<span class="summary-label">{t.booking_payment_departure_date_label}:</span>
+										<span class="summary-value">{summary.departureDate}</span>
+									</div>
+									<div class="summary-item">
+										<span class="summary-label">{t.booking_payment_duration_label}:</span>
+										<span class="summary-value">{summary.duration} {t.booking_payment_days}</span>
+									</div>
+									<div class="summary-item">
+										<span class="summary-label">{t.booking_payment_bags_label}:</span>
+										<span class="summary-value">{summary.bags}</span>
+									</div>
+									<div class="summary-item">
+										<span class="summary-label">{t.booking_payment_hotels_label}:</span>
+										<span class="summary-value">
+											{#if summary.hotelsLater}
+												{t.booking_payment_hotels_later}
+											{:else}
+												{t.booking_payment_hotels_count.replace('{count}', summary.hotelsCount.toString())}
+											{/if}
+										</span>
+									</div>
+								</div>
+							{/if}
+
+							<!-- Payment Form -->
+							<div class="payment-form-section">
+								<h4 class="payment-form-title">{t.booking_payment_card_title}</h4>
+								
+								{#if paymentError}
+									<div class="payment-error-message">
+										{paymentError}
+									</div>
+								{/if}
+
+								<div id="payment-element" class="stripe-payment-element">
+									<!-- Stripe Payment Element will be mounted here -->
+									{#if !paymentElement && !stripeDiagnostics.error}
+										<div class="payment-loading">
+											<p>Loading payment form...</p>
+										</div>
+									{/if}
+									{#if stripeDiagnostics.error && stripeDiagnostics.error.includes('Mount')}
+										<div class="payment-error-placeholder">
+											<p>⚠️ Payment form could not be loaded.</p>
+											<p style="font-size: 0.9rem; color: #666;">{stripeDiagnostics.error}</p>
+											<p style="font-size: 0.85rem; color: #999; margin-top: 0.5rem;">
+												Note: A backend endpoint at <code>/api/create-payment-intent</code> is required for the payment form to work.
+											</p>
+										</div>
+									{/if}
+								</div>
+
+								<div class="payment-actions">
+									<button
+										type="button"
+										class="payment-button"
+										onclick={handlePayment}
+										disabled={paymentProcessing || !stripe || !paymentElement}
+									>
+										{#if paymentProcessing}
+											{t.booking_payment_processing}
+										{:else}
+											{t.booking_payment_button}
+										{/if}
+									</button>
+								</div>
+
+								<div class="payment-note">
+									<p>🔒 Your payment is secure and encrypted. We use Stripe to process all payments.</p>
+									<p><strong>For testing:</strong> Use card number <code>4242 4242 4242 4242</code>, any future expiry date, any CVC, and any postal code.</p>
+								</div>
+							</div>
+						</div>
+					{/if}
 				</div>
 			{/if}
 
@@ -1094,12 +1404,6 @@
 		color: #333;
 	}
 
-	.step-placeholder {
-		color: #999;
-		font-style: italic;
-		padding: 2rem;
-		text-align: center;
-	}
 
 	.booking-form {
 		display: flex;
@@ -1365,14 +1669,6 @@
 		border-top: 1px solid #e0e0e0;
 	}
 
-	.hotel-checkin-display {
-		padding: 0.75rem;
-		background: #f8f9fa;
-		border: 1px solid #e0e0e0;
-		border-radius: 4px;
-		color: #666;
-		font-weight: 500;
-	}
 
 	.booking-navigation {
 		display: flex;
@@ -1452,5 +1748,275 @@
 			padding: 0.75rem 2rem;
 			font-size: 1rem;
 		}
+	}
+
+	/* Payment Section Styles */
+	.payment-container {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.booking-summary {
+		background: #f8f9fa;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		padding: 1.5rem;
+	}
+
+	.summary-title {
+		font-size: 1.3rem;
+		font-weight: 600;
+		margin-bottom: 1rem;
+		color: #333;
+	}
+
+	.summary-item {
+		display: flex;
+		justify-content: space-between;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid #e0e0e0;
+	}
+
+	.summary-item:last-child {
+		border-bottom: none;
+	}
+
+	.summary-label {
+		font-weight: 600;
+		color: #666;
+	}
+
+	.summary-value {
+		color: #333;
+		text-align: right;
+	}
+
+	.payment-form-section {
+		background: white;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		padding: 1.5rem;
+	}
+
+	.payment-form-title {
+		font-size: 1.3rem;
+		font-weight: 600;
+		margin-bottom: 1.5rem;
+		color: #333;
+	}
+
+	.payment-error-message {
+		background: #fee;
+		border: 1px solid #fcc;
+		border-radius: 6px;
+		padding: 1rem;
+		margin-bottom: 1.5rem;
+		color: #c33;
+		font-weight: 500;
+	}
+
+	.stripe-payment-element {
+		margin-bottom: 1.5rem;
+		padding: 1rem;
+		background: #fafafa;
+		border-radius: 6px;
+		min-height: 200px;
+		position: relative;
+	}
+
+	.payment-loading {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 150px;
+		color: #666;
+		font-style: italic;
+	}
+
+	.payment-error-placeholder {
+		padding: 2rem;
+		text-align: center;
+		color: #c33;
+		background: #fee;
+		border: 1px solid #fcc;
+		border-radius: 6px;
+	}
+
+	.payment-error-placeholder code {
+		background: #fff;
+		padding: 0.2rem 0.4rem;
+		border-radius: 3px;
+		font-family: monospace;
+		font-size: 0.9em;
+	}
+
+	.payment-actions {
+		margin-top: 1.5rem;
+	}
+
+	.payment-button {
+		width: 100%;
+		padding: 1rem 2rem;
+		background: #007bff;
+		color: white;
+		border: none;
+		border-radius: 8px;
+		font-size: 1.1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background 0.3s;
+		min-width: 44px;
+	}
+
+	.payment-button:hover:not(:disabled) {
+		background: #0056b3;
+	}
+
+	.payment-button:disabled {
+		background: #ccc;
+		cursor: not-allowed;
+		opacity: 0.6;
+	}
+
+	.payment-note {
+		margin-top: 1.5rem;
+		padding: 1rem;
+		background: #f0f7ff;
+		border: 1px solid #b3d9ff;
+		border-radius: 6px;
+		font-size: 0.9rem;
+		color: #555;
+	}
+
+	.payment-note p {
+		margin: 0.5rem 0;
+	}
+
+	.payment-note code {
+		background: #fff;
+		padding: 0.2rem 0.4rem;
+		border-radius: 3px;
+		font-family: monospace;
+		font-size: 0.9em;
+	}
+
+	.payment-success {
+		text-align: center;
+		padding: 3rem 2rem;
+		background: #f0fff4;
+		border: 2px solid #4caf50;
+		border-radius: 8px;
+	}
+
+	.success-icon {
+		font-size: 4rem;
+		color: #4caf50;
+		margin-bottom: 1rem;
+	}
+
+	.payment-success h4 {
+		font-size: 1.5rem;
+		color: #2e7d32;
+		margin-bottom: 1rem;
+	}
+
+	.payment-success p {
+		color: #555;
+		font-size: 1.1rem;
+	}
+
+	@media (max-width: 768px) {
+		.payment-container {
+			gap: 1.5rem;
+		}
+
+		.booking-summary,
+		.payment-form-section {
+			padding: 1rem;
+		}
+
+		.summary-item {
+			flex-direction: column;
+			gap: 0.25rem;
+		}
+
+		.summary-value {
+			text-align: left;
+		}
+	}
+
+	/* Diagnostic Banner Styles */
+	.diagnostic-banner {
+		background: #e7f3ff;
+		border: 2px solid #007bff;
+		border-radius: 8px;
+		padding: 1.5rem;
+		margin-bottom: 2rem;
+		font-size: 0.9rem;
+	}
+
+	.diagnostic-banner h4 {
+		margin: 0 0 1rem 0;
+		color: #007bff;
+		font-size: 1.1rem;
+	}
+
+	.diagnostic-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+	}
+
+	.diagnostic-item {
+		padding: 0.5rem;
+		background: white;
+		border-radius: 4px;
+		border: 1px solid #b3d9ff;
+	}
+
+	.diagnostic-item.error {
+		background: #fee;
+		border-color: #fcc;
+		color: #c33;
+		grid-column: 1 / -1;
+	}
+
+	.diagnostic-item strong {
+		display: inline-block;
+		min-width: 180px;
+		color: #555;
+	}
+
+	.diagnostic-actions {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.diagnostic-button {
+		padding: 0.5rem 1rem;
+		background: #007bff;
+		color: white;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.9rem;
+		font-weight: 600;
+		transition: background 0.2s;
+	}
+
+	.diagnostic-button:hover {
+		background: #0056b3;
+	}
+
+	.payment-diagnostic {
+		background: #fff3cd;
+		border-color: #ffc107;
+	}
+
+	.payment-diagnostic h4 {
+		color: #856404;
 	}
 </style>
