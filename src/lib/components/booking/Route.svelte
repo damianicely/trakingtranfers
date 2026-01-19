@@ -261,50 +261,45 @@
 		gap: 1.5rem;
 	}
 
-	/* Modern styling */
+	/* Flat design styling */
 	.basic-details-modern .modern-form {
-		background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-		padding: 2.5rem;
-		border-radius: 16px;
-		border: 1px solid #e9ecef;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+		background: transparent;
+		padding: 0;
 	}
 
 	.modern-group {
-		margin-bottom: 1.75rem;
+		margin-bottom: 2rem;
 	}
 
 	.modern-label {
 		font-size: 0.875rem;
 		font-weight: 600;
-		color: #495057;
+		color: #333;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
 		margin-bottom: 0.5rem;
+		display: block;
 	}
 
 	.modern-input {
-		padding: 1rem 1.25rem;
-		border: 1.5px solid #dee2e6;
-		border-radius: 10px;
+		padding: 0.875rem 0;
+		border: none;
+		border-bottom: 2px solid #e0e0e0;
+		border-radius: 0;
 		font-size: 1rem;
-		background: #ffffff;
-		transition: all 0.3s ease;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+		background: transparent;
+		transition: border-color 0.2s ease;
 		width: 100%;
 		font-family: inherit;
 	}
 
 	.modern-input:focus {
 		outline: none;
-		border-color: #007bff;
-		box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
-		transform: translateY(-1px);
+		border-bottom-color: #007bff;
 	}
 
 	.modern-input.error {
-		border-color: #dc3545;
-		box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+		border-bottom-color: #dc3545;
 	}
 
 	.modern-error {
@@ -314,44 +309,41 @@
 		font-weight: 500;
 	}
 
-	/* Itinerary styles */
+	/* Itinerary styles - flat design */
 	.itinerary-container {
-		margin-top: 2rem;
-		padding: 1.5rem;
-		background: #f8f9fa;
-		border-radius: 8px;
-		border: 1px solid #e0e0e0;
+		margin-top: 3rem;
+		padding: 0;
+		background: transparent;
 	}
 
 	.itinerary-title {
 		font-size: 1.2rem;
 		font-weight: 600;
-		margin-bottom: 1rem;
+		margin-bottom: 1.5rem;
 		color: #333;
 	}
 
 	.itinerary-table {
 		width: 100%;
 		border-collapse: collapse;
-		margin-bottom: 1rem;
-		background: white;
-		border-radius: 8px;
-		overflow: hidden;
+		margin-bottom: 1.5rem;
+		background: transparent;
 	}
 
 	.itinerary-table thead {
-		background: #007bff;
-		color: white;
+		background: transparent;
+		border-bottom: 2px solid #333;
 	}
 
 	.itinerary-table th {
-		padding: 0.75rem;
+		padding: 0.75rem 0;
 		text-align: left;
 		font-weight: 600;
+		color: #333;
 	}
 
 	.itinerary-table td {
-		padding: 0.75rem;
+		padding: 0.75rem 0;
 		border-bottom: 1px solid #e0e0e0;
 	}
 
@@ -360,48 +352,44 @@
 	}
 
 	.itinerary-table tbody tr:hover {
-		background: #f8f9fa;
+		background: transparent;
 	}
 
 	.itinerary-summary {
 		font-weight: 600;
 		color: #333;
-		text-align: center;
+		text-align: left;
 		padding-top: 1rem;
+		margin-top: 1rem;
 		border-top: 1px solid #e0e0e0;
 	}
 
 	.itinerary-placeholder {
 		margin-top: 2rem;
-		padding: 2rem;
+		padding: 2rem 0;
 		text-align: center;
-		background: #f8f9fa;
-		border: 2px dashed #e0e0e0;
-		border-radius: 8px;
-		color: #666;
+		background: transparent;
+		color: #999;
 	}
 
-	/* Price Breakdown Styles */
+	/* Price Breakdown Styles - flat design */
 	.price-breakdown {
-		margin-top: 2rem;
-		padding: 1.5rem;
-		background: #f0f7ff;
-		border: 2px solid #007bff;
-		border-radius: 8px;
+		margin-top: 3rem;
+		padding: 0;
+		background: transparent;
 	}
 
 	.price-title {
 		font-size: 1.2rem;
 		font-weight: 600;
-		margin-bottom: 1rem;
-		color: #007bff;
+		margin-bottom: 1.5rem;
+		color: #333;
 	}
 
 	.price-explanation {
-		margin-bottom: 1.5rem;
-		padding: 1rem;
-		background: white;
-		border-radius: 6px;
+		margin-bottom: 2rem;
+		padding: 0;
+		background: transparent;
 	}
 
 	.price-explanation p {
@@ -413,7 +401,7 @@
 	.price-explanation ul {
 		margin: 0;
 		padding-left: 1.5rem;
-		color: #555;
+		color: #666;
 	}
 
 	.price-explanation li {
@@ -422,9 +410,8 @@
 	}
 
 	.price-details {
-		background: white;
-		padding: 1rem;
-		border-radius: 6px;
+		background: transparent;
+		padding: 0;
 	}
 
 	.price-line {
@@ -451,34 +438,30 @@
 		display: flex;
 		justify-content: space-between;
 		padding: 1rem 0 0.5rem 0;
-		margin-top: 0.5rem;
-		border-top: 2px solid #007bff;
+		margin-top: 1rem;
+		border-top: 2px solid #333;
 		font-size: 1.1rem;
 	}
 
 	.price-total .price-label {
 		font-weight: 600;
-		color: #007bff;
+		color: #333;
 	}
 
 	.price-total .price-value {
 		font-size: 1.3rem;
 		font-weight: 700;
-		color: #007bff;
+		color: #333;
 	}
 
 	@media (max-width: 768px) {
-		.basic-details-modern .modern-form {
-			padding: 1.5rem;
-		}
-
 		.itinerary-table {
 			font-size: 0.875rem;
 		}
 
 		.itinerary-table th,
 		.itinerary-table td {
-			padding: 0.5rem;
+			padding: 0.5rem 0;
 		}
 	}
 </style>

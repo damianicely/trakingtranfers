@@ -147,50 +147,45 @@
 		gap: 1.5rem;
 	}
 
-	/* Modern styling */
+	/* Flat design styling */
 	.basic-details-modern .modern-form {
-		background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-		padding: 2.5rem;
-		border-radius: 16px;
-		border: 1px solid #e9ecef;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+		background: transparent;
+		padding: 0;
 	}
 
 	.modern-group {
-		margin-bottom: 1.75rem;
+		margin-bottom: 2rem;
 	}
 
 	.modern-label {
 		font-size: 0.875rem;
 		font-weight: 600;
-		color: #495057;
+		color: #333;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
 		margin-bottom: 0.5rem;
+		display: block;
 	}
 
 	.modern-input {
-		padding: 1rem 1.25rem;
-		border: 1.5px solid #dee2e6;
-		border-radius: 10px;
+		padding: 0.875rem 0;
+		border: none;
+		border-bottom: 2px solid #e0e0e0;
+		border-radius: 0;
 		font-size: 1rem;
-		background: #ffffff;
-		transition: all 0.3s ease;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+		background: transparent;
+		transition: border-color 0.2s ease;
 		width: 100%;
 		font-family: inherit;
 	}
 
 	.modern-input:focus {
 		outline: none;
-		border-color: #007bff;
-		box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
-		transform: translateY(-1px);
+		border-bottom-color: #007bff;
 	}
 
 	.modern-input.error {
-		border-color: #dc3545;
-		box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+		border-bottom-color: #dc3545;
 	}
 
 	.modern-error {
@@ -200,13 +195,11 @@
 		font-weight: 500;
 	}
 
-	/* Accommodation specific styles */
+	/* Accommodation specific styles - flat design */
 	.accommodation-later-group {
 		margin-bottom: 2rem;
-		padding: 1.5rem;
-		background: #fff3cd;
-		border: 2px solid #ffc107;
-		border-radius: 8px;
+		padding: 0;
+		background: transparent;
 	}
 
 	.checkbox-label {
@@ -227,7 +220,7 @@
 
 	.accommodation-warning {
 		margin: 0;
-		color: #856404;
+		color: #666;
 		font-size: 0.9rem;
 		margin-left: 2rem;
 	}
@@ -247,32 +240,32 @@
 	}
 
 	.hotel-section {
-		border: 2px solid #e0e0e0;
-		border-radius: 8px;
-		overflow: hidden;
-		transition: all 0.3s;
+		border: none;
+		border-bottom: 2px solid #e0e0e0;
+		overflow: visible;
+		transition: border-color 0.2s ease;
+		padding-bottom: 1rem;
+		margin-bottom: 1.5rem;
 	}
 
 	.hotel-section.complete {
-		border-color: #28a745;
-		background: #f8fff9;
+		border-bottom-color: #28a745;
 	}
 
 	.hotel-section.incomplete {
-		border-color: #dc3545;
-		background: #fff8f8;
+		border-bottom-color: #e0e0e0;
 	}
 
 	.hotel-header {
 		width: 100%;
-		padding: 1rem 1.5rem;
+		padding: 1rem 0;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		text-align: left;
 		font-size: 1rem;
 		cursor: pointer;
-		background: white;
+		background: transparent;
 	}
 
 	.hotel-header-left {
@@ -290,18 +283,18 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 50%;
+		border-radius: 0;
 		flex-shrink: 0;
 	}
 
 	.hotel-section.complete .hotel-status-icon {
 		color: #28a745;
-		background: #d4edda;
+		background: transparent;
 	}
 
 	.hotel-section.incomplete .hotel-status-icon {
-		color: #dc3545;
-		background: #f8d7da;
+		color: #999;
+		background: transparent;
 	}
 
 	.hotel-label {
@@ -324,16 +317,12 @@
 	}
 
 	.hotel-content {
-		padding: 1.5rem;
-		background: white;
-		border-top: 1px solid #e0e0e0;
+		padding: 1.5rem 0;
+		background: transparent;
+		border-top: none;
 	}
 
 	@media (max-width: 768px) {
-		.basic-details-modern .modern-form {
-			padding: 1.5rem;
-		}
-
 		.accommodation-warning {
 			margin-left: 0;
 			margin-top: 0.5rem;

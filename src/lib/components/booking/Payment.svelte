@@ -124,13 +124,20 @@
 			
 			// Try to create payment intent from backend first
 			try {
-				// Calculate a test amount (you can adjust this)
-				const testAmount = 5000; // 50.00 EUR in cents
+				// Calculate the actual price from form data
+				const totalPrice = calculatePrice();
+				if (!totalPrice || totalPrice <= 0) {
+					throw new Error('Invalid price. Please complete the booking form.');
+				}
+				
+				// Convert EUR to cents (Stripe requires amounts in smallest currency unit)
+				const amountInCents = Math.round(totalPrice * 100);
+				
 				const response = await fetch('/api/create-payment-intent', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ 
-						amount: testAmount, 
+						amount: amountInCents, 
 						currency: 'eur' 
 					})
 				});
@@ -184,41 +191,61 @@
 	}
 
 	async function handlePayment() {
-		if (!stripe || !paymentElement) {
+		if (!stripe || !paymentElement || !elements) {
 			paymentError = 'Payment system not ready. Please refresh the page.';
 			return;
-		}
-
-		// If we don't have a client secret, we need to create a payment intent first
-		if (!paymentIntentClientSecret) {
-			try {
-				const testAmount = 5000; // 50.00 EUR in cents
-				const response = await fetch('/api/create-payment-intent', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ 
-						amount: testAmount, 
-						currency: 'eur' 
-					})
-				});
-
-				if (response.ok) {
-					const data = await response.json();
-					paymentIntentClientSecret = data.clientSecret;
-				} else {
-					throw new Error(`Backend returned ${response.status}. Please create the /api/create-payment-intent endpoint.`);
-				}
-			} catch (backendError: any) {
-				paymentError = backendError.message || 'Backend endpoint not available. Please create /api/create-payment-intent endpoint.';
-				return;
-			}
 		}
 
 		paymentProcessing = true;
 		paymentError = null;
 
 		try {
-			const { error: submitError } = await stripe.confirmPayment({
+			// STEP 1: Immediately validate the payment form (REQUIRED by Stripe)
+			// This must be called BEFORE any async work
+			const { error: submitError } = await elements.submit();
+			
+			if (submitError) {
+				paymentError = submitError.message || 'Please check your payment details.';
+				paymentProcessing = false;
+				return;
+			}
+
+			// STEP 2: Now we can do async work (create payment intent if needed)
+			if (!paymentIntentClientSecret) {
+				// Calculate the actual price from form data
+				const totalPrice = calculatePrice();
+				if (!totalPrice || totalPrice <= 0) {
+					paymentError = 'Invalid price. Please complete the booking form.';
+					paymentProcessing = false;
+					return;
+				}
+				
+				// Convert EUR to cents (Stripe requires amounts in smallest currency unit)
+				const amountInCents = Math.round(totalPrice * 100);
+				
+				const response = await fetch('/api/create-payment-intent', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ 
+						amount: amountInCents, 
+						currency: 'eur' 
+					})
+				});
+
+				if (!response.ok) {
+					throw new Error(`Backend returned ${response.status}. Please check your server.`);
+				}
+
+				const data = await response.json();
+				if (data.error) {
+					throw new Error(data.error);
+				}
+				
+				paymentIntentClientSecret = data.clientSecret;
+			}
+
+			// STEP 3: Confirm the payment with Stripe
+			const { error: confirmError } = await stripe.confirmPayment({
 				elements,
 				clientSecret: paymentIntentClientSecret,
 				confirmParams: {
@@ -227,8 +254,8 @@
 				redirect: 'if_required'
 			});
 
-			if (submitError) {
-				paymentError = submitError.message || t.booking_payment_error;
+			if (confirmError) {
+				paymentError = confirmError.message || t.booking_payment_error;
 				paymentProcessing = false;
 			} else {
 				// Payment succeeded
@@ -335,27 +362,22 @@
 		color: #333;
 	}
 
-	/* Modern styling */
+	/* Flat design styling */
 	.basic-details-modern .modern-form {
-		background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-		padding: 2.5rem;
-		border-radius: 16px;
-		border: 1px solid #e9ecef;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+		background: transparent;
+		padding: 0;
 	}
 
-	/* Payment Section Styles */
+	/* Payment Section Styles - flat design */
 	.payment-container {
 		display: flex;
 		flex-direction: column;
-		gap: 2rem;
+		gap: 3rem;
 	}
 
 	.booking-summary {
-		background: #f8f9fa;
-		border: 1px solid #e0e0e0;
-		border-radius: 8px;
-		padding: 1.5rem;
+		background: transparent;
+		padding: 0;
 	}
 
 	.summary-title {
@@ -366,7 +388,7 @@
 	}
 
 	.transfers-list {
-		margin-bottom: 1.5rem;
+		margin-bottom: 2rem;
 	}
 
 	.transfers-title {
@@ -380,21 +402,24 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 0.75rem;
+		padding: 0.75rem 0;
 		margin-bottom: 0.5rem;
-		background: white;
-		border-radius: 6px;
-		border: 1px solid #e0e0e0;
+		background: transparent;
+		border-bottom: 1px solid #e0e0e0;
+	}
+
+	.transfer-item:last-child {
+		border-bottom: none;
 	}
 
 	.transfer-date {
 		font-weight: 600;
-		color: #007bff;
+		color: #333;
 		min-width: 120px;
 	}
 
 	.transfer-route {
-		color: #333;
+		color: #666;
 		font-weight: 500;
 	}
 
@@ -404,26 +429,24 @@
 		align-items: center;
 		padding: 1rem 0;
 		margin-top: 1rem;
-		border-top: 2px solid #007bff;
+		border-top: 2px solid #333;
 		font-size: 1.2rem;
 	}
 
 	.summary-label {
 		font-weight: 600;
-		color: #007bff;
+		color: #333;
 	}
 
 	.summary-value {
-		color: #007bff;
+		color: #333;
 		font-weight: 700;
 		font-size: 1.4rem;
 	}
 
 	.payment-form-section {
-		background: white;
-		border: 1px solid #e0e0e0;
-		border-radius: 8px;
-		padding: 1.5rem;
+		background: transparent;
+		padding: 0;
 	}
 
 	.payment-form-title {
@@ -435,10 +458,8 @@
 
 	.stripe-payment-element {
 		margin-bottom: 1.5rem;
-		padding: 1rem;
-		background: #fafafa;
-		border: 1px solid #ddd;
-		border-radius: 4px;
+		padding: 0;
+		background: transparent;
 	}
 
 	.payment-loading {
@@ -475,11 +496,10 @@
 
 	.payment-success {
 		text-align: center;
-		padding: 2rem;
-		background: #e6ffe6;
-		border: 1px solid #00cc00;
-		border-radius: 8px;
-		color: #006600;
+		padding: 2rem 0;
+		background: transparent;
+		color: #28a745;
+		font-weight: 600;
 	}
 
 	.success-icon {
@@ -493,12 +513,11 @@
 	}
 
 	.payment-error-message {
-		background: #ffe6e6;
-		border: 1px solid #cc0000;
-		color: #cc0000;
-		padding: 1rem;
-		border-radius: 8px;
+		background: transparent;
+		color: #dc3545;
+		padding: 1rem 0;
 		margin-bottom: 1rem;
+		font-weight: 500;
 	}
 
 	.payment-note {
