@@ -23,6 +23,28 @@ npm run dev
 
 3. Open [http://localhost:5173](http://localhost:5173) in your browser
 
+## Database Connection
+
+This project uses PostgreSQL and connects to the database through an SSH tunnel during development. You need to establish the tunnel connection **before** running the development server.
+
+### Setting up the SSH Tunnel
+
+1. Open a **separate terminal window** (keep it running while developing)
+2. Run the SSH tunnel command:
+   ```bash
+   ssh -L 5433:localhost:5432 transfers
+   ```
+   This command:
+   - Creates a local port forward from `localhost:5433` to the remote database on port `5432`
+   - Connects via SSH to the `transfers` host
+   - The tunnel must remain active while you're developing
+
+3. Keep this terminal window open - the tunnel will remain active as long as the SSH connection is maintained
+
+4. The application will connect to the database through `localhost:5433` (configured via `DATABASE_URL` environment variable)
+
+> **Note**: If the SSH tunnel disconnects, you'll need to restart it. The development server will not be able to connect to the database without an active tunnel.
+
 ## Project Structure
 
 - `src/routes/+page.svelte` - Main landing page with hero section
