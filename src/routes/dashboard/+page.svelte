@@ -1,140 +1,147 @@
 <script lang="ts">
+    import { language } from '$lib/stores/language';
+    import { translations } from '$lib/translations';
+
     let { data } = $props(); // Svelte 5 way to get data from the server
     
     const user = $derived(data.user);
     const role = $derived(user.role);
+
+    const t = $derived(translations[$language]);
     
     const roleTitle = $derived.by(() => {
         const roleMap: Record<string, string> = {
-            customer: 'Customer Dashboard',
-            owner: 'Owner Dashboard',
-            driver: 'Driver Dashboard',
-            admin: 'Admin Dashboard'
+            customer: t.dashboard_title_customer,
+            owner: t.dashboard_title_owner,
+            driver: t.dashboard_title_driver,
+            admin: t.dashboard_title_admin
         };
-        return roleMap[role] || 'Dashboard';
+        return roleMap[role] || t.dashboard_title_customer;
     });
 </script>
 
 <div class="dashboard">
     <header class="dashboard-header">
         <h1>{roleTitle}</h1>
-        <p class="welcome">Welcome back, <strong>{user.username}</strong>!</p>
+        <p class="welcome">
+            {t.dashboard_welcome.replace('{username}', user.username)}
+        </p>
         <form method="POST" action="/logout" class="logout-form">
-            <button type="submit">Logout</button>
+            <button type="submit">{t.dashboard_logout}</button>
         </form>
     </header>
 
     <main class="dashboard-content">
         {#if role === 'customer'}
             <section class="dashboard-section">
-                <h2>Your Bookings</h2>
-                <p>View and manage your luggage transfer bookings.</p>
+                <h2>{t.dashboard_section_bookings_title}</h2>
+                <p>{t.dashboard_section_bookings_description}</p>
                 <div class="placeholder">
-                    <p>No bookings yet. <a href="/">Create a booking</a></p>
+                    <p>{t.dashboard_section_bookings_empty} <a href="/">{t.dashboard_section_bookings_create_link}</a></p>
                 </div>
             </section>
             
             <section class="dashboard-section">
-                <h2>Account Information</h2>
+                <h2>{t.dashboard_section_account_title}</h2>
                 <dl class="info-list">
-                    <dt>Username:</dt>
+                    <dt>{t.dashboard_label_username}</dt>
                     <dd>{user.username}</dd>
-                    <dt>User ID:</dt>
+                    <dt>{t.dashboard_label_user_id}</dt>
                     <dd>{user.id}</dd>
-                    <dt>Role:</dt>
-                    <dd>Customer</dd>
+                    <dt>{t.dashboard_label_role}</dt>
+                    <dd>{t.dashboard_role_customer}</dd>
                 </dl>
             </section>
         {:else if role === 'owner'}
             <section class="dashboard-section">
-                <h2>Business Overview</h2>
-                <p>Manage your transfer business operations.</p>
+                <h2>{t.dashboard_section_owner_overview_title}</h2>
+                <p>{t.dashboard_section_owner_overview_description}</p>
                 <div class="placeholder">
-                    <p>Business dashboard coming soon</p>
+                    <p>{t.dashboard_section_owner_overview_placeholder}</p>
                 </div>
             </section>
             
             <section class="dashboard-section">
-                <h2>Bookings Management</h2>
-                <p>View and manage all bookings across your business.</p>
+                <h2>{t.dashboard_section_owner_bookings_title}</h2>
+                <p>{t.dashboard_section_owner_bookings_description}</p>
                 <div class="placeholder">
-                    <p>Bookings management coming soon</p>
+                    <p>{t.dashboard_section_owner_bookings_placeholder}</p>
                 </div>
             </section>
             
             <section class="dashboard-section">
-                <h2>Account Information</h2>
+                <h2>{t.dashboard_section_account_title}</h2>
                 <dl class="info-list">
-                    <dt>Username:</dt>
+                    <dt>{t.dashboard_label_username}</dt>
                     <dd>{user.username}</dd>
-                    <dt>User ID:</dt>
+                    <dt>{t.dashboard_label_user_id}</dt>
                     <dd>{user.id}</dd>
-                    <dt>Role:</dt>
-                    <dd>Owner</dd>
+                    <dt>{t.dashboard_label_role}</dt>
+                    <dd>{t.dashboard_role_owner}</dd>
                 </dl>
             </section>
         {:else if role === 'driver'}
             <section class="dashboard-section">
-                <h2>Today's Routes</h2>
-                <p>View your assigned transfer routes for today.</p>
+                <h2>{t.dashboard_section_driver_today_title}</h2>
+                <p>{t.dashboard_section_driver_today_description}</p>
                 <div class="placeholder">
-                    <p>No routes assigned today</p>
+                    <p>{t.dashboard_section_driver_today_placeholder}</p>
                 </div>
             </section>
             
             <section class="dashboard-section">
-                <h2>Upcoming Transfers</h2>
-                <p>See your scheduled transfers for the coming days.</p>
+                <h2>{t.dashboard_section_driver_upcoming_title}</h2>
+                <p>{t.dashboard_section_driver_upcoming_description}</p>
                 <div class="placeholder">
-                    <p>No upcoming transfers</p>
+                    <p>{t.dashboard_section_driver_upcoming_placeholder}</p>
                 </div>
             </section>
             
             <section class="dashboard-section">
-                <h2>Account Information</h2>
+                <h2>{t.dashboard_section_account_title}</h2>
                 <dl class="info-list">
-                    <dt>Username:</dt>
+                    <dt>{t.dashboard_label_username}</dt>
                     <dd>{user.username}</dd>
-                    <dt>User ID:</dt>
+                    <dt>{t.dashboard_label_user_id}</dt>
                     <dd>{user.id}</dd>
-                    <dt>Role:</dt>
-                    <dd>Driver</dd>
+                    <dt>{t.dashboard_label_role}</dt>
+                    <dd>{t.dashboard_role_driver}</dd>
                 </dl>
             </section>
         {:else if role === 'admin'}
             <section class="dashboard-section">
-                <h2>System Overview</h2>
-                <p>Monitor and manage the entire platform.</p>
+                <h2>{t.dashboard_section_admin_overview_title}</h2>
+                <p>{t.dashboard_section_admin_overview_description}</p>
                 <div class="placeholder">
-                    <p>System statistics coming soon</p>
+                    <p>{t.dashboard_section_admin_overview_placeholder}</p>
                 </div>
             </section>
             
             <section class="dashboard-section">
-                <h2>User Management</h2>
-                <p>Manage users, roles, and permissions.</p>
+                <h2>{t.dashboard_section_admin_users_title}</h2>
+                <p>{t.dashboard_section_admin_users_description}</p>
                 <div class="placeholder">
-                    <p>User management coming soon</p>
+                    <p>{t.dashboard_section_admin_users_placeholder}</p>
                 </div>
             </section>
             
             <section class="dashboard-section">
-                <h2>All Bookings</h2>
-                <p>View and manage all bookings across the platform.</p>
+                <h2>{t.dashboard_section_admin_bookings_title}</h2>
+                <p>{t.dashboard_section_admin_bookings_description}</p>
                 <div class="placeholder">
-                    <p>Bookings overview coming soon</p>
+                    <p>{t.dashboard_section_admin_bookings_placeholder}</p>
                 </div>
             </section>
             
             <section class="dashboard-section">
-                <h2>Account Information</h2>
+                <h2>{t.dashboard_section_account_title}</h2>
                 <dl class="info-list">
-                    <dt>Username:</dt>
+                    <dt>{t.dashboard_label_username}</dt>
                     <dd>{user.username}</dd>
-                    <dt>User ID:</dt>
+                    <dt>{t.dashboard_label_user_id}</dt>
                     <dd>{user.id}</dd>
-                    <dt>Role:</dt>
-                    <dd>Administrator</dd>
+                    <dt>{t.dashboard_label_role}</dt>
+                    <dd>{t.dashboard_role_admin}</dd>
                 </dl>
             </section>
         {/if}
