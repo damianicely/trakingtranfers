@@ -26,7 +26,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.user = null;
 	} else {
 		// 4. Set user data to 'locals' for use in any +page.server.ts
-		event.locals.user = { id: result.user.id, username: result.user.username };
+		event.locals.user = { 
+			id: result.user.id, 
+			username: result.user.username,
+			role: result.user.role // Now available for route guarding!
+		};
 	}
 
 	return resolve(event);
