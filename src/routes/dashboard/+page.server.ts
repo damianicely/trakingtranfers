@@ -61,7 +61,53 @@ export const load = async ({ locals }) => {
 		hotelsByLocation[hotel.locationId].push(hotel);
 	}
 
-	// 5. Load admin data (all bookings, customers, drivers)
+	// 5. Load owner data (sales analytics)
+	let ownerBookings: any[] = [];
+	let dailySales: Array<{ date: string; amount: number; count: number }> = [];
+
+	if (user.role === 'owner') {
+		// Load all paid bookings for sales analytics
+		ownerBookings = await db
+			.select()
+			.from(bookingTable)
+			.where(eq(bookingTable.status, 'paid'))
+			.orderBy(desc(bookingTable.createdAt))
+			.limit(100);
+
+		// Calculate daily sales for the last 30 days
+		const salesByDate: Record<string, { amount: number; count: number }> = {};
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		// Initialize last 30 days
+		for (let i = 29; i >= 0; i--) {
+			const date = new Date(today);
+			date.setDate(date.getDate() - i);
+			const dateStr = date.toISOString().split('T')[0];
+			salesByDate[dateStr] = { amount: 0, count: 0 };
+		}
+
+		// Aggregate sales by date
+		for (const booking of ownerBookings) {
+			if (booking.createdAt && booking.totalPrice) {
+				const bookingDate = new Date(booking.createdAt);
+				bookingDate.setHours(0, 0, 0, 0);
+				const dateStr = bookingDate.toISOString().split('T')[0];
+
+				if (salesByDate[dateStr]) {
+					salesByDate[dateStr].amount += parseFloat(booking.totalPrice) || 0;
+					salesByDate[dateStr].count += 1;
+				}
+			}
+		}
+
+		// Convert to array and sort by date
+		dailySales = Object.entries(salesByDate)
+			.map(([date, data]) => ({ date, ...data }))
+			.sort((a, b) => a.date.localeCompare(b.date));
+	}
+
+	// 6. Load admin data (all bookings, customers, drivers)
 	let allBookings: any[] = [];
 	let allCustomers: any[] = [];
 	let allDrivers: any[] = [];
@@ -115,7 +161,10 @@ export const load = async ({ locals }) => {
 		// Admin data
 		allBookings,
 		allCustomers,
-		allDrivers
+		allDrivers,
+		// Owner data
+		ownerBookings,
+		dailySales
 	};
 };
 

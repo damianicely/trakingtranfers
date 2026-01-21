@@ -2,30 +2,182 @@
 	let { data, form } = $props();
 </script>
 
-{#if !data.tokenValid}
-	<h1>Set Password</h1>
-	<p>This link is invalid or has expired. Please request a new password setup link.</p>
-{:else}
-	<h1>Set Your Password</h1>
+<div class="auth-container">
+	<div class="auth-card">
+		{#if !data.tokenValid}
+			<h1>Invalid Link</h1>
+			<p class="subtitle">This password reset link is invalid or has expired.</p>
+			<div class="alert alert-error">
+				Please request a new password setup link from the <a href="/login">login page</a>.
+			</div>
+		{:else}
+			<h1>Set Your Password</h1>
+			<p class="subtitle">Choose a secure password for your account</p>
 
-	{#if form?.message}
-		<p style="color: red;">{form.message}</p>
-	{/if}
+			{#if form?.message}
+				<div class="alert alert-error">{form.message}</div>
+			{/if}
 
-	<form method="POST">
-		<div>
-			<label for="password">New Password</label>
-			<input name="password" id="password" type="password" required minlength="6" />
-		</div>
+			<form method="POST" class="auth-form">
+				<div class="form-group">
+					<label for="password">New Password</label>
+					<input name="password" id="password" type="password" required minlength="6" />
+					<small class="form-hint">Minimum 6 characters</small>
+				</div>
 
-		<div>
-			<label for="confirmPassword">Confirm Password</label>
-			<input name="confirmPassword" id="confirmPassword" type="password" required minlength="6" />
-		</div>
+				<div class="form-group">
+					<label for="confirmPassword">Confirm Password</label>
+					<input name="confirmPassword" id="confirmPassword" type="password" required minlength="6" />
+				</div>
 
-		<button type="submit">Set Password</button>
-	</form>
+				<button type="submit" class="btn-primary">Set Password</button>
+			</form>
 
-	<p>After setting your password, you can log in from the <a href="/login">login page</a>.</p>
-{/if}
+			<div class="auth-footer">
+				<p>After setting your password, you can <a href="/login">log in</a>.</p>
+			</div>
+		{/if}
+	</div>
+</div>
 
+<style>
+	.auth-container {
+		min-height: calc(100vh - 60px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2rem;
+		background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+	}
+
+	.auth-card {
+		background: white;
+		border-radius: 12px;
+		padding: 3rem;
+		width: 100%;
+		max-width: 400px;
+		box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+	}
+
+	h1 {
+		margin: 0 0 0.5rem 0;
+		font-size: 2rem;
+		font-weight: 700;
+		color: #1a1a1a;
+		text-align: center;
+	}
+
+	.subtitle {
+		margin: 0 0 2rem 0;
+		color: #666;
+		text-align: center;
+		font-size: 0.95rem;
+	}
+
+	.auth-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.form-group label {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.form-group input {
+		padding: 0.75rem;
+		border: 1px solid #ddd;
+		border-radius: 6px;
+		font-size: 1rem;
+		transition: border-color 0.2s, box-shadow 0.2s;
+	}
+
+	.form-group input:focus {
+		outline: none;
+		border-color: #007bff;
+		box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+	}
+
+	.form-hint {
+		font-size: 0.8rem;
+		color: #666;
+		margin-top: -0.25rem;
+	}
+
+	.btn-primary {
+		padding: 0.75rem 2rem;
+		background: #007bff;
+		color: white;
+		border: none;
+		border-radius: 6px;
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background-color 0.2s;
+		margin-top: 0.5rem;
+	}
+
+	.btn-primary:hover {
+		background: #0056b3;
+	}
+
+	.alert {
+		padding: 0.75rem 1rem;
+		border-radius: 6px;
+		margin-bottom: 1.5rem;
+		font-size: 0.9rem;
+	}
+
+	.alert-error {
+		background: #f8d7da;
+		color: #721c24;
+		border: 1px solid #f5c6cb;
+	}
+
+	.alert-error a {
+		color: #721c24;
+		text-decoration: underline;
+		font-weight: 600;
+	}
+
+	.auth-footer {
+		text-align: center;
+		padding-top: 1.5rem;
+		border-top: 1px solid #e9ecef;
+		color: #666;
+		font-size: 0.9rem;
+	}
+
+	.auth-footer a {
+		color: #007bff;
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	.auth-footer a:hover {
+		text-decoration: underline;
+	}
+
+	@media (max-width: 768px) {
+		.auth-container {
+			padding: 1rem;
+		}
+
+		.auth-card {
+			padding: 2rem 1.5rem;
+		}
+
+		h1 {
+			font-size: 1.75rem;
+		}
+	}
+</style>

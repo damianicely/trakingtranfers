@@ -134,6 +134,15 @@ export const translations = {
 		dashboard_section_owner_bookings_title: 'Bookings Management',
 		dashboard_section_owner_bookings_description: 'View and manage all bookings across your business.',
 		dashboard_section_owner_bookings_placeholder: 'Bookings management coming soon',
+		dashboard_owner_total_revenue: 'Total Revenue (30 days)',
+		dashboard_owner_total_bookings: 'Total Bookings (30 days)',
+		dashboard_owner_avg_daily: 'Average Daily Revenue',
+		dashboard_owner_today_sales: "Today's Sales",
+		dashboard_owner_bookings_today: 'bookings',
+		dashboard_owner_daily_sales_title: 'Daily Sales (Last 30 Days)',
+		dashboard_owner_daily_sales_description: 'Revenue and booking count per day over the last 30 days.',
+		dashboard_owner_no_sales_data: 'No sales data available for the last 30 days.',
+		dashboard_owner_no_bookings: 'No bookings found.',
 		dashboard_section_driver_today_title: "Today's Routes",
 		dashboard_section_driver_today_description: 'View your assigned transfer routes for today.',
 		dashboard_section_driver_today_placeholder: 'No routes assigned today',
@@ -169,7 +178,11 @@ export const translations = {
 		booking_success_next_steps_title: 'What Happens Next?',
 		booking_success_next_steps_message: 'You will receive a confirmation email shortly with all the details of your booking. If you have an account, you can also view your booking in your dashboard.',
 		booking_success_back_home: 'Back to Home',
-		booking_success_view_dashboard: 'View Dashboard'
+		booking_success_view_dashboard: 'View Dashboard',
+
+		// Footer
+		footer_all_rights_reserved: 'All rights reserved.',
+		footer_complaints_book: 'Livro de Reclamações'
 	},
 	pt: {
 		hero_title: 'Bem-vindo ao TrakingTransfers',
@@ -306,6 +319,15 @@ export const translations = {
 		dashboard_section_owner_bookings_title: 'Gestão de Reservas',
 		dashboard_section_owner_bookings_description: 'Veja e gere todas as reservas do seu negócio.',
 		dashboard_section_owner_bookings_placeholder: 'Gestão de reservas em breve',
+		dashboard_owner_total_revenue: 'Receita Total (30 dias)',
+		dashboard_owner_total_bookings: 'Total de Reservas (30 dias)',
+		dashboard_owner_avg_daily: 'Receita Média Diária',
+		dashboard_owner_today_sales: 'Vendas de Hoje',
+		dashboard_owner_bookings_today: 'reservas',
+		dashboard_owner_daily_sales_title: 'Vendas Diárias (Últimos 30 Dias)',
+		dashboard_owner_daily_sales_description: 'Receita e número de reservas por dia nos últimos 30 dias.',
+		dashboard_owner_no_sales_data: 'Não há dados de vendas disponíveis para os últimos 30 dias.',
+		dashboard_owner_no_bookings: 'Nenhuma reserva encontrada.',
 		dashboard_section_driver_today_title: 'Rotas de Hoje',
 		dashboard_section_driver_today_description: 'Veja as rotas de transferência atribuídas para hoje.',
 		dashboard_section_driver_today_placeholder: 'Nenhuma rota atribuída hoje',
@@ -341,7 +363,11 @@ export const translations = {
 		booking_success_next_steps_title: 'O Que Acontece a Seguir?',
 		booking_success_next_steps_message: 'Receberá um email de confirmação em breve com todos os detalhes da sua reserva. Se tiver uma conta, também pode ver a sua reserva no seu painel.',
 		booking_success_back_home: 'Voltar ao Início',
-		booking_success_view_dashboard: 'Ver Painel'
+		booking_success_view_dashboard: 'Ver Painel',
+
+		// Footer
+		footer_all_rights_reserved: 'Todos os direitos reservados.',
+		footer_complaints_book: 'Livro de Reclamações'
 	}
 };
 

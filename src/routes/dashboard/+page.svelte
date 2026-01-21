@@ -37,7 +37,7 @@
 		{#if role === 'customer'}
 			<CustomerDashboard {user} data={data} {form} />
 		{:else if role === 'owner'}
-			<OwnerDashboard {user} />
+			<OwnerDashboard {user} data={data} />
 		{:else if role === 'driver'}
 			<DriverDashboard {user} />
 		{:else if role === 'admin'}

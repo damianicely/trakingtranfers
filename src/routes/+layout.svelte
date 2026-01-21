@@ -2,11 +2,15 @@
 	import '../app.css';
 	import { onMount, onDestroy } from 'svelte';
 	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
 	import { browser } from '$app/environment';
 
 	onMount(() => {
 		language.init();
 	});
+
+	const t = $derived(translations[$language]);
+	const currentYear = new Date().getFullYear();
 </script>
 
 <header class="header">
@@ -39,6 +43,37 @@
 <main>
 	<slot />
 </main>
+
+<footer class="footer">
+	<div class="footer-container">
+		<div class="footer-content">
+			<div class="footer-logo">
+				<img src="/logo.png" alt="TrakingTransfers" class="logo-image" />
+			</div>
+			
+			<div class="footer-info">
+				<p class="copyright">
+					© {currentYear} TrakingTransfers.pt. {t.footer_all_rights_reserved}
+				</p>
+			</div>
+
+			<div class="footer-reclamacoes">
+				<a
+					href="https://www.livroreclamacoes.pt"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="reclamacoes-link"
+				>
+					<img
+						src="/livro_reclamacoes2.png"
+						alt="Livro de Reclamações"
+						class="reclamacoes-logo"
+					/>
+				</a>
+			</div>
+		</div>
+	</div>
+</footer>
 
 <style>
 	.header {
@@ -103,4 +138,82 @@
 		font-weight: 300;
 	}
 
+	.footer {
+		background: #fff;
+		color: #1a1a1a;
+		padding: 2rem 0;
+		margin-top: 4rem;
+		border-top: 1px solid #e0e0e0;
+	}
+
+	.footer-container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 2rem;
+	}
+
+	.footer-content {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 2rem;
+	}
+
+	.footer-logo {
+		flex-shrink: 0;
+	}
+
+	.logo-image {
+		height: 120px;
+		width: auto;
+	}
+
+	.footer-info {
+		flex: 1;
+		text-align: center;
+	}
+
+	.copyright {
+		margin: 0;
+		color: #1a1a1a;
+		font-size: 0.9rem;
+	}
+
+	.footer-reclamacoes {
+		flex-shrink: 0;
+	}
+
+	.reclamacoes-link {
+		display: block;
+		transition: opacity 0.2s;
+	}
+
+	.reclamacoes-link:hover {
+		opacity: 0.8;
+	}
+
+	.reclamacoes-logo {
+		height: 80px;
+		width: auto;
+	}
+
+	@media (max-width: 768px) {
+		.footer-content {
+			flex-direction: column;
+			text-align: center;
+		}
+
+		.footer-info {
+			order: 2;
+		}
+
+		.footer-logo {
+			order: 1;
+		}
+
+		.footer-reclamacoes {
+			order: 3;
+		}
+	}
 </style>
