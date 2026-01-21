@@ -148,7 +148,28 @@ export const translations = {
 		dashboard_section_admin_users_placeholder: 'User management coming soon',
 		dashboard_section_admin_bookings_title: 'All Bookings',
 		dashboard_section_admin_bookings_description: 'View and manage all bookings across the platform.',
-		dashboard_section_admin_bookings_placeholder: 'Bookings overview coming soon'
+		dashboard_section_admin_bookings_placeholder: 'Bookings overview coming soon',
+
+		// Booking Success Page
+		booking_success_title: 'Booking Confirmed!',
+		booking_success_message: 'Thank you for your booking. Your payment has been processed successfully.',
+		booking_success_details_title: 'Booking Details',
+		booking_success_customer_title: 'Customer Information',
+		booking_success_trip_title: 'Trip Information',
+		booking_success_name: 'Name',
+		booking_success_other_names: 'Other Names',
+		booking_success_email: 'Email',
+		booking_success_phone: 'Phone',
+		booking_success_departure_date: 'Departure Date',
+		booking_success_route: 'Route',
+		booking_success_transfers: 'Number of Transfers',
+		booking_success_bags: 'Number of Bags',
+		booking_success_total_price: 'Total Price',
+		booking_success_itinerary_title: 'Your Itinerary',
+		booking_success_next_steps_title: 'What Happens Next?',
+		booking_success_next_steps_message: 'You will receive a confirmation email shortly with all the details of your booking. If you have an account, you can also view your booking in your dashboard.',
+		booking_success_back_home: 'Back to Home',
+		booking_success_view_dashboard: 'View Dashboard'
 	},
 	pt: {
 		hero_title: 'Bem-vindo ao TrakingTransfers',
@@ -299,7 +320,28 @@ export const translations = {
 		dashboard_section_admin_users_placeholder: 'Gestão de utilizadores em breve',
 		dashboard_section_admin_bookings_title: 'Todas as Reservas',
 		dashboard_section_admin_bookings_description: 'Veja e gere todas as reservas da plataforma.',
-		dashboard_section_admin_bookings_placeholder: 'Visão geral de reservas em breve'
+		dashboard_section_admin_bookings_placeholder: 'Visão geral de reservas em breve',
+
+		// Booking Success Page
+		booking_success_title: 'Reserva Confirmada!',
+		booking_success_message: 'Obrigado pela sua reserva. O seu pagamento foi processado com sucesso.',
+		booking_success_details_title: 'Detalhes da Reserva',
+		booking_success_customer_title: 'Informações do Cliente',
+		booking_success_trip_title: 'Informações da Viagem',
+		booking_success_name: 'Nome',
+		booking_success_other_names: 'Outros Nomes',
+		booking_success_email: 'Email',
+		booking_success_phone: 'Telefone',
+		booking_success_departure_date: 'Data de Partida',
+		booking_success_route: 'Rota',
+		booking_success_transfers: 'Número de Transferências',
+		booking_success_bags: 'Número de Malas',
+		booking_success_total_price: 'Preço Total',
+		booking_success_itinerary_title: 'O Seu Itinerário',
+		booking_success_next_steps_title: 'O Que Acontece a Seguir?',
+		booking_success_next_steps_message: 'Receberá um email de confirmação em breve com todos os detalhes da sua reserva. Se tiver uma conta, também pode ver a sua reserva no seu painel.',
+		booking_success_back_home: 'Voltar ao Início',
+		booking_success_view_dashboard: 'Ver Painel'
 	}
 };
 

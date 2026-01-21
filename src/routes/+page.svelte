@@ -3,7 +3,7 @@
 	import { translations } from '$lib/translations';
 	import BookingForm from '$lib/components/BookingForm.svelte';
 
-	$: t = translations[$language];
+	const t = $derived(translations[$language]);
 
 	const scrollToBooking = () => {
 		const bookingSection = document.getElementById('booking-section');
@@ -14,13 +14,10 @@
 </script>
 
 <section class="hero">
-	<div class="hero-content">
-		<h1>{t.hero_title}</h1>
-		<button class="book-button" onclick={scrollToBooking}>{t.book_now}</button>
-	</div>
 	<div class="hero-image">
 		<img src="/hero.png" alt="Fisherman's Trail - TrakingTransfers" />
 	</div>
+	<button class="book-button" onclick={scrollToBooking}>{t.book_now}</button>
 </section>
 
 <section class="about-us">
@@ -41,16 +38,16 @@
 		<h2 class="gallery-title">{t.gallery_title}</h2>
 		<div class="gallery-grid">
 			<div class="gallery-item">
-				<img src="/temp1.jpeg" alt="Fisherman's Trail" />
+				<img src="/g1.png" alt="Fisherman's Trail" />
 			</div>
 			<div class="gallery-item">
-				<img src="/temp2.jpeg" alt="Fisherman's Trail" />
+				<img src="/g2.jpg" alt="Fisherman's Trail" />
 			</div>
 			<div class="gallery-item">
-				<img src="/temp1.jpeg" alt="Fisherman's Trail" />
+				<img src="/g3.png" alt="Fisherman's Trail" />
 			</div>
 			<div class="gallery-item">
-				<img src="/temp2.jpeg" alt="Fisherman's Trail" />
+				<img src="/g4.jpg" alt="Fisherman's Trail" />
 			</div>
 		</div>
 	</div>
@@ -84,56 +81,25 @@
 		object-position: center center;
 	}
 
-	.hero-content {
-		position: relative;
-		z-index: 1;
-		text-align: center;
-		color: white;
-		padding: 2rem;
-		background: rgba(0, 0, 0, 0.4);
-		border-radius: 10px;
-		backdrop-filter: blur(5px);
-	}
-
-	.hero-content h1 {
-		font-size: 3rem;
-		margin-bottom: 2rem;
-		font-weight: 700;
-		text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-	}
-
 	.book-button {
-		padding: 1rem 3rem;
-		font-size: 1.25rem;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 10;
+		padding: 0.75rem 2rem;
+		font-size: 1rem;
 		background: #007bff;
 		color: white;
 		border: none;
-		border-radius: 50px;
+		border-radius: 5px;
 		cursor: pointer;
 		font-weight: 600;
 		transition: all 0.3s;
-		box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
 	}
 
 	.book-button:hover {
 		background: #0056b3;
-		transform: translateY(-2px);
-		box-shadow: 0 6px 20px rgba(0, 123, 255, 0.6);
-	}
-
-	.book-button:active {
-		transform: translateY(0);
-	}
-
-	@media (max-width: 768px) {
-		.hero-content h1 {
-			font-size: 2rem;
-		}
-
-		.book-button {
-			padding: 0.75rem 2rem;
-			font-size: 1rem;
-		}
 	}
 
 	/* About Us Section */

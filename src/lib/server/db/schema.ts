@@ -61,7 +61,23 @@ export const bookingTable = pgTable("booking", {
     }),
 });
 
-// 3. Booking segments (route legs per booking)
+// 3. Hotels (associated with trail stages/locations)
+export const hotelTable = pgTable("hotel", {
+    id: text("id").primaryKey(),
+    locationId: text("location_id").notNull(), // Stage ID (e.g., 'PC' for Porto Covo)
+    name: text("name").notNull(),
+    contactInfo: text("contact_info"), // Phone, email, address
+    createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "date",
+    }).defaultNow(),
+    updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+        mode: "date",
+    }),
+});
+
+// 4. Booking segments (route legs per booking)
 export const bookingSegmentTable = pgTable("booking_segment", {
     id: text("id").primaryKey(),
     bookingId: text("booking_id")
@@ -74,6 +90,10 @@ export const bookingSegmentTable = pgTable("booking_segment", {
         withTimezone: true,
         mode: "date",
     }).notNull(),
+    // Hotel selections
+    startHotelId: text("start_hotel_id").references(() => hotelTable.id),
+    endHotelId: text("end_hotel_id").references(() => hotelTable.id),
+    hotelNotes: text("hotel_notes"), // Extra details for hotels
     createdAt: timestamp("created_at", {
         withTimezone: true,
         mode: "date",

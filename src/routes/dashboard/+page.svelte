@@ -1,151 +1,49 @@
 <script lang="ts">
-    import { language } from '$lib/stores/language';
-    import { translations } from '$lib/translations';
+	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
+	import CustomerDashboard from '$lib/components/dashboard/CustomerDashboard.svelte';
+	import DriverDashboard from '$lib/components/dashboard/DriverDashboard.svelte';
+	import OwnerDashboard from '$lib/components/dashboard/OwnerDashboard.svelte';
+	import AdminDashboard from '$lib/components/dashboard/AdminDashboard.svelte';
 
-    let { data } = $props(); // Svelte 5 way to get data from the server
-    
-    const user = $derived(data.user);
-    const role = $derived(user.role);
+	let { data, form } = $props(); // Svelte 5 way to get data from the server
 
-    const t = $derived(translations[$language]);
-    
-    const roleTitle = $derived.by(() => {
-        const roleMap: Record<string, string> = {
-            customer: t.dashboard_title_customer,
-            owner: t.dashboard_title_owner,
-            driver: t.dashboard_title_driver,
-            admin: t.dashboard_title_admin
-        };
-        return roleMap[role] || t.dashboard_title_customer;
-    });
+	const user = $derived(data.user);
+	const role = $derived(user.role);
+
+	const t = $derived(translations[$language]);
+
+	const roleTitle = $derived.by(() => {
+		const roleMap: Record<string, string> = {
+			customer: t.dashboard_title_customer,
+			owner: t.dashboard_title_owner,
+			driver: t.dashboard_title_driver,
+			admin: t.dashboard_title_admin
+		};
+		return roleMap[role] || t.dashboard_title_customer;
+	});
 </script>
 
 <div class="dashboard">
-    <header class="dashboard-header">
-        <h1>{roleTitle}</h1>
-        <p class="welcome">
-            {t.dashboard_welcome.replace('{username}', user.username)}
-        </p>
-        <form method="POST" action="/logout" class="logout-form">
-            <button type="submit">{t.dashboard_logout}</button>
-        </form>
-    </header>
+	<header class="dashboard-header">
+		<h1>{roleTitle}</h1>
+		<p class="welcome">{t.dashboard_welcome.replace('{username}', user.username)}</p>
+		<form method="POST" action="/logout" class="logout-form">
+			<button type="submit">{t.dashboard_logout}</button>
+		</form>
+	</header>
 
-    <main class="dashboard-content">
-        {#if role === 'customer'}
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_bookings_title}</h2>
-                <p>{t.dashboard_section_bookings_description}</p>
-                <div class="placeholder">
-                    <p>{t.dashboard_section_bookings_empty} <a href="/">{t.dashboard_section_bookings_create_link}</a></p>
-                </div>
-            </section>
-            
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_account_title}</h2>
-                <dl class="info-list">
-                    <dt>{t.dashboard_label_username}</dt>
-                    <dd>{user.username}</dd>
-                    <dt>{t.dashboard_label_user_id}</dt>
-                    <dd>{user.id}</dd>
-                    <dt>{t.dashboard_label_role}</dt>
-                    <dd>{t.dashboard_role_customer}</dd>
-                </dl>
-            </section>
-        {:else if role === 'owner'}
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_owner_overview_title}</h2>
-                <p>{t.dashboard_section_owner_overview_description}</p>
-                <div class="placeholder">
-                    <p>{t.dashboard_section_owner_overview_placeholder}</p>
-                </div>
-            </section>
-            
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_owner_bookings_title}</h2>
-                <p>{t.dashboard_section_owner_bookings_description}</p>
-                <div class="placeholder">
-                    <p>{t.dashboard_section_owner_bookings_placeholder}</p>
-                </div>
-            </section>
-            
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_account_title}</h2>
-                <dl class="info-list">
-                    <dt>{t.dashboard_label_username}</dt>
-                    <dd>{user.username}</dd>
-                    <dt>{t.dashboard_label_user_id}</dt>
-                    <dd>{user.id}</dd>
-                    <dt>{t.dashboard_label_role}</dt>
-                    <dd>{t.dashboard_role_owner}</dd>
-                </dl>
-            </section>
-        {:else if role === 'driver'}
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_driver_today_title}</h2>
-                <p>{t.dashboard_section_driver_today_description}</p>
-                <div class="placeholder">
-                    <p>{t.dashboard_section_driver_today_placeholder}</p>
-                </div>
-            </section>
-            
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_driver_upcoming_title}</h2>
-                <p>{t.dashboard_section_driver_upcoming_description}</p>
-                <div class="placeholder">
-                    <p>{t.dashboard_section_driver_upcoming_placeholder}</p>
-                </div>
-            </section>
-            
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_account_title}</h2>
-                <dl class="info-list">
-                    <dt>{t.dashboard_label_username}</dt>
-                    <dd>{user.username}</dd>
-                    <dt>{t.dashboard_label_user_id}</dt>
-                    <dd>{user.id}</dd>
-                    <dt>{t.dashboard_label_role}</dt>
-                    <dd>{t.dashboard_role_driver}</dd>
-                </dl>
-            </section>
-        {:else if role === 'admin'}
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_admin_overview_title}</h2>
-                <p>{t.dashboard_section_admin_overview_description}</p>
-                <div class="placeholder">
-                    <p>{t.dashboard_section_admin_overview_placeholder}</p>
-                </div>
-            </section>
-            
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_admin_users_title}</h2>
-                <p>{t.dashboard_section_admin_users_description}</p>
-                <div class="placeholder">
-                    <p>{t.dashboard_section_admin_users_placeholder}</p>
-                </div>
-            </section>
-            
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_admin_bookings_title}</h2>
-                <p>{t.dashboard_section_admin_bookings_description}</p>
-                <div class="placeholder">
-                    <p>{t.dashboard_section_admin_bookings_placeholder}</p>
-                </div>
-            </section>
-            
-            <section class="dashboard-section">
-                <h2>{t.dashboard_section_account_title}</h2>
-                <dl class="info-list">
-                    <dt>{t.dashboard_label_username}</dt>
-                    <dd>{user.username}</dd>
-                    <dt>{t.dashboard_label_user_id}</dt>
-                    <dd>{user.id}</dd>
-                    <dt>{t.dashboard_label_role}</dt>
-                    <dd>{t.dashboard_role_admin}</dd>
-                </dl>
-            </section>
-        {/if}
-    </main>
+	<main class="dashboard-content" class:admin-dashboard={role === 'admin'}>
+		{#if role === 'customer'}
+			<CustomerDashboard {user} data={data} {form} />
+		{:else if role === 'owner'}
+			<OwnerDashboard {user} />
+		{:else if role === 'driver'}
+			<DriverDashboard {user} />
+		{:else if role === 'admin'}
+			<AdminDashboard {user} data={data} {form} />
+		{/if}
+	</main>
 </div>
 
 <style>
@@ -154,6 +52,11 @@
         margin: 0 auto;
         padding: 2rem;
     }
+
+	.dashboard:has(.admin-dashboard) {
+		max-width: 100%;
+		padding: 2rem;
+	}
 
     .dashboard-header {
         margin-bottom: 3rem;
@@ -198,65 +101,16 @@
         background-color: #c82333;
     }
 
-    .dashboard-content {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-    }
+	.dashboard-content {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 2rem;
+	}
 
-    .dashboard-section {
-        background: #f9f9f9;
-        padding: 1.5rem;
-        border-radius: 8px;
-    }
-
-    .dashboard-section h2 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #1a1a1a;
-    }
-
-    .dashboard-section > p {
-        margin: 0 0 1rem 0;
-        color: #666;
-        font-size: 0.9rem;
-    }
-
-    .placeholder {
-        padding: 2rem;
-        text-align: center;
-        background: white;
-        border-radius: 4px;
-        color: #999;
-    }
-
-    .placeholder a {
-        color: #007bff;
-        text-decoration: none;
-    }
-
-    .placeholder a:hover {
-        text-decoration: underline;
-    }
-
-    .info-list {
-        margin: 0;
-        padding: 0;
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 0.5rem 1rem;
-    }
-
-    .info-list dt {
-        font-weight: 600;
-        color: #666;
-    }
-
-    .info-list dd {
-        margin: 0;
-        color: #1a1a1a;
-    }
+	.dashboard-content.admin-dashboard {
+		display: block;
+		max-width: 100%;
+	}
 
     @media (max-width: 768px) {
         .dashboard {
