@@ -46,7 +46,7 @@ export const actions = {
             
             // Check if it's a unique constraint violation (PostgreSQL error code 23505)
             if (e?.code === '23505') {
-                return fail(400, { message: 'Username already taken' });
+            return fail(400, { message: 'Username already taken' });
             }
             
             // For other errors, return a generic message with error details in dev

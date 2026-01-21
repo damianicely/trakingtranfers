@@ -2,35 +2,39 @@
 	import { language } from '$lib/stores/language';
 	import { translations } from '$lib/translations';
 	import { STAGES, formatDate, type Stage } from '$lib/trail';
-	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 
-	$: t = translations[$language || 'en'] || translations.en;
+	let { formData, route } = $props<{
+		formData: Record<string, any>;
+		route: [string, string][] | null;
+	}>();
 
-	export let formData: Record<string, any> = {
-		basicDetails: { bags: '' },
-		aboutTrip: { departure: '', destination: '', departureDate: '' }
-	};
+	console.log('[Payment] Component mounted');
+	console.log('[Payment] formData:', formData);
+	console.log('[Payment] route:', route);
 
-	export let route: [string, string][] | null = null;
+	const t = $derived(translations[$language || 'en'] || translations.en);
 
-	// Stripe payment state
-	const STRIPE_PUBLISHABLE_KEY = 'pk_test_51SpqLL6iYKZWJHuzVhpIYqd7WqeI4zXy6yzqWEw8D5dIDjdJKqYeRAJ5x9RItSVbbXExhKrtrI3wPQEI50016GAr00ZPCgGAPy';
-	let stripe: any = null;
-	let elements: any = null;
-	let paymentElement: any = null;
-	let paymentProcessing = false;
-	let paymentError: string | null = null;
-	let paymentSuccess = false;
-	let paymentIntentClientSecret: string | null = null;
+	onMount(() => {
+		console.log('[Payment] onMount - formData:', formData);
+		console.log('[Payment] onMount - route:', route);
+		console.log('[Payment] onMount - language:', $language);
+		console.log('[Payment] onMount - t:', t);
+	});
+
+	// Payment state - use $state() for reactivity in runes mode
+	let paymentProcessing = $state(false);
+	let paymentError = $state<string | null>(null);
 
 	// Stage names mapping
 	const stageNames = Object.fromEntries(STAGES.map((s: Stage) => [s.id, s.name]));
 
 	// Calculate price using same logic as Route component
-	const calculatePrice = () => {
-		const aboutTrip = formData?.aboutTrip || {};
-		if (!route || route.length === 0 || !aboutTrip.bags) {
+	const calculatePrice = $derived.by(() => {
+		const currentFormData = formData;
+		const currentRoute = route;
+		const aboutTrip = currentFormData?.aboutTrip || {};
+		if (!currentRoute || currentRoute.length === 0 || !aboutTrip.bags) {
 			return null;
 		}
 		
@@ -39,7 +43,7 @@
 			return null;
 		}
 
-		const numTransfers = route.length;
+		const numTransfers = currentRoute.length;
 		const numBags = parseInt(bagsStr, 10);
 
 		if (!numBags || numBags <= 0 || isNaN(numBags)) {
@@ -59,18 +63,22 @@
 		const totalCost = baseCost + additionalBagsCost;
 
 		return totalCost;
-	};
+	});
 
-	// Helper function to get booking summary with transfers and price
-	const getBookingSummary = () => {
-		const aboutTrip = formData?.aboutTrip || {};
+	// Reactive booking summary
+	const summary = $derived.by(() => {
+		const currentFormData = formData;
+		const currentRoute = route;
+		console.log('[Payment] Computing summary - formData:', currentFormData, 'route:', currentRoute);
+		
+		const aboutTrip = currentFormData?.aboutTrip || {};
 		const departureDate = aboutTrip.departureDate || '';
 		
 		// Generate transfer list with dates
 		const transfers: Array<{ date: string; dateFormatted: string; from: string; to: string }> = [];
 		
-		if (route && route.length > 0 && departureDate) {
-			route.forEach(([from, to], index) => {
+		if (currentRoute && currentRoute.length > 0 && departureDate) {
+			currentRoute.forEach(([from, to], index) => {
 				const dateFormatted = formatDate(departureDate, index);
 				transfers.push({
 					date: departureDate,
@@ -81,187 +89,99 @@
 			});
 		}
 		
-		const totalPrice = calculatePrice();
+		const totalPrice = calculatePrice;
 		
-		return {
+		const result = {
 			transfers,
 			totalPrice
 		};
-	};
-
-	// Initialize Stripe when component mounts
-	onMount(() => {
-		if (browser) {
-			// Wait for Stripe.js to load and DOM to be ready
-			if (typeof window !== 'undefined' && (window as any).Stripe) {
-				setTimeout(() => {
-					initializeStripe();
-				}, 100); // Small delay to ensure DOM is ready
-			}
-		}
+		console.log('[Payment] Summary result:', result);
+		return result;
 	});
 
-	async function initializeStripe() {
-		if (stripe || !browser) {
-			return; // Already initialized or not in browser
-		}
-
-		try {
-			// Wait for Stripe.js to be available
-			if (typeof window === 'undefined' || !(window as any).Stripe) {
-				return;
-			}
-
-			// Initialize Stripe
-			stripe = (window as any).Stripe(STRIPE_PUBLISHABLE_KEY);
-			
-			// Wait for payment element container to exist
-			const paymentElementContainer = document.getElementById('payment-element');
-			
-			if (!paymentElementContainer) {
-				return;
-			}
-			
-			// Try to create payment intent from backend first
-			try {
-				// Calculate the actual price from form data
-				const totalPrice = calculatePrice();
-				if (!totalPrice || totalPrice <= 0) {
-					throw new Error('Invalid price. Please complete the booking form.');
-				}
-				
-				// Convert EUR to cents (Stripe requires amounts in smallest currency unit)
-				const amountInCents = Math.round(totalPrice * 100);
-				
-				const response = await fetch('/api/create-payment-intent', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ 
-						amount: amountInCents, 
-						currency: 'eur' 
-					})
-				});
-
-				if (response.ok) {
-					const data = await response.json();
-					paymentIntentClientSecret = data.clientSecret;
-				} else {
-					throw new Error(`Backend returned ${response.status}`);
-				}
-			} catch (backendError: any) {
-				// For testing without backend, we'll create Elements without clientSecret
-				// This allows the Payment Element to mount, but payment will need backend
-				paymentIntentClientSecret = null;
-			}
-			
-			// Create Elements instance
-			// If we have a client secret, use it. Otherwise, create Elements without it (for testing UI)
-			const elementsOptions: any = {
-				appearance: {
-					theme: 'stripe',
-					variables: {
-						colorPrimary: '#007bff',
-						colorBackground: '#ffffff',
-						colorText: '#333333',
-						colorDanger: '#df1b41',
-						fontFamily: 'system-ui, sans-serif',
-						spacingUnit: '4px',
-						borderRadius: '8px'
-					}
-				}
-			};
-
-			if (paymentIntentClientSecret) {
-				elementsOptions.clientSecret = paymentIntentClientSecret;
-			}
-
-			elements = stripe.elements(elementsOptions);
-
-			// Create and mount Payment Element
-			paymentElement = elements.create('payment');
-			
-			try {
-				paymentElement.mount('#payment-element');
-			} catch (mountError: any) {
-				paymentError = `Failed to mount payment form: ${mountError.message}`;
-			}
-		} catch (error: any) {
-			paymentError = error.message || 'Failed to initialize payment system. Please refresh the page.';
-		}
-	}
-
 	async function handlePayment() {
-		if (!stripe || !paymentElement || !elements) {
-			paymentError = 'Payment system not ready. Please refresh the page.';
-			return;
-		}
-
+		console.log('[Payment] handlePayment called');
+		console.log('[Payment] Current formData:', formData);
+		console.log('[Payment] Current route:', route);
+		
 		paymentProcessing = true;
 		paymentError = null;
 
 		try {
-			// STEP 1: Immediately validate the payment form (REQUIRED by Stripe)
-			// This must be called BEFORE any async work
-			const { error: submitError } = await elements.submit();
+			// Calculate the total price
+			const totalPrice = calculatePrice;
+			console.log('[Payment] Calculated price:', totalPrice);
 			
-			if (submitError) {
-				paymentError = submitError.message || 'Please check your payment details.';
+			if (!totalPrice || totalPrice <= 0) {
+				console.error('[Payment] Invalid price:', totalPrice);
+				paymentError = 'Invalid price. Please complete the booking form.';
 				paymentProcessing = false;
 				return;
 			}
 
-			// STEP 2: Now we can do async work (create payment intent if needed)
-			if (!paymentIntentClientSecret) {
-				// Calculate the actual price from form data
-				const totalPrice = calculatePrice();
-				if (!totalPrice || totalPrice <= 0) {
-					paymentError = 'Invalid price. Please complete the booking form.';
-					paymentProcessing = false;
-					return;
-				}
-				
-				// Convert EUR to cents (Stripe requires amounts in smallest currency unit)
-				const amountInCents = Math.round(totalPrice * 100);
-				
-				const response = await fetch('/api/create-payment-intent', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ 
-						amount: amountInCents, 
-						currency: 'eur' 
-					})
-				});
+			// Create form data to submit to the createCheckout action
+			const formDataToSubmit = new FormData();
+			formDataToSubmit.append('amount', totalPrice.toString());
+			// Include booking payload so server can persist details & segments
+			const bookingPayload = {
+				basicDetails: formData.basicDetails,
+				aboutTrip: formData.aboutTrip,
+				route
+			};
+			formDataToSubmit.append('bookingPayload', JSON.stringify(bookingPayload));
+			console.log('[Payment] Submitting amount:', totalPrice.toString(), 'bookingPayload:', bookingPayload);
 
-				if (!response.ok) {
-					throw new Error(`Backend returned ${response.status}. Please check your server.`);
-				}
+			// Call the createCheckout action (SvelteKit named action format)
+			console.log('[Payment] Calling fetch to /?/createCheckout');
+			const response = await fetch('/?/createCheckout', {
+				method: 'POST',
+				headers: {
+					'accept': 'application/json'
+				},
+				body: formDataToSubmit
+			});
+			console.log('[Payment] Response status:', response.status, response.statusText);
 
-				const data = await response.json();
-				if (data.error) {
-					throw new Error(data.error);
+			if (!response.ok) {
+				const errorText = await response.text();
+				let errorData;
+				try {
+					errorData = JSON.parse(errorText);
+				} catch {
+					errorData = { message: errorText || `Server returned ${response.status}` };
 				}
-				
-				paymentIntentClientSecret = data.clientSecret;
+				throw new Error(errorData.message || `Server returned ${response.status}`);
 			}
 
-			// STEP 3: Confirm the payment with Stripe
-			const { error: confirmError } = await stripe.confirmPayment({
-				elements,
-				clientSecret: paymentIntentClientSecret,
-				confirmParams: {
-					return_url: `${window.location.origin}/booking-success`
-				},
-				redirect: 'if_required'
-			});
-
-			if (confirmError) {
-				paymentError = confirmError.message || t.booking_payment_error;
-				paymentProcessing = false;
+			// SvelteKit form actions return JSON with the result nested
+			const result = await response.json();
+			console.log('[Payment] Action response:', result);
+			
+			// The response format is: { type: 'success', status: 200, data: '[...]' }
+			// Where data is a JSON string containing an array
+			let checkoutUrl: string | null = null;
+			
+			if (result.data) {
+				// Parse the data field (it's a JSON string)
+				const parsedData = JSON.parse(result.data);
+				console.log('[Payment] Parsed data:', parsedData);
+				
+				// The URL is at index 1 of the array
+				if (Array.isArray(parsedData) && parsedData.length > 1) {
+					checkoutUrl = parsedData[1];
+				} else if (parsedData && typeof parsedData === 'object' && parsedData.url) {
+					// Fallback: if it's an object with a url property
+					checkoutUrl = parsedData.url;
+				}
+			}
+			
+			if (checkoutUrl && typeof checkoutUrl === 'string') {
+				console.log('[Payment] Redirecting to:', checkoutUrl);
+				// Redirect to Stripe Checkout
+				window.location.href = checkoutUrl;
 			} else {
-				// Payment succeeded
-				paymentSuccess = true;
-				paymentProcessing = false;
-				// You can redirect or show success message here
+				console.error('[Payment] Could not extract URL from response:', result);
+				throw new Error('No checkout URL received from server');
 			}
 		} catch (error: any) {
 			paymentError = error.message || t.booking_payment_error;
@@ -270,19 +190,15 @@
 	}
 </script>
 
+<!-- DEBUG: Payment component rendering -->
 <div class="booking-step basic-details-modern">
-	<h3 class="step-title">{t.booking_step_payment_title}</h3>
+	<h3 class="step-title">DEBUG: Payment Step - {t.booking_step_payment_title || 'Payment'}</h3>
+	<p style="color: red; font-weight: bold;">DEBUG: formData keys: {formData ? Object.keys(formData).join(', ') : 'formData is null'}</p>
+	<p style="color: red; font-weight: bold;">DEBUG: route: {route ? JSON.stringify(route) : 'route is null'}</p>
+	<p style="color: red; font-weight: bold;">DEBUG: summary: {summary ? JSON.stringify(summary) : 'summary is null'}</p>
 	
 	<div class="modern-form">
-		{#if paymentSuccess}
-			<div class="payment-success">
-				<div class="success-icon">✓</div>
-				<h4>{t.booking_payment_success}</h4>
-				<p>Your booking has been confirmed. We'll send you a confirmation email shortly.</p>
-			</div>
-		{:else}
-			{@const summary = getBookingSummary()}
-			<div class="payment-container">
+		<div class="payment-container">
 				<!-- Booking Summary -->
 				<div class="booking-summary">
 					<h4 class="summary-title">{t.booking_payment_summary_title}</h4>
@@ -307,7 +223,7 @@
 					{/if}
 				</div>
 
-				<!-- Payment Form -->
+				<!-- Payment Section -->
 				<div class="payment-form-section">
 					<h4 class="payment-form-title">{t.booking_payment_card_title}</h4>
 					
@@ -317,21 +233,19 @@
 						</div>
 					{/if}
 
-					<div id="payment-element" class="stripe-payment-element">
-						<!-- Stripe Payment Element will be mounted here -->
-						{#if !paymentElement}
-							<div class="payment-loading">
-								<p>Loading payment form...</p>
-							</div>
-						{/if}
+					<div class="payment-info">
+						<p>Click the button below to proceed to secure payment. You'll be redirected to Stripe Checkout to complete your booking.</p>
 					</div>
 
 					<div class="payment-actions">
 						<button
 							type="button"
 							class="payment-button"
-							onclick={handlePayment}
-							disabled={paymentProcessing || !stripe || !paymentElement}
+							onclick={() => {
+								console.log('[Payment] Button clicked!');
+								handlePayment();
+							}}
+							disabled={paymentProcessing}
 						>
 							{#if paymentProcessing}
 								{t.booking_payment_processing}
@@ -339,6 +253,9 @@
 								{t.booking_payment_button}
 							{/if}
 						</button>
+						<p style="color: blue; font-size: 0.8rem; margin-top: 0.5rem;">
+							DEBUG: paymentProcessing={String(paymentProcessing)}, paymentError={paymentError || 'null'}
+						</p>
 					</div>
 
 					<div class="payment-note">
@@ -347,7 +264,6 @@
 					</div>
 				</div>
 			</div>
-		{/if}
 	</div>
 </div>
 
@@ -456,16 +372,17 @@
 		color: #333;
 	}
 
-	.stripe-payment-element {
+	.payment-info {
 		margin-bottom: 1.5rem;
-		padding: 0;
-		background: transparent;
+		padding: 1rem;
+		background: #f8f9fa;
+		border-radius: 8px;
+		color: #666;
 	}
 
-	.payment-loading {
-		text-align: center;
-		padding: 2rem;
-		color: #666;
+	.payment-info p {
+		margin: 0;
+		line-height: 1.6;
 	}
 
 	.payment-actions {
