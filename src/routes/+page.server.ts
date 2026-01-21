@@ -108,6 +108,7 @@ export const actions: Actions = {
 		// Create Stripe Checkout Session with bookingId in metadata
 		const session = await stripe.checkout.sessions.create({
 			mode: 'payment',
+			customer_email: email, // Pre-fill email in Checkout form
 			line_items: [
 				{
 					price_data: {
