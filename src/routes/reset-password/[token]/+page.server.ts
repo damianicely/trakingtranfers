@@ -1,9 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { db } from '$lib/server/db';
-import { passwordResetTokenTable, userTable } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
-import { hash } from '@node-rs/argon2';
+import { validatePasswordResetToken, updateUserPassword } from '$lib/server/auth/password-reset';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const token = params.token;
@@ -14,19 +11,10 @@ export const load: PageServerLoad = async ({ params }) => {
 		};
 	}
 
-	const [resetToken] = await db
-		.select()
-		.from(passwordResetTokenTable)
-		.where(eq(passwordResetTokenTable.id, token));
-
-	if (!resetToken || resetToken.expiresAt < new Date()) {
-		return {
-			tokenValid: false
-		};
-	}
+	const validation = await validatePasswordResetToken(token);
 
 	return {
-		tokenValid: true
+		tokenValid: validation.valid
 	};
 };
 
@@ -42,41 +30,27 @@ export const actions: Actions = {
 		const password = formData.get('password');
 		const confirmPassword = formData.get('confirmPassword');
 
-		if (typeof password !== 'string' || password.length < 6) {
-			return fail(400, { message: 'Password must be at least 6 characters long' });
+		if (typeof password !== 'string') {
+			return fail(400, { message: 'Password is required' });
 		}
 
 		if (password !== confirmPassword) {
 			return fail(400, { message: 'Passwords do not match' });
 		}
 
-		const [resetToken] = await db
-			.select()
-			.from(passwordResetTokenTable)
-			.where(eq(passwordResetTokenTable.id, token));
+		// Validate the token
+		const validation = await validatePasswordResetToken(token);
 
-		if (!resetToken || resetToken.expiresAt < new Date()) {
-			return fail(400, { message: 'This link is invalid or has expired' });
+		if (!validation.valid || !validation.userId) {
+			return fail(400, { message: validation.error || 'This link is invalid or has expired' });
 		}
 
-		// Hash the new password
-		const passwordHash = await hash(password, {
-			memoryCost: 19456,
-			timeCost: 2,
-			outputLen: 32,
-			parallelism: 1
-		});
-
 		// Update the user's password
-		await db
-			.update(userTable)
-			.set({ passwordHash })
-			.where(eq(userTable.id, resetToken.userId));
+		const result = await updateUserPassword(validation.userId, password);
 
-		// Delete the token so it can't be reused
-		await db
-			.delete(passwordResetTokenTable)
-			.where(eq(passwordResetTokenTable.id, token));
+		if (!result.success) {
+			return fail(400, { message: result.error || 'Failed to update password' });
+		}
 
 		// Redirect to login page
 		throw redirect(302, '/login');

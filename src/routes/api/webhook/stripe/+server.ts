@@ -2,10 +2,11 @@ import type { RequestHandler } from './$types';
 import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
 import { db } from '$lib/server/db';
-import { bookingTable, passwordResetTokenTable, userTable } from '$lib/server/db/schema';
+import { bookingTable, userTable } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { hash } from '@node-rs/argon2';
 import crypto from 'node:crypto';
+import { createPasswordResetToken } from '$lib/server/auth/password-reset';
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
 	apiVersion: '2024-12-18.acacia'
@@ -112,17 +113,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				.where(eq(bookingTable.id, bookingId));
 
 			// 4. Generate a password reset token so the guest can set their password
-			const tokenId = crypto.randomUUID();
-			const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours from now
-
-			await db.insert(passwordResetTokenTable).values({
-				id: tokenId,
-				userId,
-				expiresAt
-			});
+			const { resetUrl } = await createPasswordResetToken(userId, 24, 'http://localhost:5173');
 
 			// For now, "send" the email by logging the reset link
-			const resetUrl = `http://localhost:5173/reset-password/${tokenId}`;
 			console.log(`Password setup link for ${username}: ${resetUrl}`);
 		} catch (err) {
 			console.error('Error handling checkout.session.completed:', err);
