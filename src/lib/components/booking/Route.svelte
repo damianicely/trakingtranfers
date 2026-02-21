@@ -95,90 +95,91 @@
 </script>
 
 <div class="booking-step basic-details-modern">
-	<h3 class="step-title">{t.booking_step_about_trip_title}</h3>
 	<form class="booking-form modern-form" onsubmit={(e) => { e.preventDefault(); }}>
-		<div class="form-group modern-group">
-			<label for="departureDate" class="form-label modern-label">{t.booking_departure_date_label}</label>
-			<input
-				type="date"
-				id="departureDate"
-				class="form-input modern-input"
-				class:error={fieldErrors.departureDate}
-				min={getMinDate()}
-				bind:value={aboutTrip.departureDate}
-				onblur={() => validateField('departureDate', aboutTrip.departureDate)}
-				onchange={(e) => {
-					const selectedDate = e.currentTarget.value;
-					if (isDateBlocked(selectedDate)) {
-						fieldErrors = { ...fieldErrors, departureDate: t.booking_departure_date_blocked || 'This date is not available' };
-					} else {
-						validateField('departureDate', selectedDate);
-					}
-				}}
-			/>
-			{#if fieldErrors.departureDate}
-				<span class="error-message modern-error">{fieldErrors.departureDate}</span>
-			{/if}
+		<div class="form-row">
+			<div class="form-group modern-group">
+				<label for="departureDate" class="form-label modern-label">{t.booking_departure_date_label}</label>
+				<input
+					type="date"
+					id="departureDate"
+					class="form-input modern-input"
+					class:error={fieldErrors.departureDate}
+					min={getMinDate()}
+					bind:value={aboutTrip.departureDate}
+					onblur={() => validateField('departureDate', aboutTrip.departureDate)}
+					onchange={(e) => {
+						const selectedDate = e.currentTarget.value;
+						if (isDateBlocked(selectedDate)) {
+							fieldErrors = { ...fieldErrors, departureDate: t.booking_departure_date_blocked || 'This date is not available' };
+						} else {
+							validateField('departureDate', selectedDate);
+						}
+					}}
+				/>
+				{#if fieldErrors.departureDate}
+					<span class="error-message modern-error">{fieldErrors.departureDate}</span>
+				{/if}
+			</div>
+			<div class="form-group modern-group">
+				<label for="bags" class="form-label modern-label">{t.booking_bags_label}</label>
+				<input
+					type="number"
+					id="bags"
+					class="form-input modern-input"
+					class:error={fieldErrors.bags}
+					placeholder={t.booking_bags_placeholder}
+					min="0"
+					bind:value={aboutTrip.bags}
+					onblur={() => validateField('bags', aboutTrip.bags)}
+				/>
+				{#if fieldErrors.bags}
+					<span class="error-message modern-error">{fieldErrors.bags}</span>
+				{/if}
+			</div>
 		</div>
 
-		<div class="form-group modern-group">
-			<label for="departure" class="form-label modern-label">{t.booking_departure_label}</label>
-			<select
-				id="departure"
-				class="form-input modern-input"
-				class:error={fieldErrors.departure}
-				bind:value={aboutTrip.departure}
-				onchange={() => validateField('departure', aboutTrip.departure)}
-			>
-				<option value="">{t.booking_departure_placeholder}</option>
-				{#each STAGES as stage}
-					<option value={stage.id}>{stage.name}</option>
-				{/each}
-			</select>
-			{#if fieldErrors.departure}
-				<span class="error-message modern-error">{fieldErrors.departure}</span>
-			{/if}
-		</div>
-
-		<div class="form-group modern-group">
-			<label for="destination" class="form-label modern-label">{t.booking_destination_label || 'Destination'}</label>
-			<select
-				id="destination"
-				class="form-input modern-input"
-				class:error={fieldErrors.destination}
-				bind:value={aboutTrip.destination}
-				onchange={() => validateField('destination', aboutTrip.destination)}
-			>
-				<option value="">{t.booking_destination_placeholder || 'Select your destination'}</option>
-				{#each STAGES as stage}
-					<option value={stage.id}>{stage.name}</option>
-				{/each}
-			</select>
-			{#if fieldErrors.destination}
-				<span class="error-message modern-error">{fieldErrors.destination}</span>
-			{/if}
-		</div>
-
-		<div class="form-group modern-group">
-			<label for="bags" class="form-label modern-label">{t.booking_bags_label}</label>
-			<input
-				type="number"
-				id="bags"
-				class="form-input modern-input"
-				class:error={fieldErrors.bags}
-				placeholder={t.booking_bags_placeholder}
-				min="0"
-				bind:value={aboutTrip.bags}
-				onblur={() => validateField('bags', aboutTrip.bags)}
-			/>
-			{#if fieldErrors.bags}
-				<span class="error-message modern-error">{fieldErrors.bags}</span>
-			{/if}
+		<div class="form-row">
+			<div class="form-group modern-group">
+				<label for="departure" class="form-label modern-label">{t.booking_departure_label}</label>
+				<select
+					id="departure"
+					class="form-input modern-input"
+					class:error={fieldErrors.departure}
+					bind:value={aboutTrip.departure}
+					onchange={() => validateField('departure', aboutTrip.departure)}
+				>
+					<option value="">{t.booking_departure_placeholder}</option>
+					{#each STAGES as stage}
+						<option value={stage.id}>{stage.name}</option>
+					{/each}
+				</select>
+				{#if fieldErrors.departure}
+					<span class="error-message modern-error">{fieldErrors.departure}</span>
+				{/if}
+			</div>
+			<div class="form-group modern-group">
+				<label for="destination" class="form-label modern-label">{t.booking_destination_label || 'Destination'}</label>
+				<select
+					id="destination"
+					class="form-input modern-input"
+					class:error={fieldErrors.destination}
+					bind:value={aboutTrip.destination}
+					onchange={() => validateField('destination', aboutTrip.destination)}
+				>
+					<option value="">{t.booking_destination_placeholder || 'Select your destination'}</option>
+					{#each STAGES as stage}
+						<option value={stage.id}>{stage.name}</option>
+					{/each}
+				</select>
+				{#if fieldErrors.destination}
+					<span class="error-message modern-error">{fieldErrors.destination}</span>
+				{/if}
+			</div>
 		</div>
 
 		{#if route && route.length > 0 && aboutTrip.departureDate}
 			<div class="itinerary-container">
-				<h4 class="itinerary-title">{t.booking_itinerary_title}</h4>
+				<h4 class="itinerary-title">{t.booking_itinerary_title} - {route.length} days of walking.</h4>
 				<table class="itinerary-table">
 					<thead>
 						<tr>
@@ -197,21 +198,10 @@
 						{/each}
 					</tbody>
 				</table>
-				<div class="itinerary-summary">
-					Total duration: {route.length} days of walking.
-				</div>
-
 				{#if priceBreakdown}
 					<div class="price-breakdown">
-						<h4 class="price-title">{t.booking_price_title || 'Price Breakdown'}</h4>
 						<div class="price-explanation">
-							<p>{t.booking_price_explanation || 'Our pricing is based on the number of transfers and luggage pieces:'}</p>
-							<ul>
-								<li>{t.booking_price_rule_1 || '4 or more transfers: 15€ per transfer'}</li>
-								<li>{t.booking_price_rule_2 || 'Up to 3 transfers: 20€ per transfer'}</li>
-								<li>{t.booking_price_rule_3 || 'Rate includes up to 2 luggage pieces per transfer'}</li>
-								<li>{t.booking_price_rule_4 || 'Each additional piece per transfer: 5€'}</li>
-							</ul>
+							<p>{t.booking_price_explanation || 'Pricing is based on the number of transfers. Two items of luggage are included, with additional items billed at 5€ per transfer.'}</p>
 						</div>
 						<div class="price-details">
 							<div class="price-line">
@@ -249,12 +239,6 @@
 		min-height: 300px;
 	}
 
-	.step-title {
-		font-size: 1.8rem;
-		margin-bottom: 1.5rem;
-		color: #333;
-	}
-
 	.booking-form {
 		display: flex;
 		flex-direction: column;
@@ -265,6 +249,12 @@
 	.basic-details-modern .modern-form {
 		background: transparent;
 		padding: 0;
+	}
+
+	.form-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
 	}
 
 	.modern-group {
@@ -365,8 +355,8 @@
 	}
 
 	.itinerary-placeholder {
-		margin-top: 2rem;
-		padding: 2rem 0;
+		margin-top: 0.75rem;
+		padding: 0.75rem 0;
 		text-align: center;
 		background: transparent;
 		color: #999;
@@ -379,33 +369,16 @@
 		background: transparent;
 	}
 
-	.price-title {
-		font-size: 1.2rem;
-		font-weight: 600;
-		margin-bottom: 1.5rem;
-		color: #333;
-	}
-
 	.price-explanation {
-		margin-bottom: 2rem;
+		margin-bottom: 1.25rem;
 		padding: 0;
 		background: transparent;
 	}
 
 	.price-explanation p {
-		margin: 0 0 0.75rem 0;
-		font-weight: 600;
-		color: #333;
-	}
-
-	.price-explanation ul {
 		margin: 0;
-		padding-left: 1.5rem;
-		color: #666;
-	}
-
-	.price-explanation li {
-		margin: 0.5rem 0;
+		font-weight: 500;
+		color: #555;
 		line-height: 1.5;
 	}
 
@@ -417,12 +390,7 @@
 	.price-line {
 		display: flex;
 		justify-content: space-between;
-		padding: 0.75rem 0;
-		border-bottom: 1px solid #e0e0e0;
-	}
-
-	.price-line:last-of-type {
-		border-bottom: none;
+		padding: 0.5rem 0;
 	}
 
 	.price-label {
@@ -437,9 +405,8 @@
 	.price-total {
 		display: flex;
 		justify-content: space-between;
-		padding: 1rem 0 0.5rem 0;
-		margin-top: 1rem;
-		border-top: 2px solid #333;
+		padding: 0.75rem 0 0.5rem 0;
+		margin-top: 0.5rem;
 		font-size: 1.1rem;
 	}
 
@@ -455,6 +422,11 @@
 	}
 
 	@media (max-width: 768px) {
+		.form-row {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
+
 		.itinerary-table {
 			font-size: 0.875rem;
 		}

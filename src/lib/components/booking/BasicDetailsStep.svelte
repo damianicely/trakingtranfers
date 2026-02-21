@@ -4,7 +4,7 @@
 
 	$: t = translations[$language];
 
-	export let basicDetails: {
+	export let basicDetails: { // TODO: add type for basicDetails
 		firstName: string;
 		lastName: string;
 		bookingNames: string;
@@ -14,10 +14,10 @@
 
 	export let fieldErrors: Record<string, string>;
 	export let validateField: (fieldName: string, value: string) => void;
+	export let onEmailBlur: (() => void) | undefined = undefined;
 </script>
 
 <div class="booking-step basic-details-modern">
-	<h3 class="step-title">{t.booking_step_basic_details_title}</h3>
 	<form class="booking-form modern-form" onsubmit={(e) => { e.preventDefault(); }}>
 		<div class="name-row">
 			<div class="form-group modern-group">
@@ -62,7 +62,10 @@
 				class:error={fieldErrors.email}
 				placeholder={t.booking_email_placeholder}
 				bind:value={basicDetails.email}
-				onblur={() => validateField('email', basicDetails.email)}
+				onblur={() => {
+					validateField('email', basicDetails.email);
+					if (basicDetails.email?.trim()) onEmailBlur?.();
+				}}
 			/>
 			{#if fieldErrors.email}
 				<span class="error-message modern-error">{fieldErrors.email}</span>
@@ -103,12 +106,6 @@
 <style>
 	.booking-step {
 		min-height: 300px;
-	}
-
-	.step-title {
-		font-size: 1.8rem;
-		margin-bottom: 1.5rem;
-		color: #333;
 	}
 
 	.booking-form {

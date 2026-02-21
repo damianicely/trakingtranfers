@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { db } from '$lib/server/db';
 import { bookingTable, bookingSegmentTable } from '$lib/server/db/schema';
+import { checkEmailExists, checkDailyCapacity } from '$lib/server/booking/checks';
 import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
 import crypto from 'node:crypto';
@@ -58,6 +59,16 @@ export const actions: Actions = {
 		}
 
 		const departureDate = new Date(departureDateStr);
+
+		// Server-side checks: email not already registered, daily capacity not exceeded
+		const emailCheck = await checkEmailExists(email);
+		if (!emailCheck.ok) {
+			return fail(400, { message: emailCheck.message });
+		}
+		const availabilityCheck = await checkDailyCapacity(departureDateStr, route);
+		if (!availabilityCheck.ok) {
+			return fail(400, { message: availabilityCheck.message });
+		}
 
 		const numTransfers = route ? route.length.toString() : '0';
 		const totalPrice = amountStr; // store EUR amount as provided

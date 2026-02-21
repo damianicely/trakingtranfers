@@ -118,6 +118,13 @@ This project uses PostgreSQL and connects to the database through an SSH tunnel 
 
 > **Note**: If the SSH tunnel disconnects, you'll need to restart it. The development server will not be able to connect to the database without an active tunnel.
 
+### Environment variables
+
+- **DATABASE_URL** – PostgreSQL connection string (e.g. `postgres://user:pass@localhost:5433/dbname` when using the tunnel).
+- **STRIPE_SECRET_KEY** – Stripe secret key for payments (test or live).
+- **STRIPE_WEBHOOK_SECRET** – For Stripe webhook signature verification (from `stripe listen` when testing locally).
+- **MAX_TRANSFERS_PER_DAY** – (Optional) Maximum number of transfer legs (segments) allowed per calendar day. If set, the booking form and checkout will reject dates that would exceed this limit. If unset, no daily cap is applied.
+
 ## Database Schema Sync (Drizzle)
 
 This project uses **drizzle-kit** to keep the database schema in sync with `src/lib/server/db/schema.ts`, configured via `drizzle.config.ts`. All commands rely on `DATABASE_URL`, which in development should point at your **tunnelled** database (for example `postgres://user:pass@localhost:5433/dbname`).

@@ -5,8 +5,7 @@
 	import { browser } from '$app/environment';
 	import BasicDetailsStep from './booking/BasicDetailsStep.svelte';
 	import Route from './booking/Route.svelte';
-	import Accommodation from './booking/Accommodation.svelte';
-	import Payment from './booking/Payment.svelte';
+	import { calculateBookingPrice } from '$lib/booking/price';
 
 	$: t = translations[$language];
 
@@ -42,6 +41,76 @@
 	};
 	let completedSteps: number[] = [];
 	let fieldErrors: Record<string, string> = {};
+	let paymentProcessing = false;
+	let paymentError: string | null = null;
+	let availabilityError: string | null = null;
+	let emailCheckDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+	$: calculatedPrice = calculateBookingPrice(route, formData.aboutTrip?.bags);
+
+	async function checkEmailWithServer(): Promise<boolean> {
+		const email = (formData.basicDetails?.email || '').toString().trim();
+		if (!email) return true;
+		try {
+			const res = await fetch('/api/booking/check', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ type: 'email', email })
+			});
+			const data = await res.json().catch(() => ({}));
+			if (res.status === 429) {
+				fieldErrors = { ...fieldErrors, email: data.message || 'Too many requests. Please try again later.' };
+				return false;
+			}
+			if (data.ok === false && data.message) {
+				fieldErrors = { ...fieldErrors, email: data.message };
+				return false;
+			}
+			const { email: _e, ...rest } = fieldErrors;
+			fieldErrors = rest;
+			return true;
+		} catch (_) {
+			fieldErrors = { ...fieldErrors, email: 'Could not verify email. Please try again.' };
+			return false;
+		}
+	}
+
+	function scheduleEmailCheck() {
+		if (emailCheckDebounceTimer) clearTimeout(emailCheckDebounceTimer);
+		emailCheckDebounceTimer = setTimeout(() => {
+			emailCheckDebounceTimer = null;
+			checkEmailWithServer();
+		}, 400);
+	}
+
+	async function checkAvailabilityWithServer(): Promise<boolean> {
+		const departureDate = (formData.aboutTrip?.departureDate || '').toString().trim();
+		if (!departureDate || !route || route.length === 0) {
+			availabilityError = null;
+			return true;
+		}
+		try {
+			const res = await fetch('/api/booking/check', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ type: 'availability', departureDate, route })
+			});
+			const data = await res.json().catch(() => ({}));
+			if (res.status === 429) {
+				availabilityError = data.message || 'Too many requests. Please try again later.';
+				return false;
+			}
+			if (data.ok === false && data.message) {
+				availabilityError = data.message;
+				return false;
+			}
+			availabilityError = null;
+			return true;
+		} catch (_) {
+			availabilityError = 'Could not check availability. Please try again.';
+			return false;
+		}
+	}
 
 
 	// Map stage IDs to names for display
@@ -409,32 +478,98 @@
 			}
 		} else if (currentStep === 2) {
 			if (validateAboutTrip()) {
-				// Store route in formData
 				if (route) {
 					formData.itinerary = route;
 				}
 				if (!completedSteps.includes(2)) {
 					completedSteps = [...completedSteps, 2];
 				}
-				nextStep();
+				handlePayNow();
 			}
-		} else if (currentStep === 3) {
-			if (validateAccommodation()) {
-				if (!completedSteps.includes(3)) {
-					completedSteps = [...completedSteps, 3];
-				}
-				nextStep();
-			}
-		} else {
-			nextStep();
 		}
 	};
 
+	async function handlePayNow() {
+		if (!validateBasicDetails() || !validateAboutTrip()) return;
+		paymentError = null;
+		availabilityError = null;
+		const emailOk = await checkEmailWithServer();
+		if (!emailOk) {
+			paymentError = fieldErrors.email || 'Please fix the email error above.';
+			return;
+		}
+		const availabilityOk = await checkAvailabilityWithServer();
+		if (!availabilityOk) {
+			paymentError = availabilityError || 'The selected dates are not available.';
+			return;
+		}
+		paymentProcessing = true;
+		try {
+			const totalPrice = calculatedPrice;
+			if (totalPrice == null || totalPrice <= 0) {
+				paymentError = 'Unable to calculate price. Please check trip details.';
+				if (browser) console.error('[BookingForm] Invalid price:', totalPrice);
+				paymentProcessing = false;
+				return;
+			}
+			const formDataToSubmit = new FormData();
+			formDataToSubmit.append('amount', totalPrice.toString());
+			const bookingPayload = {
+				basicDetails: formData.basicDetails,
+				aboutTrip: formData.aboutTrip,
+				route
+			};
+			formDataToSubmit.append('bookingPayload', JSON.stringify(bookingPayload));
+			const response = await fetch('/?/createCheckout', {
+				method: 'POST',
+				headers: { accept: 'application/json' },
+				body: formDataToSubmit
+			});
+			if (!response.ok) {
+				const errorText = await response.text();
+				let errorData: { message?: string };
+				try {
+					errorData = JSON.parse(errorText);
+				} catch {
+					errorData = { message: errorText || `Server returned ${response.status}` };
+				}
+				const msg = errorData.message || 'Payment request failed. Please try again.';
+				paymentError = msg;
+				if (browser) console.error('[BookingForm] createCheckout failed', response.status, errorText);
+				paymentProcessing = false;
+				return;
+			}
+			const result = await response.json();
+			let checkoutUrl: string | null = null;
+			if (result.url && typeof result.url === 'string') {
+				checkoutUrl = result.url;
+			} else if (result.data) {
+				try {
+					const parsedData = JSON.parse(result.data);
+					if (Array.isArray(parsedData) && parsedData.length > 1) {
+						checkoutUrl = parsedData[1];
+					} else if (parsedData?.url) {
+						checkoutUrl = parsedData.url;
+					}
+				} catch (_) {}
+			}
+			if (checkoutUrl && typeof checkoutUrl === 'string') {
+				window.location.href = checkoutUrl;
+			} else {
+				paymentError = t.booking_payment_error || 'No checkout URL received. Please try again.';
+				if (browser) console.error('[BookingForm] No checkout URL in response:', result);
+				paymentProcessing = false;
+			}
+		} catch (error: any) {
+			paymentError = error?.message || t.booking_payment_error || 'Payment failed. Please try again.';
+			if (browser) console.error('[BookingForm] createCheckout error', error);
+			paymentProcessing = false;
+		}
+	}
+
 	const steps = [
 		{ id: 1, key: 'basic_details' },
-		{ id: 2, key: 'about_trip' },
-		{ id: 3, key: 'accommodation' },
-		{ id: 4, key: 'payment' }
+		{ id: 2, key: 'about_trip' }
 	];
 
 	const isStepEnabled = (stepId: number): boolean => {
@@ -455,7 +590,7 @@
 	};
 
 	const nextStep = () => {
-		if (currentStep < 4 && isStepEnabled(currentStep + 1)) {
+		if (currentStep < 2 && isStepEnabled(currentStep + 1)) {
 			if (!completedSteps.includes(currentStep)) {
 				completedSteps = [...completedSteps, currentStep];
 			}
@@ -466,13 +601,14 @@
 	const previousStep = () => {
 		if (currentStep > 1) {
 			currentStep--;
+			paymentError = null;
 		}
 	};
 </script>
 
 <section id="booking-section" class="booking-section">
 	<div class="booking-container">
-		<h2 class="booking-title">{t.booking_section}</h2>
+		<h2 class="booking-title">{t.booking_section_two_steps}</h2>
 
 		<!-- Tab Navigation -->
 		<div class="booking-tabs">
@@ -484,8 +620,7 @@
 					onclick={() => goToStep(step.id)}
 					disabled={!isStepEnabled(step.id) && !canGoBack(step.id)}
 				>
-					<span class="tab-number">{step.id}</span>
-					<span class="tab-label">{t[`booking_tab_${step.key}`]}</span>
+					<span class="tab-label">{step.id}. {t[`booking_tab_${step.key}`]}</span>
 				</button>
 			{/each}
 		</div>
@@ -498,6 +633,7 @@
 					bind:basicDetails={formData.basicDetails}
 					{fieldErrors}
 					{validateField}
+					onEmailBlur={scheduleEmailCheck}
 				/>
 			{/if}
 
@@ -508,35 +644,36 @@
 					{fieldErrors}
 					{validateField}
 				/>
-			{/if}
-
-			<!-- Step 3: Accommodation -->
-			{#if currentStep === 3}
-				<Accommodation
-					bind:accommodation={formData.accommodation}
-					{fieldErrors}
-					validateAccommodation={validateAccommodation}
-				/>
-			{/if}
-
-			<!-- Step 4: Payment -->
-			{#if currentStep === 4}
-				<Payment
-					{formData}
-					{route}
-				/>
+				{#if availabilityError}
+					<div class="payment-error-message" role="alert">{availabilityError}</div>
+				{/if}
+				{#if paymentError}
+					<div class="payment-error-message" role="alert">{paymentError}</div>
+				{/if}
 			{/if}
 
 			<!-- Navigation Buttons -->
 			<div class="booking-navigation">
 				{#if currentStep > 1}
-					<button class="nav-button nav-button-previous" onclick={previousStep}>
+					<button class="nav-button nav-button-previous" onclick={previousStep} disabled={paymentProcessing}>
 						{t.booking_previous}
 					</button>
 				{/if}
-				{#if currentStep < 4}
+				{#if currentStep < 2}
 					<button class="nav-button nav-button-next" onclick={handleNext}>
 						{t.booking_next}
+					</button>
+				{:else}
+					<button
+						class="nav-button nav-button-next nav-button-pay"
+						onclick={handleNext}
+						disabled={paymentProcessing}
+					>
+						{#if paymentProcessing}
+							{t.booking_payment_processing}
+						{:else}
+							{t.booking_payment_button}
+						{/if}
 					</button>
 				{/if}
 			</div>
@@ -600,9 +737,9 @@
 		border-bottom: 3px solid transparent;
 		cursor: pointer;
 		display: flex;
-		flex-direction: column;
+		flex-direction: row;
 		align-items: center;
-		gap: 0.5rem;
+		justify-content: center;
 		transition: all 0.3s;
 		color: #666;
 		font-size: 0.9rem;
@@ -632,13 +769,8 @@
 		cursor: not-allowed;
 	}
 
-	.tab-number {
-		font-size: 1.2rem;
-		font-weight: 700;
-	}
-
 	.tab-label {
-		font-size: 0.85rem;
+		font-size: 0.9rem;
 	}
 
 	.booking-form-container {
@@ -648,6 +780,17 @@
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	}
 
+	.payment-error-message {
+		color: #dc3545;
+		font-weight: 500;
+		padding: 1rem 0;
+		margin-top: 1rem;
+	}
+
+	.nav-button-pay {
+		margin-left: auto;
+	}
+
 
 
 
@@ -655,9 +798,8 @@
 	.booking-navigation {
 		display: flex;
 		justify-content: space-between;
-		margin-top: 2rem;
-		padding-top: 2rem;
-		border-top: 1px solid #e0e0e0;
+		margin-top: 1rem;
+		padding-top: 1rem;
 	}
 
 	.nav-button {
@@ -700,10 +842,7 @@
 			min-width: 120px;
 			padding: 0.75rem 1rem;
 			font-size: 0.8rem;
-		}
-
-		.tab-number {
-			display: none;
+			white-space: normal;
 		}
 
 		.tab-label {
