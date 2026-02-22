@@ -1,6 +1,68 @@
 # Contributions guide (AI-oriented)
 
-This document gives declarative, factual descriptions of the booking check system so that AIs and contributors can extend or integrate with it correctly.
+This document gives declarative, factual descriptions of the app architecture and the booking check system so that AIs and contributors can extend or integrate correctly.
+
+---
+
+## Overall architecture
+
+### Stack and runtime
+
+- **Framework:** SvelteKit 5. App runs in Node for SSR and adapts to the deployed environment.
+- **UI:** Svelte 5 with runes mode. Use `$props()`, `$state()`, `$derived()` (and `$derived.by()`); avoid `$:` reactive statements and `export let` for component props. See `docs/LLM_RULES.md` for Svelte 5 rules.
+- **Data:** PostgreSQL via Drizzle ORM. Connection and schema live under `src/lib/server/db/` (schema in `schema.ts`, pool in `index.ts`). Server-only code must stay in `$lib/server/` or `src/routes/**/+page.server.ts` / `+server.ts`.
+- **Payments:** Stripe. Checkout is created in the `createCheckout` form action; after payment, Stripe sends a webhook to `POST /api/webhook/stripe`, which marks the booking paid and creates or links the user (email as username).
+
+### Routes and access
+
+- **Public (no auth):** `/` (landing + booking form), `/login`, `/register`, `/booking-success`, `/reset-password/[token]`, and example routes under `/eg/*`. The home page does not require a session; guests can complete the booking form and pay.
+- **Protected:** `/dashboard` requires a valid session. `src/routes/dashboard/+page.server.ts` redirects unauthenticated users to `/login` and loads role-specific data. The dashboard page then renders one of: `CustomerDashboard`, `OwnerDashboard`, `DriverDashboard`, `AdminDashboard`, based on `user.role`.
+- **API:**  
+  - `POST /api/booking/check` — JSON API for booking checks (email, availability). Rate-limited per IP.  
+  - `POST /api/webhook/stripe` — Stripe webhook; validates signature, then handles `checkout.session.completed` (update booking, find/create user, link booking to user, create password-setup token).
+
+### Authentication and session
+
+- **Session:** Stored in PostgreSQL (`session` table). Session id is sent to the client in a cookie and validated on every request in `src/hooks.server.ts`. The hook loads the user from `user` (join with `session`), checks expiry, and sets `event.locals.user` to `{ id, username, role }` or `null`. Deleted or expired sessions are removed and the cookie cleared.
+- **Roles:** Enum `user_role`: `customer`, `admin`, `driver`, `owner`. Role is on `user`; role-specific data is in `driver_profile` and `owner_profile`. Login and register use server actions and set the session cookie on success.
+- **Post-checkout users:** Guests who pay via Stripe do not have an account beforehand. The webhook uses the Stripe customer email as `username`, finds or creates a row in `user`, links the booking to that `userId`, and creates a password-reset token so they can set a password and log in later.
+
+### Data model (high level)
+
+- **user** — id, username (email after checkout), passwordHash, role.  
+- **session** — id, userId, expiresAt.  
+- **booking** — id, userId (nullable until after payment), status (pending | paid | cancelled), Stripe session id, customer and trip fields (firstName, lastName, email, phone, departureDate, departureStageId, destinationStageId, numBags, numTransfers, totalPrice), timestamps.  
+- **booking_segment** — one row per leg of a booking’s route: bookingId, segmentIndex, fromStageId, toStageId, travelDate; optional hotel links and notes.  
+- **hotel** — id, locationId (stage id), name, contactInfo.  
+- **driver_profile** / **owner_profile** — extend `user` with role-specific fields.  
+- **password_reset_token** — for password setup/reset flows.
+
+Booking and segment rows are created in the `createCheckout` action; the webhook only updates booking status and `userId`.
+
+### Front-end structure
+
+- **Layout:** `src/routes/+layout.svelte` wraps the app with a header (logo, EN/PT toggle) and footer. Language is held in `$lib/stores/language` and used with `$lib/translations` for all copy.
+- **Home:** `+page.svelte` composes hero, about, `BookingForm`, and gallery. No server load; the form and checks are client-driven until Pay Now.
+- **Booking form:** `$lib/components/BookingForm.svelte` is a two-step form (basic details, then trip + pay). It uses `BasicDetailsStep` and `Route`; calls `POST /api/booking/check` for email (on blur, debounced) and availability (on Pay Now); then POSTs to the `createCheckout` form action with `bookingPayload` and `amount`. Route and pricing come from `$lib/trail.ts` (stages, `generateRoute`) and `$lib/booking/price.ts`. Accommodation and payment-step UI exist in `$lib/components/booking/` but are not shown in the main two-step flow.
+- **Dashboard:** Single route `/dashboard`; `+page.svelte` picks the dashboard component by role. Data (bookings, segments, hotels, owner sales, admin lists, etc.) is loaded in `+page.server.ts` and passed as `data`; some actions (e.g. cancel booking) are form actions on the same route.
+
+### Booking and payment flow (end-to-end)
+
+1. User fills the form on `/` (basic details + trip). Optional: email check on blur; availability check when clicking Pay Now.  
+2. User clicks Pay Now. Form validates, calls the check API again for email and availability, then POSTs to `/?/createCheckout` with `bookingPayload` and `amount`.  
+3. `createCheckout` (in `+page.server.ts`): runs server-side email and availability checks; creates a `booking` (status pending) and `booking_segment` rows; creates a Stripe Checkout Session with `bookingId` in metadata; returns the checkout URL.  
+4. Client redirects to Stripe Checkout; user pays.  
+5. Stripe sends `checkout.session.completed` to `POST /api/webhook/stripe`. Webhook marks the booking paid, finds or creates `user` by email (username), links booking to user, and creates a password-setup token (e.g. for email later).  
+6. User is redirected to `/booking-success` (or cancel URL back to `/`).
+
+### Where to put new code
+
+- **Server-only (DB, secrets, checks):** `src/lib/server/` (e.g. `server/booking/checks.ts`, `server/db/`, `server/auth/`).  
+- **Shared client/server types or pure logic:** `src/lib/` but outside `server/` (e.g. `lib/trail.ts`, `lib/booking/price.ts`).  
+- **UI components:** `src/lib/components/`.  
+- **New pages or API routes:** `src/routes/` (e.g. `routes/api/booking/check/+server.ts`).  
+- **Auth and global request behavior:** `src/hooks.server.ts`.  
+- **Env:** Use `$env/static/private` for build-time secrets (e.g. Stripe, DB); use `$env/dynamic/private` for optional or runtime config (e.g. `MAX_TRANSFERS_PER_DAY`).
 
 ---
 

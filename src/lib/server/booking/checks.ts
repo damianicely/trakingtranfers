@@ -2,10 +2,9 @@ import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { userTable, bookingTable, bookingSegmentTable } from '$lib/server/db/schema';
 import { eq, and, inArray, gte, lte } from 'drizzle-orm';
+import { EMAIL_ALREADY_REGISTERED_MESSAGE } from '$lib/booking/constants';
 
-/** Message shown when email is already registered. Single source of truth for API and createCheckout. */
-export const EMAIL_ALREADY_REGISTERED_MESSAGE =
-	'An account with this email is already registered.';
+export { EMAIL_ALREADY_REGISTERED_MESSAGE };
 
 /** Message shown when selected dates exceed daily transfer capacity. */
 export const DATES_FULLY_BOOKED_MESSAGE =
@@ -23,16 +22,27 @@ export async function checkEmailExists(email: string): Promise<CheckResult> {
 		return { ok: false, message: 'Email is required.' };
 	}
 
-	const existing = await db
-		.select({ id: userTable.id })
-		.from(userTable)
-		.where(eq(userTable.username, normalized))
-		.limit(1);
+	try {
+		const existing = await db
+			.select({ id: userTable.id })
+			.from(userTable)
+			.where(eq(userTable.username, normalized))
+			.limit(1);
 
-	if (existing.length > 0) {
-		return { ok: false, message: EMAIL_ALREADY_REGISTERED_MESSAGE };
+		if (existing.length > 0) {
+			return { ok: false, message: EMAIL_ALREADY_REGISTERED_MESSAGE };
+		}
+		return { ok: true };
+	} catch (err) {
+		const e = err as Error & { code?: string; detail?: string; cause?: unknown };
+		const cause = e.cause as Error & { code?: string; detail?: string } | undefined;
+		console.error('[checkEmailExists] Database error — full details:');
+		console.error('  message:', e.message);
+		console.error('  code:', e.code, 'detail:', e.detail);
+		console.error('  cause (often the real PostgreSQL error):', cause?.message ?? cause);
+		console.error('  cause.code:', cause?.code, 'cause.detail:', cause?.detail);
+		throw err;
 	}
-	return { ok: true };
 }
 
 /**

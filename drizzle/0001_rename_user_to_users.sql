@@ -1,0 +1,2 @@
+-- Table is kept as "user" (schema uses pgTable("user", ...)).
+-- No migration needed.

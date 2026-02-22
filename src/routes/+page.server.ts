@@ -60,10 +60,17 @@ export const actions: Actions = {
 
 		const departureDate = new Date(departureDateStr);
 
-		// Server-side checks: email not already registered, daily capacity not exceeded
-		const emailCheck = await checkEmailExists(email);
-		if (!emailCheck.ok) {
-			return fail(400, { message: emailCheck.message });
+		// Server-side checks: when logged in, require email matches user; otherwise check not already registered
+		const emailNorm = email.trim().toLowerCase();
+		if (locals.user) {
+			if (emailNorm !== locals.user.username.trim().toLowerCase()) {
+				return fail(400, { message: 'Email must match your account.' });
+			}
+		} else {
+			const emailCheck = await checkEmailExists(email);
+			if (!emailCheck.ok) {
+				return fail(400, { message: emailCheck.message });
+			}
 		}
 		const availabilityCheck = await checkDailyCapacity(departureDateStr, route);
 		if (!availabilityCheck.ok) {

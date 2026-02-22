@@ -3,6 +3,8 @@
 	import { translations } from '$lib/translations';
 	import BookingForm from '$lib/components/BookingForm.svelte';
 
+	let { data } = $props();
+
 	const t = $derived(translations[$language]);
 
 	const scrollToBooking = () => {
@@ -12,6 +14,8 @@
 		}
 	};
 </script>
+
+<div class="auth-flag" aria-hidden="true">{data?.user ? 'LOGGED IN' : 'LOGGED OUT'}</div>
 
 <section class="hero">
 	<div class="hero-image">
@@ -31,7 +35,7 @@
 	</div>
 </section>
 
-<BookingForm />
+<BookingForm user={data?.user ?? null} />
 
 <section class="gallery">
 	<div class="gallery-container">
@@ -54,6 +58,21 @@
 </section>
 
 <style>
+	.auth-flag {
+		position: fixed;
+		top: 0.5rem;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 100;
+		padding: 0.5rem 1rem;
+		background: #333;
+		color: white;
+		font-size: 0.9rem;
+		font-weight: 700;
+		border-radius: 6px;
+		pointer-events: none;
+	}
+
 	.hero {
 		position: relative;
 		width: 100%;

@@ -11,6 +11,7 @@ export const actions = {
 		const formData = await request.formData();
 		const username = formData.get('username') as string;
 		const password = formData.get('password') as string;
+		const redirectTo = (formData.get('redirectTo') as string)?.trim() || '';
 
 		const [user] = await db.select().from(userTable).where(eq(userTable.username, username.toLowerCase()));
 
@@ -32,7 +33,17 @@ export const actions = {
 			maxAge: 60 * 60 * 24 * 30
 		});
 
-		throw redirect(302, '/dashboard');
+		// Same-origin path only: must start with / and contain no protocol-relative or double slash
+		const target = redirectTo && redirectTo.startsWith('/') && !redirectTo.includes('//') ? redirectTo : '/dashboard';
+
+		// Modal sends Accept: application/json; we return JSON + Set-Cookie so the client can reload to that URL.
+		const wantsJson = request.headers.get('Accept')?.includes('application/json');
+		console.log('[login action] wantsJson=', wantsJson, 'target=', target, 'Accept=', request.headers.get('Accept'));
+		if (wantsJson) {
+			console.log('[login action] returning { success: true, redirectTo:', target, '}');
+			return { success: true, redirectTo: target };
+		}
+		throw redirect(302, target);
 	},
 	requestPasswordReset: async ({ request, url }) => {
 		const formData = await request.formData();

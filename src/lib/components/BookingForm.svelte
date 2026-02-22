@@ -6,8 +6,17 @@
 	import BasicDetailsStep from './booking/BasicDetailsStep.svelte';
 	import Route from './booking/Route.svelte';
 	import { calculateBookingPrice } from '$lib/booking/price';
+	import { EMAIL_ALREADY_REGISTERED_MESSAGE } from '$lib/booking/constants';
+	import { openLoginModal } from '$lib/stores/loginModal';
 
 	$: t = translations[$language];
+
+	export let user: { username: string; id?: string } | null = null;
+
+	// Keep email in sync when logged-in user is present (for payload and read-only display)
+	$: if (user?.username) {
+		formData.basicDetails.email = user.username;
+	}
 
 	// Booking form state management
 	let currentStep = 1;
@@ -49,8 +58,9 @@
 	$: calculatedPrice = calculateBookingPrice(route, formData.aboutTrip?.bags);
 
 	async function checkEmailWithServer(): Promise<boolean> {
-		const email = (formData.basicDetails?.email || '').toString().trim();
+		const email = (formData.basicDetails?.email || '').toString().trim().toLowerCase();
 		if (!email) return true;
+		if (user?.username && email === user.username.trim().toLowerCase()) return true;
 		try {
 			const res = await fetch('/api/booking/check', {
 				method: 'POST',
@@ -634,6 +644,9 @@
 					{fieldErrors}
 					{validateField}
 					onEmailBlur={scheduleEmailCheck}
+					emailAlreadyRegistered={fieldErrors.email === EMAIL_ALREADY_REGISTERED_MESSAGE}
+					onOpenLogin={() => openLoginModal.set(true)}
+					loggedInUser={user ? { username: user.username } : null}
 				/>
 			{/if}
 
@@ -648,7 +661,12 @@
 					<div class="payment-error-message" role="alert">{availabilityError}</div>
 				{/if}
 				{#if paymentError}
-					<div class="payment-error-message" role="alert">{paymentError}</div>
+					<div class="payment-error-message" role="alert">
+						{paymentError}
+						{#if paymentError === EMAIL_ALREADY_REGISTERED_MESSAGE}
+							<button type="button" class="payment-login-link" onclick={() => openLoginModal.set(true)}>Log in</button>
+						{/if}
+					</div>
 				{/if}
 			{/if}
 
@@ -785,6 +803,22 @@
 		font-weight: 500;
 		padding: 1rem 0;
 		margin-top: 1rem;
+	}
+
+	.payment-login-link {
+		margin-left: 0.5rem;
+		background: none;
+		border: none;
+		color: #007bff;
+		font-size: inherit;
+		cursor: pointer;
+		text-decoration: underline;
+		padding: 0;
+		font-family: inherit;
+	}
+
+	.payment-login-link:hover {
+		color: #0056b3;
 	}
 
 	.nav-button-pay {

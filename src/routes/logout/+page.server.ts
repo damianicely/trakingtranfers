@@ -16,6 +16,6 @@ export const actions = {
 		cookies.delete('session', { path: '/' });
 
 		// Redirect to login page
-		throw redirect(302, '/login');
+		throw redirect(302, '/');
 	}
 };
