@@ -346,13 +346,12 @@
 	const validateBasicDetails = (): boolean => {
 		const errors: Record<string, string> = {};
 		const { firstName, lastName, email, phone } = formData.basicDetails;
+		const isLoggedIn = !!user?.username;
 
-		if (!firstName.trim()) {
-			errors.firstName = t.booking_first_name_error;
-		}
-
-		if (!lastName.trim()) {
-			errors.lastName = t.booking_last_name_error;
+		if (!isLoggedIn) {
+			if (!firstName.trim()) errors.firstName = t.booking_first_name_error;
+			if (!lastName.trim()) errors.lastName = t.booking_last_name_error;
+			if (!phone.trim()) errors.phone = t.booking_phone_error;
 		}
 
 		if (!email.trim()) {
@@ -361,12 +360,10 @@
 			errors.email = t.booking_email_error;
 		}
 
-		if (!phone.trim()) {
-			errors.phone = t.booking_phone_error;
-		}
-
 		fieldErrors = { ...fieldErrors, ...errors };
-		return Object.keys(errors).length === 0;
+		const ok = Object.keys(errors).length === 0;
+		if (browser) console.log('[BookingForm] validateBasicDetails:', { isLoggedIn, errors, ok });
+		return ok;
 	};
 
 	const validateField = (fieldName: string, value: string) => {
@@ -479,12 +476,16 @@
 	};
 
 	const handleNext = () => {
+		if (browser) console.log('[BookingForm] handleNext: currentStep=', currentStep);
 		if (currentStep === 1) {
-			if (validateBasicDetails()) {
+			const basicOk = validateBasicDetails();
+			if (browser) console.log('[BookingForm] handleNext step 1: validateBasicDetails=', basicOk);
+			if (basicOk) {
 				if (!completedSteps.includes(1)) {
 					completedSteps = [...completedSteps, 1];
 				}
 				nextStep();
+				if (browser) console.log('[BookingForm] handleNext: nextStep() called, currentStep now', currentStep);
 			}
 		} else if (currentStep === 2) {
 			if (validateAboutTrip()) {
@@ -600,11 +601,14 @@
 	};
 
 	const nextStep = () => {
-		if (currentStep < 2 && isStepEnabled(currentStep + 1)) {
+		const enabled = isStepEnabled(currentStep + 1);
+		if (browser) console.log('[BookingForm] nextStep: currentStep=', currentStep, 'isStepEnabled(2)=', enabled);
+		if (currentStep < 2 && enabled) {
 			if (!completedSteps.includes(currentStep)) {
 				completedSteps = [...completedSteps, currentStep];
 			}
 			currentStep++;
+			if (browser) console.log('[BookingForm] nextStep: advanced to step', currentStep);
 		}
 	};
 
