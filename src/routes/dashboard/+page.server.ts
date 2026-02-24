@@ -8,10 +8,30 @@ import {
 	driverProfile
 } from '$lib/server/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import crypto from 'node:crypto';
+import {
+	getCalendarSummaryForMonth,
+	getStepsWithBookingsOnDate
+} from '$lib/server/driver-assignment/calendar-summary';
+import {
+	getAssignmentsForDate,
+	getAssignmentsForDriver,
+	setAssignment,
+	clearAssignment
+} from '$lib/server/driver-assignment/assignments';
+import { getAllDeliverySteps } from '$lib/delivery-steps';
 
-export const load = async ({ locals }) => {
+function getDefaultYearMonth(): string {
+	const d = new Date();
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getDefaultDateStr(): string {
+	return new Date().toISOString().split('T')[0]!;
+}
+
+export const load: PageServerLoad = async ({ locals, url }) => {
 	// 1. Check if the session exists (populated by your hook)
 	if (!locals.user) {
 		// 2. Redirect to login if they are a guest
@@ -151,6 +171,29 @@ export const load = async ({ locals }) => {
 		});
 	}
 
+	// Admin: calendar summary, step assignments, and booked steps for selected date
+	let calendarSummary: Array<{ date: string; hasActiveJourneys: boolean; hasDriverAssignments: boolean }> = [];
+	let stepAssignments: Record<string, string> = {};
+	let bookedStepsForDate: Array<[string, string]> = [];
+	const calendarMonth = url.searchParams.get('calendarMonth') ?? getDefaultYearMonth();
+	const selectedDate = url.searchParams.get('selectedDate') ?? getDefaultDateStr();
+
+	if (user.role === 'admin') {
+		calendarSummary = await getCalendarSummaryForMonth(calendarMonth);
+		stepAssignments = await getAssignmentsForDate(selectedDate);
+		bookedStepsForDate = await getStepsWithBookingsOnDate(selectedDate);
+	}
+
+	// Driver: my assignments for current month (for calendar and day list)
+	let driverAssignments: Array<{ date: string; fromStageId: string; toStageId: string }> = [];
+	if (user.role === 'driver') {
+		const [y, m] = calendarMonth.split('-').map(Number);
+		const startStr = `${y}-${String(m).padStart(2, '0')}-01`;
+		const lastDay = new Date(y, m, 0).getDate();
+		const endStr = `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+		driverAssignments = await getAssignmentsForDriver(user.id, startStr, endStr);
+	}
+
 	// 6. If they are logged in, return data to the page
 	return {
 		user,
@@ -162,6 +205,13 @@ export const load = async ({ locals }) => {
 		allBookings,
 		allCustomers,
 		allDrivers,
+		calendarSummary,
+		stepAssignments,
+		bookedStepsForDate,
+		calendarMonth,
+		selectedDate,
+		// Driver data
+		driverAssignments,
 		// Owner data
 		ownerBookings,
 		dailySales
@@ -461,5 +511,67 @@ export const actions: Actions = {
 		await db.delete(userTable).where(eq(userTable.id, driverId));
 
 		return { success: true, message: 'Driver deleted successfully' };
+	},
+
+	// Admin: Assign or clear driver for a delivery step on a date (empty driverId = clear)
+	assignDriverToStep: async ({ request, locals }) => {
+		if (!locals.user || locals.user.role !== 'admin') {
+			return fail(403, { message: 'Unauthorized' });
+		}
+		const formData = await request.formData();
+		const dateStr = formData.get('date')?.toString();
+		const fromStageId = formData.get('fromStageId')?.toString();
+		const toStageId = formData.get('toStageId')?.toString();
+		const driverId = formData.get('driverId')?.toString() ?? '';
+		if (!dateStr || !fromStageId || !toStageId) {
+			return fail(400, { message: 'Date, fromStageId and toStageId are required.' });
+		}
+		if (!driverId) {
+			await clearAssignment(dateStr, fromStageId, toStageId);
+			const calendarMonth = formData.get('calendarMonth')?.toString() ?? getDefaultYearMonth();
+			throw redirect(303, `/dashboard?calendarMonth=${calendarMonth}&selectedDate=${dateStr}`);
+		}
+		const [driverUser] = await db
+			.select()
+			.from(userTable)
+			.where(and(eq(userTable.id, driverId), eq(userTable.role, 'driver')))
+			.limit(1);
+		if (!driverUser) {
+			return fail(400, { message: 'Invalid driver.' });
+		}
+		await setAssignment(dateStr, fromStageId, toStageId, driverId);
+		const calendarMonth = formData.get('calendarMonth')?.toString() ?? getDefaultYearMonth();
+		throw redirect(303, `/dashboard?calendarMonth=${calendarMonth}&selectedDate=${dateStr}`);
+	},
+
+	// Admin: Bulk assign drivers for a day (matrix: one driver per step). Body: date, calendarMonth, step_fromId_toId = driverId (or empty).
+	assignDriversForDay: async ({ request, locals }) => {
+		if (!locals.user || locals.user.role !== 'admin') {
+			return fail(403, { message: 'Unauthorized' });
+		}
+		const formData = await request.formData();
+		const dateStr = formData.get('date')?.toString();
+		const calendarMonthParam = formData.get('calendarMonth')?.toString() ?? getDefaultYearMonth();
+		if (!dateStr) {
+			return fail(400, { message: 'Date is required.' });
+		}
+		const bookedSteps = await getStepsWithBookingsOnDate(dateStr);
+		const driverUserIds = new Set(
+			(await db.select({ id: userTable.id }).from(userTable).where(eq(userTable.role, 'driver')))
+				.map((r) => r.id)
+		);
+		for (const [fromId, toId] of bookedSteps) {
+			const key = `step_${fromId}_${toId}`;
+			const driverId = formData.get(key)?.toString() ?? '';
+			if (!driverId) {
+				await clearAssignment(dateStr, fromId, toId);
+				continue;
+			}
+			if (!driverUserIds.has(driverId)) {
+				return fail(400, { message: 'Invalid driver selected.' });
+			}
+			await setAssignment(dateStr, fromId, toId, driverId);
+		}
+		throw redirect(303, `/dashboard?calendarMonth=${calendarMonthParam}&selectedDate=${dateStr}`);
 	}
 };

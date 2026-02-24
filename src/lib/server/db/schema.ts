@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { date, pgTable, text, timestamp, pgEnum, unique } from "drizzle-orm/pg-core";
 
 // 1. Define the roles as a Postgres Enum
 export const roleEnum = pgEnum("user_role", ["customer", "admin", "driver", "owner"]);
@@ -115,6 +115,21 @@ export const ownerProfile = pgTable("owner_profile", {
 
 // Admin and Customer might not need profiles if they don't have extra fields yet,
 // but you can add them later!
+
+// Driver step assignment: one driver per (date, from_stage_id, to_stage_id)
+export const driverStepAssignmentTable = pgTable(
+	"driver_step_assignment",
+	{
+		id: text("id").primaryKey(),
+		date: date("date", { mode: "string" }).notNull(), // YYYY-MM-DD
+		fromStageId: text("from_stage_id").notNull(),
+		toStageId: text("to_stage_id").notNull(),
+		driverId: text("driver_id")
+			.notNull()
+			.references(() => userTable.id),
+	},
+	(t) => [unique().on(t.date, t.fromStageId, t.toStageId)]
+);
 
 // 3. Password reset / setup tokens
 export const passwordResetTokenTable = pgTable("password_reset_token", {

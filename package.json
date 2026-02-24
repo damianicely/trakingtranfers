@@ -2,8 +2,9 @@
 	"name": "trakingtransfer",
 	"version": "0.0.1",
 	"private": true,
-	"scripts": {
-		"dev": "vite dev",
+"scripts": {
+    "seed:hotels": "tsx scripts/seed-hotels.ts",
+    "dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

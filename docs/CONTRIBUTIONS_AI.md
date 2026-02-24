@@ -35,16 +35,17 @@ This document gives declarative, factual descriptions of the app architecture an
 - **booking_segment** — one row per leg of a booking’s route: bookingId, segmentIndex, fromStageId, toStageId, travelDate; optional hotel links and notes.  
 - **hotel** — id, locationId (stage id), name, contactInfo.  
 - **driver_profile** / **owner_profile** — extend `user` with role-specific fields.  
-- **password_reset_token** — for password setup/reset flows.
+- **password_reset_token** — for password setup/reset flows.  
+- **driver_step_assignment** — id, date (YYYY-MM-DD), from_stage_id, to_stage_id, driver_id (FK user). Unique on (date, from_stage_id, to_stage_id). One driver per delivery step per calendar day.
 
-Booking and segment rows are created in the `createCheckout` action; the webhook only updates booking status and `userId`.
+Booking and segment rows are created in the `createCheckout` action; the webhook only updates booking status and `userId`. Delivery steps are the 26 trail segments (13 North→South, 13 South→North) from `$lib/trail.ts`; `$lib/delivery-steps.ts` exposes `getAllDeliverySteps()` and `getStepLabel(from, to)`.
 
 ### Front-end structure
 
 - **Layout:** `src/routes/+layout.svelte` wraps the app with a header (logo, Login or Dashboard + Log out, EN/PT toggle) and footer. The root layout load in `+layout.server.ts` returns `{ user: locals.user ?? null }`, so every page receives `data.user`. Language is held in `$lib/stores/language` and used with `$lib/translations` for all copy.
 - **Home:** `+page.svelte` composes hero, about, `BookingForm`, and gallery. It receives `data` from the layout and passes `user={data?.user ?? null}` into `BookingForm`. A visible “LOGGED IN” / “LOGGED OUT” label on the home page is for testing auth state (not translated).
 - **Booking form:** `$lib/components/BookingForm.svelte` is a two-step form (basic details, then trip + pay). It accepts an optional `user` prop from the layout. It uses `BasicDetailsStep` and `Route`; calls `POST /api/booking/check` for email (on blur, debounced) and availability (on Pay Now); then POSTs to the `createCheckout` form action with `bookingPayload` and `amount`. Route and pricing come from `$lib/trail.ts` (stages, `generateRoute`) and `$lib/booking/price.ts`. Accommodation and payment-step UI exist in `$lib/components/booking/` but are not shown in the main two-step flow.
-- **Dashboard:** Single route `/dashboard`; `+page.svelte` picks the dashboard component by role. Data (bookings, segments, hotels, owner sales, admin lists, etc.) is loaded in `+page.server.ts` and passed as `data`; some actions (e.g. cancel booking) are form actions on the same route.
+- **Dashboard:** Single route `/dashboard`; `+page.svelte` picks the dashboard component by role. Data (bookings, segments, hotels, owner sales, admin lists, calendar summary, step assignments, driver assignments, etc.) is loaded in `+page.server.ts` and passed as `data`; some actions (e.g. cancel booking, assignDriverToStep) are form actions on the same route. Admin dashboard includes a Schedule section (month calendar + day detail to assign drivers to delivery steps). Driver dashboard includes a calendar of assigned days and a list of the driver’s steps for the selected day. Calendar month and selected date are driven by query params `calendarMonth` (YYYY-MM) and `selectedDate` (YYYY-MM-DD).
 
 ### Auth on every page and in-header login
 
@@ -71,9 +72,17 @@ Booking and segment rows are created in the `createCheckout` action; the webhook
 5. Stripe sends `checkout.session.completed` to `POST /api/webhook/stripe`. Webhook marks the booking paid, finds or creates `user` by email (username), links booking to user, and creates a password-setup token (e.g. for email later).  
 6. User is redirected to `/booking-success` (or cancel URL back to `/`).
 
+### Driver assignment and schedule
+
+- **Delivery steps:** `$lib/delivery-steps.ts` — `getAllDeliverySteps()` (26 steps from trail), `getStepLabel(from, to)` for display.
+- **Server logic:** `$lib/server/driver-assignment/` — `calendar-summary.ts` (getDatesWithActiveJourneys, getBookedStepKeysByDateInRange, getAssignedStepKeysByDateInRange, getCalendarSummaryForMonth, getStepsWithBookingsOnDate), `assignments.ts` (getAssignmentsForDate, setAssignment, clearAssignment, getAssignmentsForDriver). Active journey = at least one booking_segment on that date for a pending/paid booking. Calendar green (hasDriverAssignments) means all booked legs that day have a driver assigned (not just one). getStepsWithBookingsOnDate(date) returns the list of (from_stage_id, to_stage_id) that have at least one segment on that date (pending/paid); used so the admin day view shows only booked legs.
+- **Frequently called logic:** The following are used on every admin calendar/schedule view or on day selection and are hot-path; they live in `$lib/server/driver-assignment/`: `getCalendarSummaryForMonth(yearMonth)`, `getStepsWithBookingsOnDate(dateStr)`, `getAssignmentsForDate(dateStr)`. See JSDoc on `getStepsWithBookingsOnDate` and this section for annotation.
+- **Dashboard load:** For admin, load returns calendarSummary, stepAssignments for selectedDate, bookedStepsForDate (steps with bookings on selectedDate only), calendarMonth, selectedDate. For driver, load returns driverAssignments for the month, calendarMonth, selectedDate.
+- **Form actions:** `assignDriverToStep` — single step (date, fromStageId, toStageId, driverId). Used by the admin schedule matrix: each tick/untick triggers a POST and then invalidateAll() so the database is updated immediately and the calendar state refreshes (no Update button). `assignDriversForDay` — bulk for one day (optional; admin matrix now saves per change). Admin only; redirects preserve calendarMonth and selectedDate.
+
 ### Where to put new code
 
-- **Server-only (DB, secrets, checks):** `src/lib/server/` (e.g. `server/booking/checks.ts`, `server/db/`, `server/auth/`).  
+- **Server-only (DB, secrets, checks):** `src/lib/server/` (e.g. `server/booking/checks.ts`, `server/db/`, `server/driver-assignment/`, `server/auth/`).  
 - **Shared client/server types or pure logic:** `src/lib/` but outside `server/` (e.g. `lib/trail.ts`, `lib/booking/price.ts`).  
 - **UI components:** `src/lib/components/`.  
 - **New pages or API routes:** `src/routes/` (e.g. `routes/api/booking/check/+server.ts`).  

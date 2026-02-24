@@ -1,6 +1,7 @@
 ## LLM Rules
 
 - Do not change database schema unless explicitly requested
+- After making changes update CONTRIBUITIONS_AI.md with a short AI readable summary of what was done.
 - Prefer small, explicit functions over abstractions
 - No new dependencies without approval
 - No global state
