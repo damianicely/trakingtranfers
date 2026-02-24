@@ -36,8 +36,8 @@
 					<div class="detail-item">
 						<strong>{t.booking_success_name}:</strong>
 						<span>
-							{booking.firstName || ''} {booking.lastName || ''}
-							{#if !booking.firstName && !booking.lastName}
+							{(booking.userFirstName ?? booking.firstName) || ''} {(booking.userLastName ?? booking.lastName) || ''}
+							{#if !(booking.userFirstName ?? booking.firstName) && !(booking.userLastName ?? booking.lastName)}
 								<span class="muted">—</span>
 							{/if}
 						</span>

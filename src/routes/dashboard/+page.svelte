@@ -5,6 +5,8 @@
 	import DriverDashboard from '$lib/components/dashboard/DriverDashboard.svelte';
 	import OwnerDashboard from '$lib/components/dashboard/OwnerDashboard.svelte';
 	import AdminDashboard from '$lib/components/dashboard/AdminDashboard.svelte';
+	import CollapsibleSection from '$lib/components/dashboard/admin/CollapsibleSection.svelte';
+	import StaffSection from '$lib/components/dashboard/admin/StaffSection.svelte';
 
 	let { data, form } = $props(); // Svelte 5 way to get data from the server
 
@@ -33,11 +35,15 @@
 		</form>
 	</header>
 
-	<main class="dashboard-content" class:admin-dashboard={role === 'admin'}>
+	<main class="dashboard-content" class:admin-dashboard={role === 'admin' || role === 'owner'}>
 		{#if role === 'customer'}
 			<CustomerDashboard {user} data={data} {form} />
 		{:else if role === 'owner'}
 			<OwnerDashboard {user} data={data} />
+			<CollapsibleSection title={t.staff_title} defaultExpanded={true}>
+				<StaffSection allStaff={data.allStaff ?? []} {form} />
+			</CollapsibleSection>
+			<AdminDashboard {user} data={data} {form} />
 		{:else if role === 'driver'}
 			<DriverDashboard {user} data={data} />
 		{:else if role === 'admin'}

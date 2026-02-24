@@ -61,7 +61,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Find booking, find or create user, then link booking and create password reset token
 		try {
-			// 0. Check that the booking actually exists
+			// 0. Check that the booking actually exists and get names for user backfill
 			const existingBookings = await db
 				.select()
 				.from(bookingTable)
@@ -71,6 +71,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				console.error('No booking found for bookingId from metadata:', bookingId);
 				return new Response('Booking not found', { status: 200 });
 			}
+			const booking = existingBookings[0];
+			const bookingFirstName = booking.firstName?.trim() || null;
+			const bookingLastName = booking.lastName?.trim() || null;
 
 			// 1. Check if the user already exists
 			const existingUsers = await db
@@ -82,8 +85,18 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			if (existingUsers.length > 0) {
 				userId = existingUsers[0].id;
+				// Backfill user names from this booking if user has none
+				if ((bookingFirstName || bookingLastName) && (!existingUsers[0].firstName || !existingUsers[0].lastName)) {
+					await db
+						.update(userTable)
+						.set({
+							firstName: existingUsers[0].firstName ?? bookingFirstName,
+							lastName: existingUsers[0].lastName ?? bookingLastName
+						})
+						.where(eq(userTable.id, userId));
+				}
 			} else {
-				// 2. Auto-register a new customer with a random password
+				// 2. Auto-register a new customer with a random password and names from booking
 				const randomPassword = crypto.randomBytes(32).toString('hex');
 				const passwordHash = await hash(randomPassword, {
 					memoryCost: 19456,
@@ -97,8 +110,9 @@ export const POST: RequestHandler = async ({ request }) => {
 				await db.insert(userTable).values({
 					id: userId,
 					username,
-					passwordHash
-					// role defaults to 'customer' in the schema
+					passwordHash,
+					firstName: bookingFirstName,
+					lastName: bookingLastName
 				});
 			}
 

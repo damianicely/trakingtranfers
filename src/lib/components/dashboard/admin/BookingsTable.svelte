@@ -7,8 +7,10 @@
 			id: string;
 			userId: string | null;
 			status: string | null;
-			firstName: string | null;
-			lastName: string | null;
+			firstName?: string | null;
+			lastName?: string | null;
+			userFirstName?: string | null;
+			userLastName?: string | null;
 			email: string | null;
 			phone: string | null;
 			departureDate: Date | null;
@@ -30,6 +32,13 @@
 			year: 'numeric'
 		});
 	};
+
+	const PAGE_SIZE = 10;
+	let currentPage = $state(0);
+	const totalPages = $derived(Math.max(1, Math.ceil(bookings.length / PAGE_SIZE)));
+	const paginatedBookings = $derived(
+		bookings.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
+	);
 
 	let editingId = $state<string | null>(null);
 	let viewingBooking = $state<any | null>(null);
@@ -79,12 +88,12 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each bookings as booking}
+				{#each paginatedBookings as booking}
 					<tr>
 						<td class="mono">{booking.id.slice(0, 8)}...</td>
 						<td>
-							{booking.firstName || ''} {booking.lastName || ''}
-							{#if !booking.firstName && !booking.lastName}
+							{(booking.userFirstName ?? booking.firstName) || ''} {(booking.userLastName ?? booking.lastName) || ''}
+							{#if !(booking.userFirstName ?? booking.firstName) && !(booking.userLastName ?? booking.lastName)}
 								<span class="muted">—</span>
 							{/if}
 						</td>
@@ -141,6 +150,27 @@
 				{/each}
 			</tbody>
 		</table>
+		{#if bookings.length > PAGE_SIZE}
+			<div class="pagination">
+				<button
+					type="button"
+					class="pagination-btn"
+					disabled={currentPage === 0}
+					onclick={() => { currentPage = Math.max(0, currentPage - 1); }}
+				>
+					Previous
+				</button>
+				<span class="pagination-info">Page {currentPage + 1} of {totalPages}</span>
+				<button
+					type="button"
+					class="pagination-btn"
+					disabled={currentPage >= totalPages - 1}
+					onclick={() => { currentPage = Math.min(totalPages - 1, currentPage + 1); }}
+				>
+					Next
+				</button>
+			</div>
+		{/if}
 	{/if}
 </div>
 
@@ -154,8 +184,8 @@
 			<div class="detail-row">
 				<strong>Customer:</strong>
 				<span>
-					{viewingBooking.firstName || ''} {viewingBooking.lastName || ''}
-					{#if !viewingBooking.firstName && !viewingBooking.lastName}
+					{(viewingBooking.userFirstName ?? viewingBooking.firstName) || ''} {(viewingBooking.userLastName ?? viewingBooking.lastName) || ''}
+					{#if !(viewingBooking.userFirstName ?? viewingBooking.firstName) && !(viewingBooking.userLastName ?? viewingBooking.lastName)}
 						<span class="muted">—</span>
 					{/if}
 				</span>
@@ -210,6 +240,33 @@
 		text-align: center;
 		color: #999;
 		font-style: italic;
+	}
+
+	.pagination {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-top: 1rem;
+		padding: 0.5rem 0;
+	}
+	.pagination-btn {
+		padding: 0.4rem 0.8rem;
+		background: #f0f0f0;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.9rem;
+	}
+	.pagination-btn:hover:not(:disabled) {
+		background: #e0e0e0;
+	}
+	.pagination-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	.pagination-info {
+		font-size: 0.9rem;
+		color: #666;
 	}
 
 	.data-table {

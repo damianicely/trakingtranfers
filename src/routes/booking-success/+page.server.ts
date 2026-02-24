@@ -1,6 +1,6 @@
 import { redirect, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { bookingTable, bookingSegmentTable } from '$lib/server/db/schema';
+import { bookingTable, bookingSegmentTable, userTable } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
@@ -37,6 +37,26 @@ export const load = async ({ url }) => {
 			throw error(404, 'Booking not found');
 		}
 
+		// Prefer user names over booking names for display
+		let userFirstName: string | null = null;
+		let userLastName: string | null = null;
+		if (booking.userId) {
+			const [user] = await db
+				.select({ firstName: userTable.firstName, lastName: userTable.lastName })
+				.from(userTable)
+				.where(eq(userTable.id, booking.userId))
+				.limit(1);
+			if (user) {
+				userFirstName = user.firstName;
+				userLastName = user.lastName;
+			}
+		}
+		const bookingWithUserNames = {
+			...booking,
+			userFirstName,
+			userLastName
+		};
+
 		// Load booking segments
 		const allSegments = await db
 			.select()
@@ -51,7 +71,7 @@ export const load = async ({ url }) => {
 		});
 
 		return {
-			booking,
+			booking: bookingWithUserNames,
 			segments
 		};
 	} catch (err: any) {

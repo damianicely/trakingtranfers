@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { language } from '$lib/stores/language';
 	import { translations } from '$lib/translations';
 	import AccountInfo from './AccountInfo.svelte';
@@ -48,8 +49,71 @@
 		if (!date) return '';
 		return formatDate(date.toISOString().split('T')[0], 0);
 	};
+
+	const getHotelName = (hotelId: string | null): string | null => {
+		if (!hotelId) return null;
+		const allHotels = Object.values(data.hotelsByLocation) as Array<{ id: string; name: string }>[];
+		for (const hotels of allHotels) {
+			const h = hotels.find((x: { id: string }) => x.id === hotelId);
+			if (h) return h.name;
+		}
+		return null;
+	};
+
+	// Client-side state so "next day start = previous day end" updates immediately when user selects end hotel
+	type SegmentHotelState = { startHotelId: string | null; endHotelId: string | null; notes: string | null };
+	let segmentHotels = $state<Record<string, SegmentHotelState>>({});
+
+	$effect(() => {
+		const next: Record<string, SegmentHotelState> = {};
+		for (const booking of data.bookings) {
+			const segments = data.segmentsByBooking[booking.id] || [];
+			for (const seg of segments) {
+				next[seg.id] = {
+					startHotelId: seg.startHotelId ?? null,
+					endHotelId: seg.endHotelId ?? null,
+					notes: seg.hotelNotes ?? null
+				};
+			}
+		}
+		segmentHotels = next;
+	});
+
+	const segmentState = (segmentId: string) => segmentHotels[segmentId] ?? { startHotelId: null, endHotelId: null, notes: null };
+
+	const updateSegmentEnd = (segmentId: string, endHotelId: string | null) => {
+		const cur = segmentHotels[segmentId];
+		if (!cur) return;
+		segmentHotels = { ...segmentHotels, [segmentId]: { ...cur, endHotelId } };
+	};
+	const updateSegmentStart = (segmentId: string, startHotelId: string | null) => {
+		const cur = segmentHotels[segmentId];
+		if (!cur) return;
+		segmentHotels = { ...segmentHotels, [segmentId]: { ...cur, startHotelId } };
+	};
+	const updateSegmentNotes = (segmentId: string, notes: string | null) => {
+		const cur = segmentHotels[segmentId];
+		if (!cur) return;
+		segmentHotels = { ...segmentHotels, [segmentId]: { ...cur, notes } };
+	};
+
+	let saving = $state(false);
+
+	const triggerSave = async (e: Event) => {
+		const form = (e.target as HTMLElement).closest('form');
+		if (!form || saving) return;
+		saving = true;
+		try {
+			const formData = new FormData(form);
+			const res = await fetch('?/updateBookingHotels', { method: 'POST', body: formData });
+			if (res.ok) await invalidateAll();
+		} finally {
+			saving = false;
+		}
+	};
 </script>
 
+<div class="customer-dashboard">
 <section class="dashboard-section">
 	<h2>{t.dashboard_section_bookings_title}</h2>
 	<p>{t.dashboard_section_bookings_description}</p>
@@ -95,8 +159,8 @@
 									{@const fromHotels = getHotelsForLocation(segment.fromStageId)}
 									{@const toHotels = getHotelsForLocation(segment.toStageId)}
 									{@const prevSegment = segments[index - 1]}
-									{@const autoStartHotel = prevSegment?.endHotelId || null}
-									{@const effectiveStartHotel = segment.startHotelId || autoStartHotel}
+									{@const state = segmentState(segment.id)}
+									{@const effectiveStartHotel = index === 0 ? state.startHotelId : (prevSegment ? segmentState(prevSegment.id).endHotelId : null)}
 
 									<div class="segment-row">
 										<div class="segment-info">
@@ -112,27 +176,43 @@
 										<div class="hotel-selections">
 											<div class="hotel-field">
 												<label>Start Hotel ({stageNames[segment.fromStageId] || segment.fromStageId})</label>
-												<select name="segment_{segment.id}_startHotel" value={effectiveStartHotel || ''}>
-													<option value="">No hotel selected</option>
-													{#each fromHotels as hotel}
-														<option value={hotel.id} selected={effectiveStartHotel === hotel.id}>
-															{hotel.name}
-														</option>
-													{/each}
-												</select>
-												{#if autoStartHotel && !segment.startHotelId}
-													<span class="auto-fill-note">(Auto-filled from previous day)</span>
+												{#if index === 0}
+													<select
+														name="segment_{segment.id}_startHotel"
+														value={state.startHotelId || ''}
+														onchange={(e) => {
+															const v = (e.target as HTMLSelectElement).value || null;
+															updateSegmentStart(segment.id, v);
+															triggerSave(e);
+														}}
+													>
+														<option value="">No hotel selected</option>
+														{#each fromHotels as hotel}
+															<option value={hotel.id}>{hotel.name}</option>
+														{/each}
+													</select>
+												{:else}
+													<div class="read-only-hotel">
+														{getHotelName(effectiveStartHotel) ?? '—'}
+														<span class="auto-fill-note">(previous night’s end hotel)</span>
+													</div>
 												{/if}
 											</div>
 
 											<div class="hotel-field">
 												<label>End Hotel ({stageNames[segment.toStageId] || segment.toStageId})</label>
-												<select name="segment_{segment.id}_endHotel" value={segment.endHotelId || ''}>
+												<select
+													name="segment_{segment.id}_endHotel"
+													value={state.endHotelId || ''}
+													onchange={(e) => {
+														const v = (e.target as HTMLSelectElement).value || null;
+														updateSegmentEnd(segment.id, v);
+														triggerSave(e);
+													}}
+												>
 													<option value="">No hotel selected</option>
 													{#each toHotels as hotel}
-														<option value={hotel.id} selected={segment.endHotelId === hotel.id}>
-															{hotel.name}
-														</option>
+														<option value={hotel.id}>{hotel.name}</option>
 													{/each}
 												</select>
 											</div>
@@ -143,16 +223,19 @@
 													name="segment_{segment.id}_notes"
 													placeholder="Additional hotel information, special requests..."
 													rows="2"
-												>{segment.hotelNotes || ''}</textarea>
+													value={state.notes ?? ''}
+													oninput={(e) => updateSegmentNotes(segment.id, (e.target as HTMLTextAreaElement).value || null)}
+													onblur={triggerSave}
+												></textarea>
 											</div>
 										</div>
 									</div>
 								{/each}
 							</div>
 
-							<div class="form-actions">
-								<button type="submit" class="btn-save">Save Hotel Information</button>
-							</div>
+							{#if saving}
+								<p class="save-status">Saving…</p>
+							{/if}
 						</form>
 					{/if}
 				</div>
@@ -162,8 +245,15 @@
 </section>
 
 <AccountInfo {user} roleLabel={t.dashboard_role_customer} />
+</div>
 
 <style>
+	.customer-dashboard {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		gap: 2rem;
+	}
 	.dashboard-section {
 		background: #f9f9f9;
 		padding: 1.5rem;
@@ -316,25 +406,15 @@
 	}
 
 	.hotel-selections {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
+		display: flex;
+		flex-direction: column;
 		gap: 1rem;
 		margin-top: 1rem;
-	}
-
-	@media (max-width: 768px) {
-		.hotel-selections {
-			grid-template-columns: 1fr;
-		}
 	}
 
 	.hotel-field {
 		display: flex;
 		flex-direction: column;
-	}
-
-	.hotel-field.notes-field {
-		grid-column: 1 / -1;
 	}
 
 	.hotel-field label {
@@ -344,6 +424,21 @@
 		margin-bottom: 0.5rem;
 	}
 
+	.read-only-hotel {
+		padding: 0.5rem 0;
+		color: #333;
+	}
+	.read-only-hotel .auto-fill-note {
+		display: block;
+		font-size: 0.8rem;
+		color: #666;
+		margin-top: 0.2rem;
+	}
+	.save-status {
+		margin: 0.5rem 0 0 0;
+		font-size: 0.9rem;
+		color: #666;
+	}
 	.hotel-field select,
 	.hotel-field textarea {
 		padding: 0.5rem;

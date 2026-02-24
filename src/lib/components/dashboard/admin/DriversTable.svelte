@@ -7,7 +7,6 @@
 			username: string;
 			role: string;
 			licenseNumber: string | null;
-			vehicleType: string | null;
 		}>;
 		form?: { success?: boolean; message?: string };
 	}>();
@@ -48,9 +47,8 @@
 			<thead>
 				<tr>
 					<th>ID</th>
-					<th>Username</th>
+					<th>Email</th>
 					<th>License Number</th>
-					<th>Vehicle Type</th>
 					<th>Actions</th>
 				</tr>
 			</thead>
@@ -76,13 +74,6 @@
 										placeholder="License Number"
 										class="edit-input"
 									/>
-									<input
-										type="text"
-										name="vehicleType"
-										value={driver.vehicleType || ''}
-										placeholder="Vehicle Type"
-										class="edit-input"
-									/>
 									<button type="submit" class="btn-save">Save</button>
 									<button type="button" class="btn-cancel" onclick={cancelEdit}>Cancel</button>
 								</form>
@@ -91,7 +82,6 @@
 							{/if}
 						</td>
 						<td>{driver.licenseNumber || '—'}</td>
-						<td>{driver.vehicleType || '—'}</td>
 						<td class="actions">
 							{#if editingId !== driver.id}
 								<button
@@ -131,7 +121,7 @@
 				<span>{viewingDriver.id}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Username:</strong>
+				<strong>Email:</strong>
 				<span>{viewingDriver.username}</span>
 			</div>
 			<div class="detail-row">
@@ -141,10 +131,6 @@
 			<div class="detail-row">
 				<strong>License Number:</strong>
 				<span>{viewingDriver.licenseNumber || '—'}</span>
-			</div>
-			<div class="detail-row">
-				<strong>Vehicle Type:</strong>
-				<span>{viewingDriver.vehicleType || '—'}</span>
 			</div>
 		</div>
 	</ViewModal>

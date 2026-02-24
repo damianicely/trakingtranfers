@@ -7,7 +7,9 @@ export const userTable = pgTable("user", {
     id: text("id").primaryKey(),
     username: text("username").notNull().unique(),
     passwordHash: text("password_hash").notNull(),
-    role: roleEnum("role").default("customer").notNull(), // Add this!
+    role: roleEnum("role").default("customer").notNull(),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
 });
 
 export const sessionTable = pgTable("session", {

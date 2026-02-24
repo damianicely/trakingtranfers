@@ -29,12 +29,12 @@ This document gives declarative, factual descriptions of the app architecture an
 
 ### Data model (high level)
 
-- **user** — id, username (email after checkout), passwordHash, role.  
+- **user** — id, username (login email), passwordHash, role, firstName, lastName. Canonical names live here; booking first/last names are deprecated for display (kept for transition).  
 - **session** — id, userId, expiresAt.  
-- **booking** — id, userId (nullable until after payment), status (pending | paid | cancelled), Stripe session id, customer and trip fields (firstName, lastName, email, phone, departureDate, departureStageId, destinationStageId, numBags, numTransfers, totalPrice), timestamps.  
+- **booking** — id, userId (nullable until after payment), status (pending | paid | cancelled), Stripe session id, customer and trip fields (firstName, lastName deprecated for display—prefer user names; email, phone, departureDate, departureStageId, destinationStageId, numBags, numTransfers, totalPrice), timestamps.  
 - **booking_segment** — one row per leg of a booking’s route: bookingId, segmentIndex, fromStageId, toStageId, travelDate; optional hotel links and notes.  
 - **hotel** — id, locationId (stage id), name, contactInfo.  
-- **driver_profile** / **owner_profile** — extend `user` with role-specific fields.  
+- **driver_profile** / **owner_profile** — extend `user` with role-specific fields. `driver_profile.vehicle_type` is deprecated (no longer read or written); consider dropping the column in a follow-up migration.  
 - **password_reset_token** — for password setup/reset flows.  
 - **driver_step_assignment** — id, date (YYYY-MM-DD), from_stage_id, to_stage_id, driver_id (FK user). Unique on (date, from_stage_id, to_stage_id). One driver per delivery step per calendar day.
 

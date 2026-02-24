@@ -160,6 +160,24 @@ export const translations = {
 		dashboard_section_admin_bookings_description: 'View and manage all bookings across the platform.',
 		dashboard_section_admin_bookings_placeholder: 'Bookings overview coming soon',
 
+		// Owner Staff tab
+		staff_title: 'Staff',
+		staff_add: 'Add staff',
+		staff_add_new: 'Add new staff member',
+		staff_email: 'Email',
+		staff_email_hint: 'When email is integrated, an automated onboarding email will be sent here.',
+		staff_first_name: 'First name',
+		staff_last_name: 'Last name',
+		staff_password: 'Password',
+		staff_role: 'Role',
+		staff_license: 'License number',
+		staff_license_hint: 'Required for drivers',
+		staff_actions: 'Actions',
+		staff_remove: 'Remove',
+		staff_cancel: 'Cancel',
+		staff_empty: 'No staff yet. Add admins or drivers above.',
+		staff_success: 'Staff member added',
+
 		// Booking Success Page
 		booking_success_title: 'Booking Confirmed!',
 		booking_success_message: 'Thank you for your booking. Your payment has been processed successfully.',
@@ -345,6 +363,24 @@ export const translations = {
 		dashboard_section_admin_bookings_title: 'Todas as Reservas',
 		dashboard_section_admin_bookings_description: 'Veja e gere todas as reservas da plataforma.',
 		dashboard_section_admin_bookings_placeholder: 'Visão geral de reservas em breve',
+
+		// Owner Staff tab
+		staff_title: 'Equipa',
+		staff_add: 'Adicionar',
+		staff_add_new: 'Adicionar novo membro',
+		staff_email: 'Email',
+		staff_email_hint: 'Quando o email estiver integrado, um email de onboarding será enviado aqui.',
+		staff_first_name: 'Nome',
+		staff_last_name: 'Apelido',
+		staff_password: 'Palavra-passe',
+		staff_role: 'Função',
+		staff_license: 'Número de licença',
+		staff_license_hint: 'Obrigatório para motoristas',
+		staff_actions: 'Ações',
+		staff_remove: 'Remover',
+		staff_cancel: 'Cancelar',
+		staff_empty: 'Ainda não há membros. Adicione administradores ou motoristas acima.',
+		staff_success: 'Membro adicionado',
 
 		// Booking Success Page
 		booking_success_title: 'Reserva Confirmada!',

@@ -80,8 +80,8 @@
 					<div class="booking-item">
 						<div class="booking-info">
 							<div class="booking-customer">
-								{booking.firstName || ''} {booking.lastName || ''}
-								{#if !booking.firstName && !booking.lastName}
+								{(booking.userFirstName ?? booking.firstName) || ''} {(booking.userLastName ?? booking.lastName) || ''}
+								{#if !(booking.userFirstName ?? booking.firstName) && !(booking.userLastName ?? booking.lastName)}
 									<span class="muted">—</span>
 								{/if}
 							</div>

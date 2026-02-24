@@ -10,6 +10,13 @@
 
 	const stageNames = Object.fromEntries(STAGES.map((s) => [s.id, s.name]));
 
+	const PAGE_SIZE = 10;
+	let currentPage = $state(0);
+	const totalPages = $derived(Math.max(1, Math.ceil(hotels.length / PAGE_SIZE)));
+	const paginatedHotels = $derived(
+		hotels.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
+	);
+
 	let editingId = $state<string | null>(null);
 	let showAddForm = $state(false);
 	let viewingHotel = $state<{ id: string; locationId: string; name: string; contactInfo: string | null } | null>(null);
@@ -133,7 +140,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each hotels as hotel}
+				{#each paginatedHotels as hotel}
 					<tr>
 						<td>{stageNames[hotel.locationId] || hotel.locationId}</td>
 						<td>{hotel.name}</td>
@@ -164,6 +171,27 @@
 				{/each}
 			</tbody>
 		</table>
+		{#if hotels.length > PAGE_SIZE}
+			<div class="pagination">
+				<button
+					type="button"
+					class="pagination-btn"
+					disabled={currentPage === 0}
+					onclick={() => { currentPage = Math.max(0, currentPage - 1); }}
+				>
+					Previous
+				</button>
+				<span class="pagination-info">Page {currentPage + 1} of {totalPages}</span>
+				<button
+					type="button"
+					class="pagination-btn"
+					disabled={currentPage >= totalPages - 1}
+					onclick={() => { currentPage = Math.min(totalPages - 1, currentPage + 1); }}
+				>
+					Next
+				</button>
+			</div>
+		{/if}
 	{/if}
 </div>
 
@@ -224,6 +252,33 @@
 
 	.btn-add:hover {
 		background: #218838;
+	}
+
+	.pagination {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-top: 1rem;
+		padding: 0.5rem 0;
+	}
+	.pagination-btn {
+		padding: 0.4rem 0.8rem;
+		background: #f0f0f0;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.9rem;
+	}
+	.pagination-btn:hover:not(:disabled) {
+		background: #e0e0e0;
+	}
+	.pagination-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	.pagination-info {
+		font-size: 0.9rem;
+		color: #666;
 	}
 
 	.add-form {

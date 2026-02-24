@@ -4,10 +4,16 @@
 	import { getStepLabel } from '$lib/delivery-steps';
 	import AccountInfo from './AccountInfo.svelte';
 
-	let { user, data } = $props<{
+let { user, data } = $props<{
 		user: { username: string; id: string; role: string };
 		data: {
-			driverAssignments?: Array<{ date: string; fromStageId: string; toStageId: string }>;
+			driverAssignments?: Array<{
+				date: string;
+				fromStageId: string;
+				toStageId: string;
+				pickups?: Array<{ hotelName: string; bags: number }>;
+				totalBags?: number;
+			}>;
 			calendarMonth?: string;
 			selectedDate?: string;
 		};
@@ -63,7 +69,28 @@
 	{#if assignmentsForSelectedDay.length > 0}
 		<ul class="steps-list">
 			{#each assignmentsForSelectedDay as a}
-				<li>{getStepLabel(a.fromStageId, a.toStageId)}</li>
+				<li class="driver-step">
+					<div class="driver-step-main">
+						{getStepLabel(a.fromStageId, a.toStageId)}
+						{#if a.totalBags && a.totalBags > 0}
+							<span class="driver-step-bags">— {a.totalBags} bags total</span>
+						{/if}
+					</div>
+					{#if a.pickups && a.pickups.length > 0}
+						<ul class="driver-step-hotels">
+							{#each a.pickups as p}
+								<li>
+									<span class="hotel-name">{p.hotelName}</span>
+									<span class="hotel-bags">{p.bags} bags</span>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<div class="driver-step-hotels muted">
+							No hotel pickup details yet for this route.
+						</div>
+					{/if}
+				</li>
 			{/each}
 		</ul>
 	{:else}
@@ -158,6 +185,41 @@
 
 	.steps-list li {
 		margin: 0.25rem 0;
+	}
+
+	.driver-step {
+		margin-bottom: 0.75rem;
+	}
+
+	.driver-step-main {
+		font-weight: 600;
+		margin-bottom: 0.25rem;
+	}
+
+	.driver-step-bags {
+		font-weight: 400;
+		color: #555;
+		margin-left: 0.25rem;
+	}
+
+	.driver-step-hotels {
+		margin: 0.25rem 0 0 0;
+		padding-left: 1.25rem;
+		font-size: 0.9rem;
+		color: #444;
+	}
+
+	.driver-step-hotels li {
+		margin: 0.15rem 0;
+	}
+
+	.hotel-name {
+		font-weight: 500;
+	}
+
+	.hotel-bags {
+		margin-left: 0.35rem;
+		color: #666;
 	}
 
 	.calendar-header {
