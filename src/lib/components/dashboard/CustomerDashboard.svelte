@@ -33,6 +33,7 @@
 				string,
 				Array<{ id: string; name: string; contactInfo: string | null }>
 			>;
+			bagsByBooking?: Record<string, Array<{ bagId: string; label: string; locationLabel: string }>>;
 		};
 		form?: { success?: boolean; message?: string };
 	}>();
@@ -148,6 +149,20 @@
 							{/if}
 						</div>
 					</div>
+
+					{#if data.bagsByBooking?.[booking.id]?.length}
+						<div class="bags-subsection">
+							<h4>Bags</h4>
+							<ul class="bags-list">
+								{#each data.bagsByBooking[booking.id] as bag}
+									<li>
+										<span class="bag-label">Bag {bag.label}</span>
+										<span class="bag-location">{bag.locationLabel}</span>
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
 
 					{#if segments.length > 0}
 						<form method="POST" action="?/updateBookingHotels" class="hotel-form">
@@ -367,6 +382,33 @@
 		font-weight: 600;
 		color: #1a1a1a;
 		font-size: 1.1rem;
+	}
+
+	.bags-subsection {
+		margin: 1rem 0;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid #eee;
+	}
+	.bags-subsection h4 {
+		margin: 0 0 0.5rem 0;
+		font-size: 0.95rem;
+		color: #333;
+	}
+	.bags-list {
+		margin: 0;
+		padding-left: 1.25rem;
+		font-size: 0.9rem;
+		color: #555;
+	}
+	.bags-list li {
+		margin: 0.2rem 0;
+	}
+	.bag-label {
+		font-weight: 500;
+		margin-right: 0.5rem;
+	}
+	.bag-location {
+		color: #666;
 	}
 
 	.itinerary h4 {

@@ -1,6 +1,7 @@
 ## LLM Rules
 
 - Do not change database schema unless explicitly requested
+- Do not run drizzle-kit (or other DB migration) commands yourself; prompt the user to run them with npx (e.g. `npx drizzle-kit push`).
 - After making changes update CONTRIBUITIONS_AI.md with a short AI readable summary of what was done.
 - Prefer small, explicit functions over abstractions
 - No new dependencies without approval

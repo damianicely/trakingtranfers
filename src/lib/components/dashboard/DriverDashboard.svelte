@@ -13,6 +13,7 @@ let { user, data } = $props<{
 				toStageId: string;
 				pickups?: Array<{ hotelName: string; bags: number }>;
 				totalBags?: number;
+				bags?: Array<{ bagId: string; label: string; bookingShortRef: string; legStatus: 'at_hotel' | 'with_driver' | 'delivered' }>;
 			}>;
 			calendarMonth?: string;
 			selectedDate?: string;
@@ -89,6 +90,31 @@ let { user, data } = $props<{
 						<div class="driver-step-hotels muted">
 							No hotel pickup details yet for this route.
 						</div>
+					{/if}
+					{#if a.bags && a.bags.length > 0}
+						<ul class="driver-step-bags-list">
+							{#each a.bags as bag}
+								<li class="bag-row">
+									<a href="/driver/bag/{bag.bagId}" class="bag-link">{bag.bookingShortRef}-{bag.label}</a>
+									<span class="bag-pickup" class:done={bag.legStatus === 'with_driver' || bag.legStatus === 'delivered'}>
+										{#if bag.legStatus === 'with_driver' || bag.legStatus === 'delivered'}
+											✓ Picked up
+										{:else}
+											To pick up
+										{/if}
+									</span>
+									<span class="bag-deliver" class:done={bag.legStatus === 'delivered'}>
+										{#if bag.legStatus === 'delivered'}
+											✓ Delivered
+										{:else if bag.legStatus === 'with_driver'}
+											To deliver
+										{:else}
+											—
+										{/if}
+									</span>
+								</li>
+							{/each}
+						</ul>
 					{/if}
 				</li>
 			{/each}
@@ -220,6 +246,35 @@ let { user, data } = $props<{
 	.hotel-bags {
 		margin-left: 0.35rem;
 		color: #666;
+	}
+
+	.driver-step-bags-list {
+		list-style: none;
+		margin: 0.5rem 0 0 0;
+		padding-left: 0;
+		font-size: 0.85rem;
+	}
+	.bag-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin: 0.25rem 0;
+	}
+	.bag-link {
+		min-width: 6rem;
+		color: #0d6efd;
+		text-decoration: none;
+	}
+	.bag-link:hover {
+		text-decoration: underline;
+	}
+	.bag-pickup,
+	.bag-deliver {
+		color: #666;
+	}
+	.bag-pickup.done,
+	.bag-deliver.done {
+		color: #2e7d32;
 	}
 
 	.calendar-header {

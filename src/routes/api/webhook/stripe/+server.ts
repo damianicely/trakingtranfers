@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from '$env/static/private';
 import { db } from '$lib/server/db';
 import { bookingTable, userTable } from '$lib/server/db/schema';
+import { createBagsForBooking } from '$lib/server/bag/create-bags-for-booking';
 import { eq } from 'drizzle-orm';
 import { hash } from '@node-rs/argon2';
 import crypto from 'node:crypto';
@@ -53,7 +54,11 @@ export const POST: RequestHandler = async ({ request }) => {
 				.update(bookingTable)
 				.set({ status: 'paid' })
 				.where(eq(bookingTable.id, bookingId));
-
+			try {
+				await createBagsForBooking(db, bookingId);
+			} catch (bagErr) {
+				console.error('Bag creation failed (booking still marked paid):', bagErr);
+			}
 			return new Response('Booking updated without user (no email)', { status: 200 });
 		}
 
@@ -125,6 +130,12 @@ export const POST: RequestHandler = async ({ request }) => {
 					stripeSessionId: session.id
 				})
 				.where(eq(bookingTable.id, bookingId));
+
+			try {
+				await createBagsForBooking(db, bookingId);
+			} catch (bagErr) {
+				console.error('Bag creation failed (booking still marked paid):', bagErr);
+			}
 
 			// 4. Generate a password reset token so the guest can set their password
 			const { resetUrl } = await createPasswordResetToken(userId, 24, 'http://localhost:5173');

@@ -5,7 +5,9 @@ import {
 	bookingSegmentTable,
 	hotelTable,
 	userTable,
-	driverProfile
+	driverProfile,
+	bagTable,
+	bagLegTable
 } from '$lib/server/db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
@@ -64,6 +66,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	// 3. Load user's bookings if customer
 	let bookings = [];
 	let segmentsByBooking: Record<string, any[]> = {};
+	let bagsByBooking: Record<string, Array<{ bagId: string; label: string; locationLabel: string }>> = {};
 
 	if (user.role === 'customer') {
 		const rawBookings = await db
@@ -101,6 +104,58 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			hotelsByLocation[hotel.locationId] = [];
 		}
 		hotelsByLocation[hotel.locationId].push(hotel);
+	}
+	const hotelIdToName: Record<string, string> = Object.fromEntries(hotels.map((h) => [h.id, h.name]));
+
+	// Customer: load bags and current leg status for "where are my bags"
+	if (user.role === 'customer' && bookings.length > 0) {
+		const bookingIds = bookings.map((b) => b.id);
+		const bags = await db
+			.select({ id: bagTable.id, bookingId: bagTable.bookingId, label: bagTable.label })
+			.from(bagTable)
+			.where(inArray(bagTable.bookingId, bookingIds));
+
+		const bagIds = bags.map((b) => b.id);
+		if (bagIds.length > 0) {
+			const legs = await db
+				.select({
+					bagId: bagLegTable.bagId,
+					segmentId: bagLegTable.segmentId,
+					status: bagLegTable.status,
+					segmentIndex: bookingSegmentTable.segmentIndex,
+					startHotelId: bookingSegmentTable.startHotelId,
+					endHotelId: bookingSegmentTable.endHotelId
+				})
+				.from(bagLegTable)
+				.innerJoin(bookingSegmentTable, eq(bagLegTable.segmentId, bookingSegmentTable.id))
+				.where(inArray(bagLegTable.bagId, bagIds));
+
+			const legsByBag = new Map<string, typeof legs>();
+			for (const leg of legs) {
+				if (!legsByBag.has(leg.bagId)) legsByBag.set(leg.bagId, []);
+				legsByBag.get(leg.bagId)!.push(leg);
+			}
+
+			for (const bag of bags) {
+				const bagLegs = (legsByBag.get(bag.id) || []).sort(
+					(a, b) => parseInt(a.segmentIndex ?? '0', 10) - parseInt(b.segmentIndex ?? '0', 10)
+				);
+				const currentLeg = bagLegs.find((l) => l.status !== 'delivered');
+				let locationLabel: string;
+				if (!currentLeg) {
+					const last = bagLegs[bagLegs.length - 1];
+					locationLabel = last
+						? `Delivered at ${hotelIdToName[last.endHotelId ?? ''] ?? 'destination'}`
+						: '—';
+				} else if (currentLeg.status === 'at_hotel') {
+					locationLabel = `At ${hotelIdToName[currentLeg.startHotelId ?? ''] ?? 'hotel'}`;
+				} else {
+					locationLabel = 'With driver';
+				}
+				if (!bagsByBooking[bag.bookingId]) bagsByBooking[bag.bookingId] = [];
+				bagsByBooking[bag.bookingId].push({ bagId: bag.id, label: bag.label, locationLabel });
+			}
+		}
 	}
 
 	// 5. Load owner data (sales analytics)
@@ -214,6 +269,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		toStageId: string;
 		pickups?: Array<{ hotelName: string; bags: number }>;
 		totalBags?: number;
+		bags?: Array<{ bagId: string; label: string; bookingShortRef: string; legStatus: 'at_hotel' | 'with_driver' | 'delivered' }>;
 	}> = [];
 	if (user.role === 'driver') {
 		const [y, m] = calendarMonth.split('-').map(Number);
@@ -222,13 +278,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		const endStr = `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 		const baseAssignments = await getAssignmentsForDriver(user.id, startStr, endStr);
 
-		// Enrich each assignment with hotel pickup info and bag counts for that step/date
+		// Enrich each assignment with hotel pickup info, bag counts, and per-bag leg status
 		driverAssignments = [];
 		for (const a of baseAssignments) {
-			const segments = await db
+			const segmentRows = await db
 				.select({
+					segmentId: bookingSegmentTable.id,
 					numBags: bookingTable.numBags,
-					startHotelName: hotelTable.name
+					startHotelName: hotelTable.name,
+					bookingId: bookingSegmentTable.bookingId
 				})
 				.from(bookingSegmentTable)
 				.leftJoin(bookingTable, eq(bookingSegmentTable.bookingId, bookingTable.id))
@@ -243,8 +301,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 			const pickups: Array<{ hotelName: string; bags: number }> = [];
 			let totalBags = 0;
+			const bagSet = new Map<string, { bagId: string; label: string; bookingShortRef: string; legStatus: 'at_hotel' | 'with_driver' | 'delivered' }>();
 
-			for (const row of segments) {
+			for (const row of segmentRows) {
 				const bags = parseInt(row.numBags || '0', 10) || 0;
 				if (!Number.isNaN(bags) && bags > 0) {
 					totalBags += bags;
@@ -253,12 +312,37 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 					hotelName: row.startHotelName ?? 'Hotel not set',
 					bags: bags
 				});
+
+				// Per-bag leg status for this segment
+				if (row.segmentId && row.bookingId) {
+					const bagLegs = await db
+						.select({
+							bagId: bagTable.id,
+							label: bagTable.label,
+							status: bagLegTable.status
+						})
+						.from(bagTable)
+						.innerJoin(bagLegTable, and(eq(bagLegTable.bagId, bagTable.id), eq(bagLegTable.segmentId, row.segmentId)))
+						.where(eq(bagTable.bookingId, row.bookingId));
+
+					const shortRef = row.bookingId.slice(0, 8);
+					for (const bl of bagLegs) {
+						const status = (bl.status ?? 'at_hotel') as 'at_hotel' | 'with_driver' | 'delivered';
+						bagSet.set(bl.bagId, {
+							bagId: bl.bagId,
+							label: bl.label,
+							bookingShortRef: shortRef,
+							legStatus: status
+						});
+					}
+				}
 			}
 
 			driverAssignments.push({
 				...a,
 				pickups,
-				totalBags
+				totalBags,
+				bags: [...bagSet.values()]
 			});
 		}
 	}
@@ -301,6 +385,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		user,
 		bookings,
 		segmentsByBooking,
+		bagsByBooking,
 		hotels,
 		hotelsByLocation,
 		// Admin data

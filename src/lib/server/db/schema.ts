@@ -133,6 +133,38 @@ export const driverStepAssignmentTable = pgTable(
 	(t) => [unique().on(t.date, t.fromStageId, t.toStageId)]
 );
 
+// Bag tracking: per-bag entities with status per segment leg
+export const bagLegStatusEnum = pgEnum("bag_leg_status", ["at_hotel", "with_driver", "delivered"]);
+
+export const bagTable = pgTable(
+	"bag",
+	{
+		id: text("id").primaryKey(),
+		bookingId: text("booking_id")
+			.notNull()
+			.references(() => bookingTable.id),
+		label: text("label").notNull(), // e.g. 'A', 'B', ... unique per booking
+	},
+	(t) => [unique().on(t.bookingId, t.label)]
+);
+
+export const bagLegTable = pgTable(
+	"bag_leg",
+	{
+		id: text("id").primaryKey(),
+		bagId: text("bag_id")
+			.notNull()
+			.references(() => bagTable.id),
+		segmentId: text("segment_id")
+			.notNull()
+			.references(() => bookingSegmentTable.id),
+		status: bagLegStatusEnum("status").default("at_hotel").notNull(),
+		pickedUpAt: timestamp("picked_up_at", { withTimezone: true, mode: "date" }),
+		deliveredAt: timestamp("delivered_at", { withTimezone: true, mode: "date" }),
+	},
+	(t) => [unique().on(t.bagId, t.segmentId)]
+);
+
 // 3. Password reset / setup tokens
 export const passwordResetTokenTable = pgTable("password_reset_token", {
     id: text("id").primaryKey(),

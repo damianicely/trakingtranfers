@@ -124,6 +124,13 @@
 									<button type="button" class="btn-cancel" onclick={cancelEdit}>Cancel</button>
 								</form>
 							{:else}
+								<a
+									href="/dashboard/booking/{booking.id}/bags"
+									class="btn-icon btn-baglinks"
+									title="Bag links / QR"
+								>
+									Bag links
+								</a>
 								<button
 									type="button"
 									class="btn-icon btn-view"
@@ -352,6 +359,15 @@
 		font-size: 0.85rem;
 	}
 
+	.btn-baglinks {
+		font-size: 0.8rem;
+		color: #0d6efd;
+		text-decoration: none;
+		padding: 0.25rem 0.5rem;
+	}
+	.btn-baglinks:hover {
+		text-decoration: underline;
+	}
 	.btn-icon {
 		padding: 0.4rem 0.6rem;
 		border: none;
