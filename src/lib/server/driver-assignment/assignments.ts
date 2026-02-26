@@ -10,8 +10,8 @@ export type AssignmentRow = {
 	driverId: string;
 };
 
-/** List all assignments for a given date. Returns map from "fromStageId-toStageId" to driverId. */
-export async function getAssignmentsForDate(dateStr: string): Promise<Record<string, string>> {
+/** List all assignments for a given date. Returns map from "fromStageId-toStageId" to driverIds[]. */
+export async function getAssignmentsForDate(dateStr: string): Promise<Record<string, string[]>> {
 	const rows = await db
 		.select({
 			fromStageId: driverStepAssignmentTable.fromStageId,
@@ -21,15 +21,16 @@ export async function getAssignmentsForDate(dateStr: string): Promise<Record<str
 		.from(driverStepAssignmentTable)
 		.where(eq(driverStepAssignmentTable.date, dateStr));
 
-	const map: Record<string, string> = {};
+	const map: Record<string, string[]> = {};
 	for (const row of rows) {
 		const key = `${row.fromStageId}-${row.toStageId}`;
-		map[key] = row.driverId;
+		if (!map[key]) map[key] = [];
+		map[key].push(row.driverId);
 	}
 	return map;
 }
 
-/** Set or update assignment for (date, fromStageId, toStageId) to driverId. */
+/** Add driver to leg (idempotent). Multiple drivers can be assigned to the same leg. */
 export async function setAssignment(
 	dateStr: string,
 	fromStageId: string,
@@ -43,17 +44,13 @@ export async function setAssignment(
 			and(
 				eq(driverStepAssignmentTable.date, dateStr),
 				eq(driverStepAssignmentTable.fromStageId, fromStageId),
-				eq(driverStepAssignmentTable.toStageId, toStageId)
+				eq(driverStepAssignmentTable.toStageId, toStageId),
+				eq(driverStepAssignmentTable.driverId, driverId)
 			)
 		)
 		.limit(1);
 
-	if (existing.length > 0) {
-		await db
-			.update(driverStepAssignmentTable)
-			.set({ driverId })
-			.where(eq(driverStepAssignmentTable.id, existing[0]!.id));
-	} else {
+	if (existing.length === 0) {
 		await db.insert(driverStepAssignmentTable).values({
 			id: crypto.randomUUID(),
 			date: dateStr,
@@ -64,7 +61,26 @@ export async function setAssignment(
 	}
 }
 
-/** Remove assignment for (date, fromStageId, toStageId). */
+/** Remove one driver from a leg. */
+export async function removeAssignment(
+	dateStr: string,
+	fromStageId: string,
+	toStageId: string,
+	driverId: string
+): Promise<void> {
+	await db
+		.delete(driverStepAssignmentTable)
+		.where(
+			and(
+				eq(driverStepAssignmentTable.date, dateStr),
+				eq(driverStepAssignmentTable.fromStageId, fromStageId),
+				eq(driverStepAssignmentTable.toStageId, toStageId),
+				eq(driverStepAssignmentTable.driverId, driverId)
+			)
+		);
+}
+
+/** Remove all driver assignments for a leg. */
 export async function clearAssignment(
 	dateStr: string,
 	fromStageId: string,

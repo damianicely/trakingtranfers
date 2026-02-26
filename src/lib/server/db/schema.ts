@@ -118,7 +118,7 @@ export const ownerProfile = pgTable("owner_profile", {
 // Admin and Customer might not need profiles if they don't have extra fields yet,
 // but you can add them later!
 
-// Driver step assignment: one driver per (date, from_stage_id, to_stage_id)
+// Driver step assignment: multiple drivers per (date, from_stage_id, to_stage_id)
 export const driverStepAssignmentTable = pgTable(
 	"driver_step_assignment",
 	{
@@ -130,7 +130,7 @@ export const driverStepAssignmentTable = pgTable(
 			.notNull()
 			.references(() => userTable.id),
 	},
-	(t) => [unique().on(t.date, t.fromStageId, t.toStageId)]
+	(t) => [unique().on(t.date, t.fromStageId, t.toStageId, t.driverId)]
 );
 
 // Bag tracking: per-bag entities with status per segment leg

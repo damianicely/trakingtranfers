@@ -1,5 +1,11 @@
 import { db } from '$lib/server/db';
-import { bookingTable, bookingSegmentTable, driverStepAssignmentTable } from '$lib/server/db/schema';
+import {
+	bookingTable,
+	bookingSegmentTable,
+	driverStepAssignmentTable,
+	hotelTable
+} from '$lib/server/db/schema';
+import { alias } from 'drizzle-orm/pg-core';
 import { and, eq, gte, inArray, lte } from 'drizzle-orm';
 
 /** Returns set of date strings (YYYY-MM-DD) that have at least one segment for pending/paid bookings in the range. */
@@ -179,3 +185,66 @@ export async function getStepsWithBookingsOnDate(
 	}
 	return steps;
 }
+
+export type LegSummaryForDate = {
+	fromStageId: string;
+	toStageId: string;
+	bookingId: string;
+	bookingShortRef: string;
+	numBags: number;
+	startHotelName: string | null;
+	endHotelName: string | null;
+};
+
+const startHotel = alias(hotelTable, 'startHotel');
+const endHotel = alias(hotelTable, 'endHotel');
+
+/**
+ * For a given date, returns per-booking summaries for each leg:
+ * - from/to stage ids
+ * - booking short ref
+ * - number of bags (parsed from booking.numBags)
+ * - start/end hotel names if set on the segment.
+ */
+export async function getLegSummariesForDate(dateStr: string): Promise<LegSummaryForDate[]> {
+	const start = new Date(dateStr);
+	const end = new Date(dateStr);
+	start.setHours(0, 0, 0, 0);
+	end.setHours(23, 59, 59, 999);
+
+	const rows = await db
+		.select({
+			fromStageId: bookingSegmentTable.fromStageId,
+			toStageId: bookingSegmentTable.toStageId,
+			bookingId: bookingTable.id,
+			numBagsText: bookingTable.numBags,
+			startHotelName: startHotel.name,
+			endHotelName: endHotel.name
+		})
+		.from(bookingSegmentTable)
+		.innerJoin(bookingTable, eq(bookingSegmentTable.bookingId, bookingTable.id))
+		.leftJoin(startHotel, eq(bookingSegmentTable.startHotelId, startHotel.id))
+		.leftJoin(endHotel, eq(bookingSegmentTable.endHotelId, endHotel.id))
+		.where(
+			and(
+				inArray(bookingTable.status, ['pending', 'paid']),
+				gte(bookingSegmentTable.travelDate, start),
+				lte(bookingSegmentTable.travelDate, end)
+			)
+		);
+
+	return rows.map((row) => {
+		const bookingShortRef = row.bookingId.slice(0, 4);
+		const numBags = row.numBagsText ? parseInt(row.numBagsText, 10) || 0 : 0;
+		return {
+			fromStageId: row.fromStageId,
+			toStageId: row.toStageId,
+			bookingId: row.bookingId,
+			bookingShortRef,
+			numBags,
+			startHotelName: row.startHotelName ?? null,
+			endHotelName: row.endHotelName ?? null
+		};
+	});
+}
+

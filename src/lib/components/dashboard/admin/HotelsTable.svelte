@@ -1,21 +1,41 @@
 <script lang="ts">
 	import { STAGES } from '$lib/trail';
 	import ViewModal from './ViewModal.svelte';
+	import AdminIcon from '$lib/components/admin/AdminIcon.svelte';
 
-	let { hotels, hotelsByLocation, form } = $props<{
+	let { hotels, hotelsByLocation, form, allHotels } = $props<{
 		hotels: Array<{ id: string; locationId: string; name: string; contactInfo: string | null }>;
 		hotelsByLocation: Record<string, Array<{ id: string; name: string; contactInfo: string | null }>>;
 		form?: { success?: boolean; message?: string };
+		/** When provided (e.g. when parent filters hotels for display), use this to resolve hotel by id for edit form. */
+		allHotels?: Array<{ id: string; locationId: string; name: string; contactInfo: string | null }>;
 	}>();
+	const hotelsForLookup = $derived(allHotels ?? hotels);
 
-	const stageNames = Object.fromEntries(STAGES.map((s) => [s.id, s.name]));
+const stageNames = Object.fromEntries(
+	STAGES.map((s: { id: string; name: string }) => [s.id, s.name])
+);
 
-	const PAGE_SIZE = 10;
-	let currentPage = $state(0);
-	const totalPages = $derived(Math.max(1, Math.ceil(hotels.length / PAGE_SIZE)));
-	const paginatedHotels = $derived(
-		hotels.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
-	);
+type HotelRow = { id: string; locationId: string; name: string; contactInfo: string | null };
+
+let search = $state('');
+
+const PAGE_SIZE = 10;
+let currentPage = $state(0);
+const filteredHotels = $derived(
+	(hotels as HotelRow[]).filter((h) =>
+		h.name.toLowerCase().includes(search.trim().toLowerCase())
+	)
+);
+const totalPages = $derived(Math.max(1, Math.ceil(filteredHotels.length / PAGE_SIZE)));
+const paginatedHotels = $derived(
+	filteredHotels.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
+);
+	$effect(() => {
+		if (totalPages > 0 && currentPage >= totalPages) {
+			currentPage = totalPages - 1;
+		}
+	});
 
 	let editingId = $state<string | null>(null);
 	let showAddForm = $state(false);
@@ -50,12 +70,21 @@
 
 <div class="table-container">
 	<div class="table-header">
-		<h3>Hotels</h3>
-		{#if !showAddForm}
-			<button type="button" class="btn-add" onclick={() => { showAddForm = true; }}>
-				+ Add Hotel
-			</button>
-		{/if}
+		<h3>Accommodation</h3>
+		<div class="header-actions">
+			<input
+				type="search"
+				class="search-input"
+				placeholder="Search accommodation…"
+				bind:value={search}
+				aria-label="Search accommodation"
+			/>
+			{#if !showAddForm}
+				<button type="button" class="btn-add" onclick={() => { showAddForm = true; }}>
+					+ Accommodation
+				</button>
+			{/if}
+		</div>
 	</div>
 
 	{#if showAddForm}
@@ -72,7 +101,7 @@
 				}}
 			>
 				{#if editingId}
-					{@const hotel = hotels.find((h) => h.id === editingId)}
+					{@const hotel = hotelsForLookup.find((h) => h.id === editingId)}
 					<input type="hidden" name="hotelId" value={editingId} />
 					<div class="form-row">
 						<div class="form-group">
@@ -152,7 +181,7 @@
 								onclick={() => viewHotel(hotel)}
 								title="View"
 							>
-								👁
+								<AdminIcon name="eye" size={18} />
 							</button>
 							<button
 								type="button"
@@ -160,11 +189,13 @@
 								onclick={() => startEdit(hotel)}
 								title="Edit"
 							>
-								✎
+								<AdminIcon name="edit" size={18} />
 							</button>
 							<form method="POST" action="?/deleteHotel" class="inline-form">
 								<input type="hidden" name="hotelId" value={hotel.id} />
-								<button type="submit" class="btn-icon btn-delete" title="Delete">×</button>
+								<button type="submit" class="btn-icon btn-delete" title="Delete">
+									<AdminIcon name="trash" size={18} />
+								</button>
 							</form>
 						</td>
 					</tr>
@@ -229,7 +260,7 @@
 
 	.table-header {
 		display: flex;
-		justify-content: space-between;
+	justify-content: space-between;
 		align-items: center;
 		margin-bottom: 1rem;
 	}
@@ -240,18 +271,44 @@
 		font-weight: 600;
 	}
 
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.search-input {
+	min-width: 200px;
+	padding: 0.5rem 0.75rem;
+	font-size: 0.9rem;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+	border-radius: 999px;
+	background: #ffffff;
+	color: #1a1d21;
+}
+
+.search-input::placeholder {
+	color: #5f6368;
+}
+
+.search-input:focus {
+	outline: none;
+	border-color: #1a73e8;
+	box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
+}
+
 	.btn-add {
 		padding: 0.5rem 1rem;
-		background: #28a745;
-		color: white;
+		background: #111827;
+		color: #f9fafb;
 		border: none;
-		border-radius: 4px;
+		border-radius: 999px;
 		cursor: pointer;
 		font-weight: 600;
 	}
 
 	.btn-add:hover {
-		background: #218838;
+		background: #020617;
 	}
 
 	.pagination {

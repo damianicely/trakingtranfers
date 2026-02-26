@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { language } from '$lib/stores/language';
 	import { translations } from '$lib/translations';
+	import AdminIcon from '$lib/components/admin/AdminIcon.svelte';
 
 	let { allStaff, form, useTeamLabels = false } = $props<{
 		allStaff: Array<{
@@ -23,6 +24,28 @@
 	const successLabel = $derived(useTeamLabels ? (t.team_success ?? 'Team member added') : t.staff_success);
 
 	let showAddForm = $state(false);
+let staffSearch = $state('');
+
+type StaffMember = {
+	id: string;
+	username: string;
+	firstName: string | null;
+	lastName: string | null;
+	role: string;
+	licenseNumber: string | null;
+};
+
+const filteredStaff = $derived(
+	(allStaff as StaffMember[]).filter((s: StaffMember) => {
+		const q = staffSearch.trim().toLowerCase();
+		if (!q) return true;
+		return (
+			s.username.toLowerCase().includes(q) ||
+			(s.firstName ?? '').toLowerCase().includes(q) ||
+			(s.lastName ?? '').toLowerCase().includes(q)
+		);
+	})
+);
 </script>
 
 {#if form?.success}
@@ -35,11 +58,20 @@
 <div class="staff-section">
 	<div class="table-header">
 		<h3>{sectionTitle}</h3>
-		{#if !showAddForm}
-			<button type="button" class="btn-add" onclick={() => { showAddForm = true; }}>
-				+ {addLabel}
-			</button>
-		{/if}
+		<div class="header-actions">
+			<input
+				type="search"
+				class="search-input"
+				placeholder={t.team_search_placeholder ?? 'Pesquisar na equipa…'}
+				bind:value={staffSearch}
+				aria-label="Pesquisar na equipa"
+			/>
+			{#if !showAddForm}
+				<button type="button" class="btn-add" onclick={() => { showAddForm = true; }}>
+					+ {addLabel}
+				</button>
+			{/if}
+		</div>
 	</div>
 
 	{#if showAddForm}
@@ -111,7 +143,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each allStaff as staff}
+				{#each filteredStaff as staff}
 					<tr>
 						<td>{staff.username}</td>
 						<td>{staff.firstName || '—'}</td>
@@ -123,9 +155,17 @@
 						</td>
 						<td>{staff.licenseNumber || '—'}</td>
 						<td class="actions">
+							<button type="button" class="btn-icon btn-view" title="View">
+								<AdminIcon name="eye" size={18} />
+							</button>
+							<button type="button" class="btn-icon btn-edit" title="Edit">
+								<AdminIcon name="edit" size={18} />
+							</button>
 							<form method="POST" action="?/removeStaff" class="inline-form">
 								<input type="hidden" name="staffId" value={staff.id} />
-								<button type="submit" class="btn-icon btn-delete" title={t.staff_remove}>×</button>
+								<button type="submit" class="btn-icon btn-delete" title={t.staff_remove}>
+									<AdminIcon name="trash" size={18} />
+								</button>
 							</form>
 						</td>
 					</tr>
@@ -141,7 +181,7 @@
 	}
 	.table-header {
 		display: flex;
-		justify-content: space-between;
+	justify-content: space-between;
 		align-items: center;
 		margin-bottom: 1rem;
 	}
@@ -150,17 +190,43 @@
 		font-size: 1.1rem;
 		font-weight: 600;
 	}
+
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.search-input {
+	min-width: 200px;
+	padding: 0.5rem 0.75rem;
+	font-size: 0.9rem;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+	border-radius: 999px;
+	background: #ffffff;
+	color: #1a1d21;
+}
+
+.search-input::placeholder {
+	color: #5f6368;
+}
+
+.search-input:focus {
+	outline: none;
+	border-color: #1a73e8;
+	box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
+}
 	.btn-add {
 		padding: 0.5rem 1rem;
-		background: #28a745;
-		color: white;
+		background: #111827;
+		color: #f9fafb;
 		border: none;
-		border-radius: 4px;
+		border-radius: 999px;
 		cursor: pointer;
 		font-weight: 600;
 	}
 	.btn-add:hover {
-		background: #218838;
+		background: #020617;
 	}
 	.add-form {
 		background: #f8f9fa;
@@ -257,22 +323,38 @@
 		background: #fff3cd;
 		color: #856404;
 	}
+	.actions {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
 	.actions .inline-form {
 		display: inline;
 	}
-	.btn-icon.btn-delete {
-		background: #dc3545;
-		color: white;
-		border: none;
+	.btn-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		width: 28px;
 		height: 28px;
-		border-radius: 4px;
+		border-radius: 999px;
+		border: none;
 		cursor: pointer;
-		font-size: 1.2rem;
-		line-height: 1;
+		background: transparent;
+		color: #5f6368;
+		padding: 0;
 	}
-	.btn-icon.btn-delete:hover {
+	.btn-icon:hover {
+		background: #f1f3f4;
+		color: #202124;
+	}
+	.btn-delete {
+		background: #dc3545;
+		color: white;
+	}
+	.btn-delete:hover {
 		background: #c82333;
+		color: #fff;
 	}
 	.success-message {
 		padding: 0.75rem;

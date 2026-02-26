@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ViewModal from './ViewModal.svelte';
+	import AdminIcon from '$lib/components/admin/AdminIcon.svelte';
 
 	let { customers, form } = $props<{
 		customers: Array<{ id: string; username: string; role: string }>;
@@ -8,6 +9,22 @@
 
 	let editingId = $state<string | null>(null);
 	let viewingCustomer = $state<{ id: string; username: string; role: string } | null>(null);
+
+	let search = $state('');
+
+	type Customer = { id: string; username: string; role: string };
+
+	const filteredCustomers = $derived(
+		((customers ?? []) as Customer[]).filter((c) => {
+			const q = search.trim().toLowerCase();
+			if (!q) return true;
+			return (
+				c.username.toLowerCase().includes(q) ||
+				c.role.toLowerCase().includes(q) ||
+				c.id.toLowerCase().includes(q)
+			);
+		})
+	);
 
 	const startEdit = (customer: { id: string; username: string }) => {
 		editingId = customer.id;
@@ -35,7 +52,23 @@
 {/if}
 
 <div class="table-container">
-	{#if customers.length === 0}
+	<div class="table-header">
+		<h3>Customers</h3>
+		<div class="header-actions">
+			<input
+				type="search"
+				class="search-input"
+				placeholder="Search customers…"
+				bind:value={search}
+				aria-label="Search customers"
+			/>
+			<button type="button" class="btn-add">
+				+ Customer
+			</button>
+		</div>
+	</div>
+
+	{#if filteredCustomers.length === 0}
 		<p class="empty-state">No customers found.</p>
 	{:else}
 		<table class="data-table">
@@ -48,7 +81,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each customers as customer}
+				{#each filteredCustomers as customer}
 					<tr>
 						<td class="mono">{customer.id.slice(0, 8)}...</td>
 						<td>
@@ -78,7 +111,7 @@
 									onclick={() => viewCustomer(customer)}
 									title="View"
 								>
-									👁
+									<AdminIcon name="eye" size={18} />
 								</button>
 								<button
 									type="button"
@@ -86,11 +119,13 @@
 									onclick={() => startEdit(customer)}
 									title="Edit"
 								>
-									✎
+									<AdminIcon name="edit" size={18} />
 								</button>
 								<form method="POST" action="?/deleteCustomer" class="inline-form">
 									<input type="hidden" name="customerId" value={customer.id} />
-									<button type="submit" class="btn-icon btn-delete" title="Delete">×</button>
+									<button type="submit" class="btn-icon btn-delete" title="Delete">
+										<AdminIcon name="trash" size={18} />
+									</button>
 								</form>
 							{/if}
 						</td>
@@ -125,6 +160,45 @@
 		width: 100%;
 		overflow-x: auto;
 	}
+
+.table-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1rem;
+}
+
+.table-header h3 {
+	margin: 0;
+	font-size: 1.1rem;
+	font-weight: 600;
+}
+
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.search-input {
+	min-width: 200px;
+	padding: 0.5rem 0.75rem;
+	font-size: 0.9rem;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+	border-radius: 999px;
+	background: #ffffff;
+	color: #1a1d21;
+}
+
+.search-input::placeholder {
+	color: #5f6368;
+}
+
+.search-input:focus {
+	outline: none;
+	border-color: #1a73e8;
+	box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.18);
+}
 
 	.empty-state {
 		padding: 2rem;
@@ -252,6 +326,20 @@
 	.btn-cancel:hover {
 		background: #5a6268;
 	}
+
+.btn-add {
+	padding: 0.5rem 1rem;
+	background: #111827;
+	color: #f9fafb;
+	border: none;
+	border-radius: 999px;
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.btn-add:hover {
+	background: #020617;
+}
 
 	.view-details {
 		display: flex;

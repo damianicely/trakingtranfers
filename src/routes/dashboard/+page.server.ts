@@ -259,7 +259,11 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	if (user.role === 'admin' || user.role === 'owner') {
 		calendarSummary = await getCalendarSummaryForMonth(calendarMonth);
-		stepAssignments = await getAssignmentsForDate(selectedDate);
+		const assignmentsByLeg = await getAssignmentsForDate(selectedDate);
+		// Dashboard shows one driver per leg (first assigned) for backward compatibility
+		stepAssignments = Object.fromEntries(
+			Object.entries(assignmentsByLeg).map(([k, ids]) => [k, ids[0] ?? ''])
+		);
 		bookedStepsForDate = await getStepsWithBookingsOnDate(selectedDate);
 	}
 

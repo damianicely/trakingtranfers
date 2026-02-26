@@ -9,9 +9,9 @@
 		{ href: '/admin/analytics', label: 'Analytics', icon: 'barChart' as const },
 		{ href: '/admin/calendar', label: 'Schedule', icon: 'calendar' as const },
 		{ href: '/admin/team', label: 'Team', icon: 'users' as const },
-		{ href: '/admin/locations', label: 'Locations', icon: 'building' as const },
+		{ href: '/admin/locations', label: 'Accommodation', icon: 'building' as const },
 		{ href: '/admin/documents', label: 'Documents', icon: 'bookOpen' as const },
-		{ href: '/admin/contacts', label: 'Contacts', icon: 'userCircle' as const },
+		{ href: '/admin/contacts', label: 'Customers', icon: 'userCircle' as const },
 		{ href: '/admin/reports', label: 'Reports', icon: 'fileText' as const },
 		{ href: '/admin/activity', label: 'Activity', icon: 'inbox' as const },
 		{ href: '/admin/settings', label: 'Settings', icon: 'settings' as const }
