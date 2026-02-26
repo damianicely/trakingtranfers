@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
 	import CompactCalendar from '$lib/components/dashboard/admin/CompactCalendar.svelte';
 	import AdminTransfersForDay from '$lib/components/dashboard/admin/AdminTransfersForDay.svelte';
 
 	let { data } = $props();
+	const t = $derived(translations[$language]);
 </script>
 
 <div class="admin-calendar">
@@ -14,7 +17,7 @@
 					selectedDate={data.selectedDate}
 					highlightedDates={data.highlightedDates}
 					basePath="/admin/calendar"
-					hint="Days with journeys are highlighted. Click a day to open it."
+					hint={t.calendar_hint}
 				/>
 			</div>
 		</div>
@@ -28,6 +31,7 @@
 					legSummaries={data.legSummaries ?? []}
 					drivers={data.drivers ?? []}
 					driverAssignments={data.driverAssignments ?? {}}
+					bookingDetailsById={data.bookingDetailsById ?? {}}
 				/>
 			</div>
 		</div>

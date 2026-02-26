@@ -9,11 +9,6 @@
 </script>
 
 <div class="admin-team">
-	<header class="page-header">
-		<h1 class="page-title">{t.team_title ?? 'Team'}</h1>
-		<p class="page-subtitle">Manage team members (admins and drivers).</p>
-	</header>
-
 	<section class="content-section">
 		<div class="table-wrapper team-section-wrapper">
 			<StaffSection allStaff={data.allStaff ?? []} form={form} useTeamLabels={true} />
@@ -25,25 +20,6 @@
 	.admin-team {
 		max-width: 960px;
 		margin: 0 auto;
-	}
-
-	.page-header {
-		margin-bottom: 2rem;
-	}
-
-	.page-title {
-		font-size: 1.75rem;
-		font-weight: 600;
-		color: #1a1d21;
-		letter-spacing: -0.02em;
-		margin: 0 0 0.25rem 0;
-	}
-
-	.page-subtitle {
-		font-size: 0.9375rem;
-		color: #5f6368;
-		margin: 0;
-		font-weight: 500;
 	}
 
 	.content-section {

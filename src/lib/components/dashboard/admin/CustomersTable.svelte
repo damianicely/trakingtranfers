@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
 	import ViewModal from './ViewModal.svelte';
 	import AdminIcon from '$lib/components/admin/AdminIcon.svelte';
 
@@ -7,6 +9,7 @@
 		form?: { success?: boolean; message?: string };
 	}>();
 
+	const t = $derived(translations[$language]);
 	let editingId = $state<string | null>(null);
 	let viewingCustomer = $state<{ id: string; username: string; role: string } | null>(null);
 
@@ -44,7 +47,7 @@
 </script>
 
 {#if form?.success}
-	<div class="success-message">{form.message || 'Operation successful'}</div>
+	<div class="success-message">{form.message || t.admin_operation_ok}</div>
 {/if}
 
 {#if form?.message && !form?.success}
@@ -53,31 +56,31 @@
 
 <div class="table-container">
 	<div class="table-header">
-		<h3>Customers</h3>
+		<h3>{t.customers_table_title}</h3>
 		<div class="header-actions">
 			<input
 				type="search"
 				class="search-input"
-				placeholder="Search customers…"
+				placeholder={t.customers_table_search_placeholder}
 				bind:value={search}
-				aria-label="Search customers"
+				aria-label={t.customers_table_search_placeholder}
 			/>
 			<button type="button" class="btn-add">
-				+ Customer
+				+ {t.customers_table_add}
 			</button>
 		</div>
 	</div>
 
 	{#if filteredCustomers.length === 0}
-		<p class="empty-state">No customers found.</p>
+		<p class="empty-state">{t.customers_table_empty}</p>
 	{:else}
 		<table class="data-table">
 			<thead>
 				<tr>
-					<th>ID</th>
-					<th>Username</th>
-					<th>Role</th>
-					<th>Actions</th>
+					<th>{t.bookings_table_id}</th>
+					<th>{t.customers_table_username}</th>
+					<th>{t.customers_table_role}</th>
+					<th>{t.customers_table_actions}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -95,8 +98,8 @@
 										required
 										class="edit-input"
 									/>
-									<button type="submit" class="btn-save">Save</button>
-									<button type="button" class="btn-cancel" onclick={cancelEdit}>Cancel</button>
+									<button type="submit" class="btn-save">{t.bookings_table_save}</button>
+									<button type="button" class="btn-cancel" onclick={cancelEdit}>{t.bookings_table_cancel}</button>
 								</form>
 							{:else}
 								{customer.username}
@@ -109,7 +112,7 @@
 									type="button"
 									class="btn-icon btn-view"
 									onclick={() => viewCustomer(customer)}
-									title="View"
+									title={t.bookings_table_view}
 								>
 									<AdminIcon name="eye" size={18} />
 								</button>
@@ -117,13 +120,13 @@
 									type="button"
 									class="btn-icon btn-edit"
 									onclick={() => startEdit(customer)}
-									title="Edit"
+									title={t.bookings_table_edit}
 								>
 									<AdminIcon name="edit" size={18} />
 								</button>
 								<form method="POST" action="?/deleteCustomer" class="inline-form">
 									<input type="hidden" name="customerId" value={customer.id} />
-									<button type="submit" class="btn-icon btn-delete" title="Delete">
+									<button type="submit" class="btn-icon btn-delete" title={t.bookings_table_delete}>
 										<AdminIcon name="trash" size={18} />
 									</button>
 								</form>
@@ -137,18 +140,18 @@
 </div>
 
 {#if viewingCustomer}
-	<ViewModal title="Customer Details" isOpen={!!viewingCustomer} onClose={closeView}>
+	<ViewModal title={t.customers_modal_title} isOpen={!!viewingCustomer} onClose={closeView}>
 		<div class="view-details">
 			<div class="detail-row">
-				<strong>ID:</strong>
+				<strong>{t.bookings_table_id}:</strong>
 				<span>{viewingCustomer.id}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Username:</strong>
+				<strong>{t.customers_table_username}:</strong>
 				<span>{viewingCustomer.username}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Role:</strong>
+				<strong>{t.customers_table_role}:</strong>
 				<span>{viewingCustomer.role}</span>
 			</div>
 		</div>

@@ -1,18 +1,41 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
 	import { getStepLabel } from '$lib/delivery-steps';
 	import { STAGES } from '$lib/trail';
 	import type { LegSummaryForDate } from '$lib/server/driver-assignment/calendar-summary';
+	import ViewModal from './ViewModal.svelte';
 
 	type Driver = { id: string; username: string; firstName: string | null; lastName: string | null };
 
-	let { selectedDate, legSummaries, drivers, driverAssignments } = $props<{
+	type BookingDetail = {
+		id: string;
+		userId: string | null;
+		status: string | null;
+		firstName: string | null;
+		lastName: string | null;
+		userFirstName: string | null;
+		userLastName: string | null;
+		email: string | null;
+		phone: string | null;
+		departureDate: Date | null;
+		departureStageId: string | null;
+		destinationStageId: string | null;
+		totalPrice: string | null;
+		createdAt: Date | null;
+	};
+
+	let { selectedDate, legSummaries, drivers, driverAssignments, bookingDetailsById } = $props<{
 		selectedDate: string;
 		legSummaries: LegSummaryForDate[];
 		drivers: Driver[];
 		driverAssignments: Record<string, string[]>;
+		bookingDetailsById: Record<string, BookingDetail>;
 	}>();
+
+	const t = $derived(translations[$language]);
 
 	function formatDate(dateStr: string): string {
 		if (!dateStr) return '';
@@ -88,23 +111,48 @@
 		const ids = driverAssignments[legKey];
 		return !!ids?.includes(driverId);
 	}
+
+	let viewingBookingId = $state<string | null>(null);
+
+	function openBooking(bookingId: string): void {
+		viewingBookingId = bookingId;
+	}
+
+	function closeModal(): void {
+		viewingBookingId = null;
+	}
+
+	const selectedBooking = $derived(
+		viewingBookingId ? (bookingDetailsById ?? {})[viewingBookingId] ?? null : null
+	);
+
+	const stageNames = $derived(Object.fromEntries(STAGES.map((s) => [s.id, s.name])));
+
+	function formatDetailDate(date: Date | null): string {
+		if (!date) return '—';
+		return new Date(date).toLocaleDateString('en-GB', {
+			day: 'numeric',
+			month: 'short',
+			year: 'numeric'
+		});
+	}
 </script>
 
 <section class="transfers-section">
 	<h2 class="section-title">
-		Transfers{#if selectedDate} – {formatDate(selectedDate)}{/if}
+		{t.transfers_section_title}{#if selectedDate} – {formatDate(selectedDate)}{/if}
 	</h2>
 
 	{#if !legSummaries || legSummaries.length === 0}
-		<p class="empty-state">No transfers scheduled for this date.</p>
+		<p class="empty-state">{t.transfers_empty}</p>
 	{:else}
 		{#if Object.keys(groupedByDirection.northbound).length > 0}
 			<div class="direction-group">
-				<h3 class="direction-title">Northbound (Lagos → S. Torpes)</h3>
+				<h3 class="direction-title">{t.transfers_northbound}</h3>
 				<table class="transfers-table">
 					<thead>
 						<tr>
-							<th class="col-route">Route / Bookings</th>
+							<th class="col-route">{t.transfers_route_bookings}</th>
 							{#each drivers as driver}
 								<th class="col-driver">{driverLabel(driver)}</th>
 							{/each}
@@ -119,12 +167,18 @@
 									<ul class="booking-list">
 										{#each summaries as s}
 											<li class="booking-line">
-												<span class="bags">{s.numBags} {s.numBags === 1 ? 'bag' : 'bags'}</span>
-												<span class="ref">– #{s.bookingShortRef}</span>
+												<span class="bags">{s.numBags} {s.numBags === 1 ? t.transfers_bag : t.transfers_bags}</span>
+												<button
+													type="button"
+													class="ref ref-link"
+													onclick={() => openBooking(s.bookingId)}
+												>
+													– #{s.bookingShortRef}
+												</button>
 												<span class="hotels">
-													{#if s.startHotelName}{s.startHotelName}{:else}Start hotel{/if}
+													{#if s.startHotelName}{s.startHotelName}{:else}{t.transfers_start_hotel}{/if}
 													→
-													{#if s.endHotelName}{s.endHotelName}{:else}Destination hotel{/if}
+													{#if s.endHotelName}{s.endHotelName}{:else}{t.transfers_destination_hotel}{/if}
 												</span>
 											</li>
 										{/each}
@@ -140,7 +194,7 @@
 												disabled={busy}
 												onchange={(e) => toggleDriver(key, driver.id, (e.currentTarget as HTMLInputElement).checked)}
 											/>
-											<span class="check-label">Assign</span>
+											<span class="check-label">{t.transfers_assign}</span>
 										</label>
 									</td>
 								{/each}
@@ -153,11 +207,11 @@
 
 		{#if Object.keys(groupedByDirection.southbound).length > 0}
 			<div class="direction-group">
-				<h3 class="direction-title">Southbound (S. Torpes → Lagos)</h3>
+				<h3 class="direction-title">{t.transfers_southbound}</h3>
 				<table class="transfers-table">
 					<thead>
 						<tr>
-							<th class="col-route">Route / Bookings</th>
+							<th class="col-route">{t.transfers_route_bookings}</th>
 							{#each drivers as driver}
 								<th class="col-driver">{driverLabel(driver)}</th>
 							{/each}
@@ -172,12 +226,18 @@
 									<ul class="booking-list">
 										{#each summaries as s}
 											<li class="booking-line">
-												<span class="bags">{s.numBags} {s.numBags === 1 ? 'bag' : 'bags'}</span>
-												<span class="ref">– #{s.bookingShortRef}</span>
+												<span class="bags">{s.numBags} {s.numBags === 1 ? t.transfers_bag : t.transfers_bags}</span>
+												<button
+													type="button"
+													class="ref ref-link"
+													onclick={() => openBooking(s.bookingId)}
+												>
+													– #{s.bookingShortRef}
+												</button>
 												<span class="hotels">
-													{#if s.startHotelName}{s.startHotelName}{:else}Start hotel{/if}
+													{#if s.startHotelName}{s.startHotelName}{:else}{t.transfers_start_hotel}{/if}
 													→
-													{#if s.endHotelName}{s.endHotelName}{:else}Destination hotel{/if}
+													{#if s.endHotelName}{s.endHotelName}{:else}{t.transfers_destination_hotel}{/if}
 												</span>
 											</li>
 										{/each}
@@ -193,7 +253,7 @@
 												disabled={busy}
 												onchange={(e) => toggleDriver(key, driver.id, (e.currentTarget as HTMLInputElement).checked)}
 											/>
-											<span class="check-label">Assign</span>
+											<span class="check-label">{t.transfers_assign}</span>
 										</label>
 									</td>
 								{/each}
@@ -203,6 +263,76 @@
 				</table>
 			</div>
 		{/if}
+	{/if}
+
+	{#if selectedBooking}
+		<ViewModal
+			title={t.bookings_modal_title + ' ' + selectedBooking.id.slice(0, 8)}
+			isOpen={!!selectedBooking}
+			onClose={closeModal}
+		>
+			<div class="view-details">
+				<div class="detail-row">
+					<strong>{t.bookings_table_id}:</strong>
+					<span>{selectedBooking.id}</span>
+				</div>
+				<div class="detail-row">
+					<strong>{t.bookings_table_customer}:</strong>
+					<span>
+						{(selectedBooking.userFirstName ?? selectedBooking.firstName) || ''}
+						{(selectedBooking.userLastName ?? selectedBooking.lastName) || ''}
+						{#if !(selectedBooking.userFirstName ?? selectedBooking.firstName) &&
+							!(selectedBooking.userLastName ?? selectedBooking.lastName)}
+							<span class="muted">—</span>
+						{/if}
+					</span>
+				</div>
+				<div class="detail-row">
+					<strong>{t.bookings_table_email}:</strong>
+					<span>{selectedBooking.email || '—'}</span>
+				</div>
+				<div class="detail-row">
+					<strong>{t.bookings_table_phone}:</strong>
+					<span>{selectedBooking.phone || '—'}</span>
+				</div>
+				<div class="detail-row">
+					<strong>{t.bookings_table_route}:</strong>
+					<span>
+						{stageNames[selectedBooking.departureStageId ?? ''] ?? selectedBooking.departureStageId ?? '—'}
+						→
+						{stageNames[selectedBooking.destinationStageId ?? ''] ?? selectedBooking.destinationStageId ?? '—'}
+					</span>
+				</div>
+				<div class="detail-row">
+					<strong>{t.bookings_modal_departure_date}:</strong>
+					<span>{formatDetailDate(selectedBooking.departureDate)}</span>
+				</div>
+				<div class="detail-row">
+					<strong>{t.bookings_table_status}:</strong>
+					<span>
+						<span class="status-badge status-{selectedBooking.status ?? 'pending'}">
+							{selectedBooking.status ?? 'pending'}
+						</span>
+					</span>
+				</div>
+				<div class="detail-row">
+					<strong>{t.bookings_modal_total_price}:</strong>
+					<span>{selectedBooking.totalPrice ? `€${selectedBooking.totalPrice}` : '—'}</span>
+				</div>
+				<div class="detail-row">
+					<strong>{t.bookings_table_created}:</strong>
+					<span>{formatDetailDate(selectedBooking.createdAt)}</span>
+				</div>
+			</div>
+		</ViewModal>
+	{:else if viewingBookingId && !bookingDetailsById[viewingBookingId]}
+		<ViewModal
+			title={t.bookings_modal_title}
+			isOpen={true}
+			onClose={closeModal}
+		>
+			<p class="muted">{t.transfers_booking_unavailable}</p>
+		</ViewModal>
 	{/if}
 </section>
 
@@ -319,6 +449,72 @@
 
 	.booking-line .hotels {
 		color: #111827;
+	}
+
+	.ref-link {
+		background: none;
+		border: none;
+		padding: 0;
+		font: inherit;
+		color: #4b5563;
+		cursor: pointer;
+		text-decoration: underline;
+	}
+
+	.ref-link:hover {
+		color: #111827;
+	}
+
+	.view-details {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.detail-row {
+		display: flex;
+		gap: 1rem;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid #e9ecef;
+	}
+
+	.detail-row:last-child {
+		border-bottom: none;
+	}
+
+	.detail-row strong {
+		min-width: 150px;
+		color: #333;
+	}
+
+	.detail-row span {
+		color: #666;
+	}
+
+	.muted {
+		color: #999;
+	}
+
+	.status-badge {
+		display: inline-block;
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.85rem;
+	}
+
+	.status-pending {
+		background: #fff3cd;
+		color: #856404;
+	}
+
+	.status-paid {
+		background: #d4edda;
+		color: #155724;
+	}
+
+	.status-cancelled {
+		background: #f8d7da;
+		color: #721c24;
 	}
 </style>
 

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { STAGES } from '$lib/trail';
+	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
 	import ViewModal from './ViewModal.svelte';
 	import AdminIcon from '$lib/components/admin/AdminIcon.svelte';
 
@@ -10,6 +12,7 @@
 		/** When provided (e.g. when parent filters hotels for display), use this to resolve hotel by id for edit form. */
 		allHotels?: Array<{ id: string; locationId: string; name: string; contactInfo: string | null }>;
 	}>();
+	const t = $derived(translations[$language]);
 	const hotelsForLookup = $derived(allHotels ?? hotels);
 
 const stageNames = Object.fromEntries(
@@ -61,7 +64,7 @@ const paginatedHotels = $derived(
 </script>
 
 {#if form?.success}
-	<div class="success-message">{form.message || 'Operation successful'}</div>
+	<div class="success-message">{form.message || t.admin_operation_ok}</div>
 {/if}
 
 {#if form?.message && !form?.success}
@@ -70,18 +73,18 @@ const paginatedHotels = $derived(
 
 <div class="table-container">
 	<div class="table-header">
-		<h3>Accommodation</h3>
+		<h3>{t.hotels_table_title}</h3>
 		<div class="header-actions">
 			<input
 				type="search"
 				class="search-input"
-				placeholder="Search accommodation…"
+				placeholder={t.hotels_table_search_placeholder}
 				bind:value={search}
-				aria-label="Search accommodation"
+				aria-label={t.hotels_table_search_placeholder}
 			/>
 			{#if !showAddForm}
 				<button type="button" class="btn-add" onclick={() => { showAddForm = true; }}>
-					+ Accommodation
+					+ {t.hotels_table_add}
 				</button>
 			{/if}
 		</div>
@@ -89,7 +92,7 @@ const paginatedHotels = $derived(
 
 	{#if showAddForm}
 		<div class="add-form">
-			<h4>{editingId ? 'Edit Hotel' : 'Add New Hotel'}</h4>
+			<h4>{editingId ? t.hotels_table_edit_hotel : t.hotels_table_add_new_hotel}</h4>
 			<form
 				method="POST"
 				action={editingId ? '?/updateHotel' : '?/createHotel'}
@@ -105,9 +108,9 @@ const paginatedHotels = $derived(
 					<input type="hidden" name="hotelId" value={editingId} />
 					<div class="form-row">
 						<div class="form-group">
-							<label>Location</label>
+							<label>{t.hotels_table_location}</label>
 							<select name="locationId" required disabled={!!editingId}>
-								<option value="">Select location</option>
+								<option value="">{t.hotels_table_select_location}</option>
 								{#each STAGES as stage}
 									<option value={stage.id} selected={hotel?.locationId === stage.id}>
 										{stage.name} ({stage.id})
@@ -119,53 +122,53 @@ const paginatedHotels = $derived(
 							{/if}
 						</div>
 						<div class="form-group">
-							<label>Hotel Name</label>
+							<label>{t.hotels_table_name}</label>
 							<input type="text" name="name" required value={hotel?.name || ''} />
 						</div>
 						<div class="form-group">
-							<label>Contact Info</label>
+							<label>{t.hotels_table_contact}</label>
 							<textarea name="contactInfo" rows="2">{hotel?.contactInfo || ''}</textarea>
 						</div>
 					</div>
 				{:else}
 					<div class="form-row">
 						<div class="form-group">
-							<label>Location</label>
+							<label>{t.hotels_table_location}</label>
 							<select name="locationId" required>
-								<option value="">Select location</option>
+								<option value="">{t.hotels_table_select_location}</option>
 								{#each STAGES as stage}
 									<option value={stage.id}>{stage.name} ({stage.id})</option>
 								{/each}
 							</select>
 						</div>
 						<div class="form-group">
-							<label>Hotel Name</label>
+							<label>{t.hotels_table_name}</label>
 							<input type="text" name="name" required />
 						</div>
 						<div class="form-group">
-							<label>Contact Info</label>
+							<label>{t.hotels_table_contact}</label>
 							<textarea name="contactInfo" rows="2"></textarea>
 						</div>
 					</div>
 				{/if}
 				<div class="form-actions">
-					<button type="submit" class="btn-submit">{editingId ? 'Update' : 'Create'}</button>
-					<button type="button" class="btn-cancel" onclick={cancelEdit}>Cancel</button>
+					<button type="submit" class="btn-submit">{editingId ? t.hotels_table_update : t.hotels_table_create}</button>
+					<button type="button" class="btn-cancel" onclick={cancelEdit}>{t.bookings_table_cancel}</button>
 				</div>
 			</form>
 		</div>
 	{/if}
 
 	{#if hotels.length === 0}
-		<p class="empty-state">No hotels added yet.</p>
+		<p class="empty-state">{t.hotels_table_empty}</p>
 	{:else}
 		<table class="data-table">
 			<thead>
 				<tr>
-					<th>Location</th>
-					<th>Name</th>
-					<th>Contact Info</th>
-					<th>Actions</th>
+					<th>{t.hotels_table_location}</th>
+					<th>{t.hotels_modal_name}</th>
+					<th>{t.hotels_table_contact}</th>
+					<th>{t.hotels_table_actions}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -179,7 +182,7 @@ const paginatedHotels = $derived(
 								type="button"
 								class="btn-icon btn-view"
 								onclick={() => viewHotel(hotel)}
-								title="View"
+								title={t.bookings_table_view}
 							>
 								<AdminIcon name="eye" size={18} />
 							</button>
@@ -187,13 +190,13 @@ const paginatedHotels = $derived(
 								type="button"
 								class="btn-icon btn-edit"
 								onclick={() => startEdit(hotel)}
-								title="Edit"
+								title={t.bookings_table_edit}
 							>
 								<AdminIcon name="edit" size={18} />
 							</button>
 							<form method="POST" action="?/deleteHotel" class="inline-form">
 								<input type="hidden" name="hotelId" value={hotel.id} />
-								<button type="submit" class="btn-icon btn-delete" title="Delete">
+								<button type="submit" class="btn-icon btn-delete" title={t.bookings_table_delete}>
 									<AdminIcon name="trash" size={18} />
 								</button>
 							</form>
@@ -210,16 +213,16 @@ const paginatedHotels = $derived(
 					disabled={currentPage === 0}
 					onclick={() => { currentPage = Math.max(0, currentPage - 1); }}
 				>
-					Previous
+					{t.bookings_table_previous}
 				</button>
-				<span class="pagination-info">Page {currentPage + 1} of {totalPages}</span>
+				<span class="pagination-info">{(t.bookings_table_page_of ?? 'Page {current} of {total}').replace('{current}', String(currentPage + 1)).replace('{total}', String(totalPages))}</span>
 				<button
 					type="button"
 					class="pagination-btn"
 					disabled={currentPage >= totalPages - 1}
 					onclick={() => { currentPage = Math.min(totalPages - 1, currentPage + 1); }}
 				>
-					Next
+					{t.bookings_table_next}
 				</button>
 			</div>
 		{/if}
@@ -228,25 +231,25 @@ const paginatedHotels = $derived(
 
 {#if viewingHotel}
 	<ViewModal
-		title="Hotel Details"
+		title={t.hotels_modal_title}
 		isOpen={!!viewingHotel}
 		onClose={closeView}
 	>
 		<div class="view-details">
 			<div class="detail-row">
-				<strong>ID:</strong>
+				<strong>{t.bookings_table_id}:</strong>
 				<span>{viewingHotel.id}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Location:</strong>
+				<strong>{t.hotels_table_location}:</strong>
 				<span>{stageNames[viewingHotel.locationId] || viewingHotel.locationId}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Name:</strong>
+				<strong>{t.hotels_modal_name}:</strong>
 				<span>{viewingHotel.name}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Contact Info:</strong>
+				<strong>{t.hotels_table_contact}:</strong>
 				<span>{viewingHotel.contactInfo || '—'}</span>
 			</div>
 		</div>

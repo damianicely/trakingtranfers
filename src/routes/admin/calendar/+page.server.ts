@@ -1,6 +1,6 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import {
 	getCalendarSummaryForMonth,
 	getStepsWithBookingsOnDate,
@@ -8,7 +8,7 @@ import {
 } from '$lib/server/driver-assignment/calendar-summary';
 import { getAssignmentsForDate, setAssignment, removeAssignment } from '$lib/server/driver-assignment/assignments';
 import { db } from '$lib/server/db';
-import { userTable } from '$lib/server/db/schema';
+import { bookingTable, userTable } from '$lib/server/db/schema';
 
 function getDefaultYearMonth(): string {
 	const d = new Date();
@@ -35,6 +35,26 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	let drivers: Array<{ id: string; username: string; firstName: string | null; lastName: string | null }> = [];
 	let driverAssignments: Record<string, string[]> = {};
 
+	let bookingDetailsById: Record<
+		string,
+		{
+			id: string;
+			userId: string | null;
+			status: string | null;
+			firstName: string | null;
+			lastName: string | null;
+			userFirstName: string | null;
+			userLastName: string | null;
+			email: string | null;
+			phone: string | null;
+			departureDate: Date | null;
+			departureStageId: string | null;
+			destinationStageId: string | null;
+			totalPrice: string | null;
+			createdAt: Date | null;
+		}
+	> = {};
+
 	if (user.role === 'admin' || user.role === 'owner') {
 		[bookedStepsForDate, legSummaries, drivers, driverAssignments] = await Promise.all([
 			getStepsWithBookingsOnDate(selectedDate),
@@ -46,6 +66,38 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				.orderBy(userTable.username),
 			getAssignmentsForDate(selectedDate)
 		]);
+
+		const bookingIds = [...new Set((legSummaries ?? []).map((s) => s.bookingId))];
+		if (bookingIds.length > 0) {
+			const rawBookings = await db.select().from(bookingTable).where(inArray(bookingTable.id, bookingIds));
+			const userIds = [...new Set(rawBookings.map((b) => b.userId).filter(Boolean) as string[])];
+			let userMap: Record<string, { firstName: string | null; lastName: string | null }> = {};
+			if (userIds.length > 0) {
+				const users = await db
+					.select({ id: userTable.id, firstName: userTable.firstName, lastName: userTable.lastName })
+					.from(userTable)
+					.where(inArray(userTable.id, userIds));
+				userMap = Object.fromEntries(users.map((u) => [u.id, u]));
+			}
+			for (const b of rawBookings) {
+				bookingDetailsById[b.id] = {
+					id: b.id,
+					userId: b.userId,
+					status: b.status,
+					firstName: b.firstName,
+					lastName: b.lastName,
+					userFirstName: (b.userId ? userMap[b.userId]?.firstName ?? null : null) as string | null,
+					userLastName: (b.userId ? userMap[b.userId]?.lastName ?? null : null) as string | null,
+					email: b.email,
+					phone: b.phone,
+					departureDate: b.departureDate,
+					departureStageId: b.departureStageId,
+					destinationStageId: b.destinationStageId,
+					totalPrice: b.totalPrice,
+					createdAt: b.createdAt
+				};
+			}
+		}
 	}
 
 	return {
@@ -56,7 +108,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		bookedStepsForDate,
 		legSummaries,
 		drivers,
-		driverAssignments
+		driverAssignments,
+		bookingDetailsById
 	};
 };
 

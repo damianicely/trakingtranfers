@@ -1,23 +1,24 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
 	import AdminIcon from '$lib/components/admin/AdminIcon.svelte';
 
 	let { data } = $props();
 
-	const menuItems = [
-		{ href: '/admin', label: 'Overview', icon: 'dashboard' as const },
-		{ href: '/admin/analytics', label: 'Analytics', icon: 'barChart' as const },
-		{ href: '/admin/calendar', label: 'Schedule', icon: 'calendar' as const },
-		{ href: '/admin/team', label: 'Team', icon: 'users' as const },
-		{ href: '/admin/locations', label: 'Accommodation', icon: 'building' as const },
-		{ href: '/admin/documents', label: 'Documents', icon: 'bookOpen' as const },
-		{ href: '/admin/contacts', label: 'Customers', icon: 'userCircle' as const },
-		{ href: '/admin/reports', label: 'Reports', icon: 'fileText' as const },
-		{ href: '/admin/activity', label: 'Activity', icon: 'inbox' as const },
-		{ href: '/admin/settings', label: 'Settings', icon: 'settings' as const }
-	];
-
+	const t = $derived(translations[$language]);
 	const currentPath = $derived($page.url.pathname);
+
+	const menuItems = $derived([
+		{ href: '/admin', labelKey: 'admin_nav_overview', icon: 'dashboard' as const },
+		{ href: '/admin/sales', labelKey: 'admin_nav_sales', icon: 'barChart' as const },
+		{ href: '/admin/calendar', labelKey: 'admin_nav_schedule', icon: 'calendar' as const },
+		{ href: '/admin/team', labelKey: 'admin_nav_team', icon: 'users' as const },
+		{ href: '/admin/locations', labelKey: 'admin_nav_accommodation', icon: 'building' as const },
+		{ href: '/admin/contacts', labelKey: 'admin_nav_customers', icon: 'userCircle' as const },
+		{ href: '/admin/activity', labelKey: 'admin_nav_activity', icon: 'inbox' as const },
+		{ href: '/admin/settings', labelKey: 'admin_nav_settings', icon: 'settings' as const }
+	]);
 </script>
 
 <div class="admin-app">
@@ -33,12 +34,12 @@
 					class:active={currentPath === item.href || (item.href !== '/admin' && currentPath.startsWith(item.href))}
 				>
 					<AdminIcon name={item.icon} size={20} class="nav-icon" />
-					<span class="nav-label">{item.label}</span>
+					<span class="nav-label">{t[item.labelKey] ?? item.labelKey}</span>
 				</a>
 			{/each}
 		</nav>
 		<div class="sidebar-footer">
-			<a href="/dashboard" class="nav-link back-link">← Back to Dashboard</a>
+			<a href="/dashboard" class="nav-link back-link">{t.admin_nav_back_dashboard}</a>
 		</div>
 	</aside>
 	<main class="admin-main">

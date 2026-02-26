@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { STAGES } from '$lib/trail';
+	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
 	import ViewModal from './ViewModal.svelte';
+	import AdminIcon from '$lib/components/admin/AdminIcon.svelte';
 
 	let { bookings, form } = $props<{
 		bookings: Array<{
@@ -22,6 +25,7 @@
 		form?: { success?: boolean; message?: string };
 	}>();
 
+	const t = $derived(translations[$language]);
 	const stageNames = Object.fromEntries(STAGES.map((s) => [s.id, s.name]));
 
 	const formatDate = (date: Date | null) => {
@@ -61,7 +65,7 @@
 </script>
 
 {#if form?.success}
-	<div class="success-message">{form.message || 'Operation successful'}</div>
+	<div class="success-message">{form.message || t.bookings_table_operation_ok}</div>
 {/if}
 
 {#if form?.message && !form?.success}
@@ -70,21 +74,21 @@
 
 <div class="table-container">
 	{#if bookings.length === 0}
-		<p class="empty-state">No bookings found.</p>
+		<p class="empty-state">{t.bookings_table_empty}</p>
 	{:else}
 		<table class="data-table">
 			<thead>
 				<tr>
-					<th>ID</th>
-					<th>Customer</th>
-					<th>Email</th>
-					<th>Phone</th>
-					<th>Route</th>
-					<th>Date</th>
-					<th>Status</th>
-					<th>Price</th>
-					<th>Created</th>
-					<th>Actions</th>
+					<th>{t.bookings_table_id}</th>
+					<th>{t.bookings_table_customer}</th>
+					<th>{t.bookings_table_email}</th>
+					<th>{t.bookings_table_phone}</th>
+					<th>{t.bookings_table_route}</th>
+					<th>{t.bookings_table_date}</th>
+					<th>{t.bookings_table_status}</th>
+					<th>{t.bookings_table_price}</th>
+					<th>{t.bookings_table_created}</th>
+					<th>{t.bookings_table_actions}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -120,36 +124,38 @@
 										<option value="paid" selected={booking.status === 'paid'}>paid</option>
 										<option value="cancelled" selected={booking.status === 'cancelled'}>cancelled</option>
 									</select>
-									<button type="submit" class="btn-save">Save</button>
-									<button type="button" class="btn-cancel" onclick={cancelEdit}>Cancel</button>
+									<button type="submit" class="btn-save">{t.bookings_table_save}</button>
+									<button type="button" class="btn-cancel" onclick={cancelEdit}>{t.bookings_table_cancel}</button>
 								</form>
 							{:else}
 								<a
 									href="/dashboard/booking/{booking.id}/bags"
 									class="btn-icon btn-baglinks"
-									title="Bag links / QR"
+									title={t.bookings_table_bag_links}
 								>
-									Bag links
+									{t.bookings_table_bag_links}
 								</a>
 								<button
 									type="button"
 									class="btn-icon btn-view"
 									onclick={() => viewBooking(booking)}
-									title="View"
+									title={t.bookings_table_view}
 								>
-									👁
+									<AdminIcon name="eye" size={18} />
 								</button>
 								<button
 									type="button"
 									class="btn-icon btn-edit"
 									onclick={() => startEdit(booking)}
-									title="Edit"
+									title={t.bookings_table_edit}
 								>
-									✎
+									<AdminIcon name="edit" size={18} />
 								</button>
 								<form method="POST" action="?/deleteBooking" class="inline-form">
 									<input type="hidden" name="bookingId" value={booking.id} />
-									<button type="submit" class="btn-icon btn-delete" title="Delete">×</button>
+									<button type="submit" class="btn-icon btn-delete" title={t.bookings_table_delete}>
+										<AdminIcon name="trash" size={18} />
+									</button>
 								</form>
 							{/if}
 						</td>
@@ -165,16 +171,16 @@
 					disabled={currentPage === 0}
 					onclick={() => { currentPage = Math.max(0, currentPage - 1); }}
 				>
-					Previous
+					{t.bookings_table_previous}
 				</button>
-				<span class="pagination-info">Page {currentPage + 1} of {totalPages}</span>
+				<span class="pagination-info">{(t.bookings_table_page_of ?? 'Page {current} of {total}').replace('{current}', String(currentPage + 1)).replace('{total}', String(totalPages))}</span>
 				<button
 					type="button"
 					class="pagination-btn"
 					disabled={currentPage >= totalPages - 1}
 					onclick={() => { currentPage = Math.min(totalPages - 1, currentPage + 1); }}
 				>
-					Next
+					{t.bookings_table_next}
 				</button>
 			</div>
 		{/if}
@@ -182,14 +188,14 @@
 </div>
 
 {#if viewingBooking}
-	<ViewModal title="Booking Details" isOpen={!!viewingBooking} onClose={closeView}>
+	<ViewModal title={t.bookings_modal_title} isOpen={!!viewingBooking} onClose={closeView}>
 		<div class="view-details">
 			<div class="detail-row">
-				<strong>ID:</strong>
+				<strong>{t.bookings_table_id}:</strong>
 				<span>{viewingBooking.id}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Customer:</strong>
+				<strong>{t.bookings_table_customer}:</strong>
 				<span>
 					{(viewingBooking.userFirstName ?? viewingBooking.firstName) || ''} {(viewingBooking.userLastName ?? viewingBooking.lastName) || ''}
 					{#if !(viewingBooking.userFirstName ?? viewingBooking.firstName) && !(viewingBooking.userLastName ?? viewingBooking.lastName)}
@@ -198,26 +204,26 @@
 				</span>
 			</div>
 			<div class="detail-row">
-				<strong>Email:</strong>
+				<strong>{t.bookings_table_email}:</strong>
 				<span>{viewingBooking.email || '—'}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Phone:</strong>
+				<strong>{t.bookings_table_phone}:</strong>
 				<span>{viewingBooking.phone || '—'}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Route:</strong>
+				<strong>{t.bookings_table_route}:</strong>
 				<span>
 					{stageNames[viewingBooking.departureStageId || ''] || viewingBooking.departureStageId || '—'} →
 					{stageNames[viewingBooking.destinationStageId || ''] || viewingBooking.destinationStageId || '—'}
 				</span>
 			</div>
 			<div class="detail-row">
-				<strong>Departure Date:</strong>
+				<strong>{t.bookings_modal_departure_date}:</strong>
 				<span>{formatDate(viewingBooking.departureDate)}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Status:</strong>
+				<strong>{t.bookings_table_status}:</strong>
 				<span>
 					<span class="status-badge status-{viewingBooking.status || 'pending'}">
 						{viewingBooking.status || 'pending'}
@@ -225,11 +231,11 @@
 				</span>
 			</div>
 			<div class="detail-row">
-				<strong>Total Price:</strong>
+				<strong>{t.bookings_modal_total_price}:</strong>
 				<span>{viewingBooking.totalPrice ? `€${viewingBooking.totalPrice}` : '—'}</span>
 			</div>
 			<div class="detail-row">
-				<strong>Created:</strong>
+				<strong>{t.bookings_table_created}:</strong>
 				<span>{formatDate(viewingBooking.createdAt)}</span>
 			</div>
 		</div>
