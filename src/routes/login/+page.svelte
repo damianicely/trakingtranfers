@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { page } from '$app/stores';
+
 	let { form } = $props();
 	let showForgotPassword = $state(false);
+	const redirectTo = $derived($page.url.searchParams.get('redirectTo') ?? '');
 </script>
 
 <div class="auth-container">
@@ -14,6 +17,9 @@
 			{/if}
 
 			<form method="POST" action="?/login" class="auth-form">
+				{#if redirectTo}
+					<input type="hidden" name="redirectTo" value={redirectTo} />
+				{/if}
 				<div class="form-group">
 					<label for="username">Username</label>
 					<input name="username" id="username" type="text" required />

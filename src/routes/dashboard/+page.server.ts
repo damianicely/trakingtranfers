@@ -24,6 +24,7 @@ import {
 	clearAssignment
 } from '$lib/server/driver-assignment/assignments';
 import { getAllDeliverySteps } from '$lib/delivery-steps';
+import { deleteUserCascade } from '$lib/server/delete-user';
 
 /** Attach userFirstName/userLastName to each booking from user table (prefer user names over booking names). */
 async function attachUserNamesToBookings<T extends { userId?: string | null }>(
@@ -623,7 +624,7 @@ export const actions: Actions = {
 			return fail(400, { message: 'Customer ID is required' });
 		}
 
-		await db.delete(userTable).where(eq(userTable.id, customerId));
+		await deleteUserCascade(customerId);
 
 		return { success: true, message: 'Customer deleted successfully' };
 	},
@@ -680,10 +681,7 @@ export const actions: Actions = {
 			return fail(400, { message: 'Driver ID is required' });
 		}
 
-		// Delete profile first (foreign key constraint)
-		await db.delete(driverProfile).where(eq(driverProfile.userId, driverId));
-		// Then delete user
-		await db.delete(userTable).where(eq(userTable.id, driverId));
+		await deleteUserCascade(driverId);
 
 		return { success: true, message: 'Driver deleted successfully' };
 	},
@@ -833,10 +831,7 @@ export const actions: Actions = {
 		if (!staff || (staff.role !== 'admin' && staff.role !== 'driver')) {
 			return fail(400, { message: 'User is not staff' });
 		}
-		if (staff.role === 'driver') {
-			await db.delete(driverProfile).where(eq(driverProfile.userId, staffId));
-		}
-		await db.delete(userTable).where(eq(userTable.id, staffId));
+		await deleteUserCascade(staffId);
 		return { success: true, message: 'Staff member removed' };
 	}
 };

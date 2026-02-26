@@ -178,6 +178,13 @@ export const translations = {
 		staff_empty: 'No staff yet. Add admins or drivers above.',
 		staff_success: 'Staff member added',
 
+		// Admin Team (same as staff but "Team" label)
+		team_title: 'Team',
+		team_add: 'Add member',
+		team_add_new: 'Add new team member',
+		team_empty: 'No team members yet. Add admins or drivers above.',
+		team_success: 'Team member added',
+
 		// Booking Success Page
 		booking_success_title: 'Booking Confirmed!',
 		booking_success_message: 'Thank you for your booking. Your payment has been processed successfully.',
@@ -381,6 +388,13 @@ export const translations = {
 		staff_cancel: 'Cancelar',
 		staff_empty: 'Ainda não há membros. Adicione administradores ou motoristas acima.',
 		staff_success: 'Membro adicionado',
+
+		// Admin Team (same as staff but "Team" label)
+		team_title: 'Equipa',
+		team_add: 'Adicionar membro',
+		team_add_new: 'Adicionar novo membro da equipa',
+		team_empty: 'Ainda não há membros da equipa. Adicione administradores ou motoristas acima.',
+		team_success: 'Membro adicionado',
 
 		// Booking Success Page
 		booking_success_title: 'Reserva Confirmada!',

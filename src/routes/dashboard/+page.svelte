@@ -1,14 +1,13 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { language } from '$lib/stores/language';
 	import { translations } from '$lib/translations';
 	import CustomerDashboard from '$lib/components/dashboard/CustomerDashboard.svelte';
 	import DriverDashboard from '$lib/components/dashboard/DriverDashboard.svelte';
-	import OwnerDashboard from '$lib/components/dashboard/OwnerDashboard.svelte';
+	import OwnerShell from '$lib/components/dashboard/owner/OwnerShell.svelte';
 	import AdminDashboard from '$lib/components/dashboard/AdminDashboard.svelte';
-	import CollapsibleSection from '$lib/components/dashboard/admin/CollapsibleSection.svelte';
-	import StaffSection from '$lib/components/dashboard/admin/StaffSection.svelte';
 
-	let { data, form } = $props(); // Svelte 5 way to get data from the server
+	let { data, form } = $props();
 
 	const user = $derived(data.user);
 	const role = $derived(user.role);
@@ -24,26 +23,26 @@
 		};
 		return roleMap[role] || t.dashboard_title_customer;
 	});
+
+	const ownerInitialSection = $derived($page.url.searchParams.get('section') ?? 'overview');
 </script>
 
-<div class="dashboard">
-	<header class="dashboard-header">
-		<h1>{roleTitle}</h1>
-		<p class="welcome">{t.dashboard_welcome.replace('{username}', user.username)}</p>
-		<form method="POST" action="/logout" class="logout-form">
-			<button type="submit">{t.dashboard_logout}</button>
-		</form>
-	</header>
+<div class="dashboard" class:dashboard-owner={role === 'owner'}>
+	{#if role !== 'owner'}
+		<header class="dashboard-header">
+			<h1>{roleTitle}</h1>
+			<p class="welcome">{t.dashboard_welcome.replace('{username}', user.username)}</p>
+			<form method="POST" action="/logout" class="logout-form">
+				<button type="submit">{t.dashboard_logout}</button>
+			</form>
+		</header>
+	{/if}
 
 	<main class="dashboard-content" class:admin-dashboard={role === 'admin' || role === 'owner'}>
 		{#if role === 'customer'}
 			<CustomerDashboard {user} data={data} {form} />
 		{:else if role === 'owner'}
-			<OwnerDashboard {user} data={data} />
-			<CollapsibleSection title={t.staff_title} defaultExpanded={true}>
-				<StaffSection allStaff={data.allStaff ?? []} {form} />
-			</CollapsibleSection>
-			<AdminDashboard {user} data={data} {form} />
+			<OwnerShell data={data} form={form} initialSection={ownerInitialSection} />
 		{:else if role === 'driver'}
 			<DriverDashboard {user} data={data} />
 		{:else if role === 'admin'}
@@ -59,9 +58,19 @@
         padding: 2rem;
     }
 
+	.dashboard.dashboard-owner {
+		max-width: 100%;
+		margin: 0;
+		padding: 0;
+	}
+
 	.dashboard:has(.admin-dashboard) {
 		max-width: 100%;
 		padding: 2rem;
+	}
+
+	.dashboard.dashboard-owner .dashboard-content {
+		padding: 0;
 	}
 
     .dashboard-header {

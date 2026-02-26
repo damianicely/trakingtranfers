@@ -1,12 +1,17 @@
 <script lang="ts">
 	import '../app.css';
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import { language } from '$lib/stores/language';
 	import { translations } from '$lib/translations';
 	import { openLoginModal } from '$lib/stores/loginModal';
 	import { browser } from '$app/environment';
 
 	let { data } = $props();
+
+	const isOwnerDashboard = $derived(
+		$page.url.pathname === '/dashboard' && data?.user?.role === 'owner'
+	);
 
 	onMount(() => {
 		language.init();
@@ -127,43 +132,45 @@
 	}
 </script>
 
-<header class="header">
-	<div class="container">
-		<a href="/" class="logo">TrakingTransfers.pt</a>
-		<div class="header-right">
-			{#if data?.user}
-				<a href="/dashboard" class="header-link">Dashboard</a>
-				<form method="POST" action="/logout" class="logout-form-inline">
-					<button type="submit" class="header-btn header-btn-logout">Log out</button>
-				</form>
-			{:else}
-				<button type="button" class="header-btn header-btn-login" onclick={() => { showModal = true; openLoginModal.set(true); }}>Login</button>
-			{/if}
-			<span class="separator">|</span>
-			<div class="language-toggle">
-				<button
-					class="lang-option"
-					class:active={$language === 'en'}
-					onclick={() => {
-						if ($language !== 'en') language.toggle();
-					}}
-				>
-					EN
-				</button>
+{#if !isOwnerDashboard}
+	<header class="header">
+		<div class="container">
+			<a href="/" class="logo">TrakingTransfers.pt</a>
+			<div class="header-right">
+				{#if data?.user}
+					<a href="/dashboard" class="header-link">Dashboard</a>
+					<form method="POST" action="/logout" class="logout-form-inline">
+						<button type="submit" class="header-btn header-btn-logout">Log out</button>
+					</form>
+				{:else}
+					<button type="button" class="header-btn header-btn-login" onclick={() => { showModal = true; openLoginModal.set(true); }}>Login</button>
+				{/if}
 				<span class="separator">|</span>
-				<button
-					class="lang-option"
-					class:active={$language === 'pt'}
-					onclick={() => {
-						if ($language !== 'pt') language.toggle();
-					}}
-				>
-					PT
-				</button>
+				<div class="language-toggle">
+					<button
+						class="lang-option"
+						class:active={$language === 'en'}
+						onclick={() => {
+							if ($language !== 'en') language.toggle();
+						}}
+					>
+						EN
+					</button>
+					<span class="separator">|</span>
+					<button
+						class="lang-option"
+						class:active={$language === 'pt'}
+						onclick={() => {
+							if ($language !== 'pt') language.toggle();
+						}}
+					>
+						PT
+					</button>
+				</div>
 			</div>
 		</div>
-	</div>
-</header>
+	</header>
+{/if}
 
 {#if showModal}
 	<div class="modal-backdrop" role="dialog" aria-modal="true" onclick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
@@ -216,7 +223,7 @@
 	</div>
 {/if}
 
-<main>
+<main class:owner-dashboard-fullbleed={isOwnerDashboard}>
 	<slot />
 </main>
 
@@ -569,6 +576,12 @@
 	.reclamacoes-logo {
 		height: 80px;
 		width: auto;
+	}
+
+	.owner-dashboard-fullbleed {
+		padding: 0;
+		margin: 0;
+		max-width: 100%;
 	}
 
 	@media (max-width: 768px) {

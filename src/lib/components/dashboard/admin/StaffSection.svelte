@@ -2,7 +2,7 @@
 	import { language } from '$lib/stores/language';
 	import { translations } from '$lib/translations';
 
-	let { allStaff, form } = $props<{
+	let { allStaff, form, useTeamLabels = false } = $props<{
 		allStaff: Array<{
 			id: string;
 			username: string;
@@ -12,15 +12,21 @@
 			licenseNumber: string | null;
 		}>;
 		form?: { success?: boolean; message?: string };
+		useTeamLabels?: boolean;
 	}>();
 
 	const t = $derived(translations[$language]);
+	const sectionTitle = $derived(useTeamLabels ? (t.team_title ?? 'Team') : t.staff_title);
+	const addLabel = $derived(useTeamLabels ? (t.team_add ?? 'Add member') : t.staff_add);
+	const addNewLabel = $derived(useTeamLabels ? (t.team_add_new ?? 'Add new team member') : t.staff_add_new);
+	const emptyLabel = $derived(useTeamLabels ? (t.team_empty ?? 'No team members yet.') : t.staff_empty);
+	const successLabel = $derived(useTeamLabels ? (t.team_success ?? 'Team member added') : t.staff_success);
 
 	let showAddForm = $state(false);
 </script>
 
 {#if form?.success}
-	<div class="success-message">{form.message || t.staff_success}</div>
+	<div class="success-message">{form.message || successLabel}</div>
 {/if}
 {#if form?.message && !form?.success}
 	<div class="error-message">{form.message}</div>
@@ -28,17 +34,17 @@
 
 <div class="staff-section">
 	<div class="table-header">
-		<h3>{t.staff_title}</h3>
+		<h3>{sectionTitle}</h3>
 		{#if !showAddForm}
 			<button type="button" class="btn-add" onclick={() => { showAddForm = true; }}>
-				+ {t.staff_add}
+				+ {addLabel}
 			</button>
 		{/if}
 	</div>
 
 	{#if showAddForm}
 		<div class="add-form">
-			<h4>{t.staff_add_new}</h4>
+			<h4>{addNewLabel}</h4>
 			<form
 				method="POST"
 				action="?/createStaff"
@@ -83,7 +89,7 @@
 					</div>
 				</div>
 				<div class="form-actions">
-					<button type="submit" class="btn-submit">{t.staff_add}</button>
+					<button type="submit" class="btn-submit">{addLabel}</button>
 					<button type="button" class="btn-cancel" onclick={() => { showAddForm = false; }}>{t.staff_cancel}</button>
 				</div>
 			</form>
@@ -91,7 +97,7 @@
 	{/if}
 
 	{#if allStaff.length === 0}
-		<p class="empty-state">{t.staff_empty}</p>
+		<p class="empty-state">{emptyLabel}</p>
 	{:else}
 		<table class="data-table">
 			<thead>

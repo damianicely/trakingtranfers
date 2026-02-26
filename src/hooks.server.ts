@@ -13,15 +13,29 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	// 2. Validate session in Postgres (Laravel: Auth::user())
-	const [result] = await db
-		.select({ user: userTable, session: sessionTable })
-		.from(sessionTable)
-		.innerJoin(userTable, eq(sessionTable.userId, userTable.id))
-		.where(eq(sessionTable.id, sessionId));
+	let result: { user: { id: string; username: string; role: string }; session: { expiresAt: Date } } | undefined;
+	try {
+		[result] = await db
+			.select({ user: userTable, session: sessionTable })
+			.from(sessionTable)
+			.innerJoin(userTable, eq(sessionTable.userId, userTable.id))
+			.where(eq(sessionTable.id, sessionId));
+	} catch (err) {
+		console.error('[hooks.server] Session lookup failed:', err);
+		event.cookies.delete('session', { path: '/' });
+		event.locals.user = null;
+		return resolve(event);
+	}
 
 	// 3. Check if session exists and isn't expired
 	if (!result || result.session.expiresAt < new Date()) {
-		if (result) await db.delete(sessionTable).where(eq(sessionTable.id, sessionId));
+		if (result) {
+			try {
+				await db.delete(sessionTable).where(eq(sessionTable.id, sessionId));
+			} catch (_) {
+				// ignore cleanup failure
+			}
+		}
 		event.cookies.delete('session', { path: '/' });
 		event.locals.user = null;
 	} else {
