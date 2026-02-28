@@ -24,7 +24,7 @@ export async function getDatesWithActiveJourneys(
 		.innerJoin(bookingTable, eq(bookingSegmentTable.bookingId, bookingTable.id))
 		.where(
 			and(
-				inArray(bookingTable.status, ['pending', 'paid']),
+				eq(bookingTable.status, 'paid'),
 				gte(bookingSegmentTable.travelDate, start),
 				lte(bookingSegmentTable.travelDate, end)
 			)
@@ -60,7 +60,7 @@ export async function getBookedStepKeysByDateInRange(
 		.innerJoin(bookingTable, eq(bookingSegmentTable.bookingId, bookingTable.id))
 		.where(
 			and(
-				inArray(bookingTable.status, ['pending', 'paid']),
+				eq(bookingTable.status, 'paid'),
 				gte(bookingSegmentTable.travelDate, start),
 				lte(bookingSegmentTable.travelDate, end)
 			)
@@ -169,7 +169,7 @@ export async function getStepsWithBookingsOnDate(
 		.innerJoin(bookingTable, eq(bookingSegmentTable.bookingId, bookingTable.id))
 		.where(
 			and(
-				inArray(bookingTable.status, ['pending', 'paid']),
+				eq(bookingTable.status, 'paid'),
 				gte(bookingSegmentTable.travelDate, start),
 				lte(bookingSegmentTable.travelDate, end)
 			)
@@ -227,7 +227,7 @@ export async function getLegSummariesForDate(dateStr: string): Promise<LegSummar
 		.leftJoin(endHotel, eq(bookingSegmentTable.endHotelId, endHotel.id))
 		.where(
 			and(
-				inArray(bookingTable.status, ['pending', 'paid']),
+				eq(bookingTable.status, 'paid'),
 				gte(bookingSegmentTable.travelDate, start),
 				lte(bookingSegmentTable.travelDate, end)
 			)

@@ -15,7 +15,7 @@ export const actions = {
 		// Clear the session cookie
 		cookies.delete('session', { path: '/' });
 
-		// Redirect to login page
+		// Always redirect to homepage after logout
 		throw redirect(302, '/');
 	}
 };

@@ -33,8 +33,18 @@ export const actions = {
 			maxAge: 60 * 60 * 24 * 30
 		});
 
+		// Default redirect by role when no valid redirectTo is provided
+		const defaultByRole =
+			user.role === 'admin' || user.role === 'owner'
+				? '/admin'
+				: user.role === 'driver'
+					? '/driver'
+					: '/account';
 		// Same-origin path only: must start with / and contain no protocol-relative or double slash
-		const target = redirectTo && redirectTo.startsWith('/') && !redirectTo.includes('//') ? redirectTo : '/dashboard';
+		const target =
+			redirectTo && redirectTo.startsWith('/') && !redirectTo.includes('//')
+				? redirectTo
+				: defaultByRole;
 
 		// Modal sends Accept: application/json; we return JSON + Set-Cookie so the client can reload to that URL.
 		const wantsJson = request.headers.get('Accept')?.includes('application/json');

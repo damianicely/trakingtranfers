@@ -48,11 +48,8 @@
 		e.preventDefault();
 		const form = e.target as HTMLFormElement;
 		const formData = new FormData(form);
-		const redirectTo = browser ? window.location.pathname || '/' : '/';
-		formData.set('redirectTo', redirectTo);
 		loginError = '';
 		loginSubmitting = true;
-		console.log('[login modal] submitting to /login?/login, redirectTo=', redirectTo);
 		try {
 			const res = await fetch('/login?/login', {
 				method: 'POST',
@@ -72,8 +69,8 @@
 			console.log('[login modal] parsed result:', result);
 			// SvelteKit form action returns { type, status, data } where data can be a stringified tuple
 			let redirectUrl: string | null = null;
-			if (res.ok && result?.type === 'success') {
-				const d = result.data;
+			if (res.ok && (result as any)?.type === 'success') {
+				const d = (result as any).data;
 				if (typeof d === 'string') {
 					try {
 						const parsed = JSON.parse(d) as unknown;
@@ -86,6 +83,10 @@
 				} else if (d && typeof d === 'object' && typeof (d as Record<string, unknown>).redirectTo === 'string') {
 					redirectUrl = (d as Record<string, unknown>).redirectTo as string;
 				}
+			}
+			// Also support plain JSON { success: true, redirectTo: string } from the login action
+			if (!redirectUrl && res.ok && typeof (result as any)?.redirectTo === 'string') {
+				redirectUrl = (result as any).redirectTo as string;
 			}
 			if (res.ok && redirectUrl) {
 				console.log('[login modal] success branch: closing modal, redirecting to', redirectUrl);
