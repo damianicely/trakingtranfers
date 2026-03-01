@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Traking Transfers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1a1a1a;
+            --color-secondary: #f5f5f0;
+            --color-accent: #c4a77d;
+            --color-accent-dark: #a08960;
+            --color-white: #ffffff;
+            --color-text: #333333;
+            --color-text-light: #666666;
+            --color-border: #e0e0e0;
+            --color-success: #22c55e;
+            --color-warning: #f59e0b;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Inter', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text);
+            background: linear-gradient(135deg, #f8f8f5 0%, #f0f0eb 100%);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Language Toggle */
+        .language-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text);
+            margin-right: 1rem;
+        }
+
+        .language-toggle button {
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+
+        .language-toggle button.active {
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        .language-toggle button:hover {
+            opacity: 0.8;
+        }
+
+        .nav-link .language-toggle {
+            color: inherit;
+            margin-right: 0;
+        }
+
+        .nav-link.language-toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--color-white);
+            border-right: 1px solid var(--color-border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            width: 280px;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            text-decoration: none;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--color-accent);
+            border-radius: 50%;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--color-text-light);
+            margin-bottom: 0.75rem;
+            padding-left: 0.75rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.875rem 0.75rem;
+            color: var(--color-text);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            background: var(--color-secondary);
+            color: var(--color-primary);
+        }
+
+        .nav-link.active {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .nav-link svg {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+        }
+
+        .nav-link.active svg {
+            opacity: 1;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.875rem;
+            border-radius: 8px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .user-card:hover {
+            background: var(--color-secondary);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--color-primary);
+        }
+
+        .user-email {
+            font-size: 0.8125rem;
+            color: var(--color-text-light);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem 3rem;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--color-accent);
+            color: var(--color-white);
+        }
+
+        .btn-primary:hover {
+            background: var(--color-accent-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background: var(--color-white);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-secondary);
+            border-color: var(--color-text-light);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--color-white);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-label-card {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.accent {
+            background: rgba(196, 167, 125, 0.15);
+            color: var(--color-accent);
+        }
+
+        .stat-icon.success {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--color-success);
+        }
+
+        .stat-icon.warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--color-warning);
+        }
+
+        .stat-icon.primary {
+            background: rgba(26, 26, 26, 0.08);
+            color: var(--color-primary);
+        }
+
+        .stat-value-card {
+            font-family: var(--font-heading);
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 0.375rem;
+        }
+
+        .stat-change {
+            font-size: 0.8125rem;
+            color: var(--color-text-light);
+        }
+
+        .stat-change.positive {
+            color: var(--color-success);
+            font-weight: 500;
+        }
+
+        /* Panels Grid */
+        .panels-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .panel {
+            background: var(--color-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .panel-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        .panel-action {
+            font-size: 0.875rem;
+            color: var(--color-accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .panel-action:hover {
+            color: var(--color-accent-dark);
+        }
+
+        .panel-content {
+            padding: 1.5rem;
+        }
+
+        /* Bookings */
+        .bookings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .booking-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: var(--color-secondary);
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .booking-item:hover {
+            background: #ebebe6;
+            transform: translateX(4px);
+        }
+
+        .booking-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .booking-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--color-accent);
+        }
+
+        .booking-details {
+            flex: 1;
+        }
+
+        .booking-route {
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .booking-meta {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+        }
+
+        .booking-status {
+            padding: 0.375rem 0.875rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .booking-status.confirmed {
+            background: rgba(34, 197, 94, 0.12);
+            color: var(--color-success);
+        }
+
+        .booking-status.pending {
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--color-warning);
+        }
+
+        .booking-status.completed {
+            background: rgba(26, 26, 26, 0.08);
+            color: var(--color-text-light);
+        }
+
+        /* Account Panel */
+        .account-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .account-field {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--color-secondary);
+            border-radius: 10px;
+        }
+
+        .account-field-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--color-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .account-field-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--color-accent);
+        }
+
+        .account-field-content {
+            flex: 1;
+        }
+
+        .account-field-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .account-field-value {
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        .account-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .account-actions .btn {
+            flex: 1;
+            justify-content: center;
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: var(--color-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-state-icon svg {
+            width: 36px;
+            height: 36px;
+            color: var(--color-text-light);
+        }
+
+        .empty-state-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-text {
+            font-size: 0.9375rem;
+            color: var(--color-text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Mobile Responsive */
+        .mobile-header {
+            display: none;
+            padding: 1rem;
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-border);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+            color: var(--color-primary);
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .panels-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .booking-item {
+                flex-wrap: wrap;
+            }
+
+            .booking-status {
+                width: 100%;
+                text-align: center;
+                margin-top: 0.5rem;
+            }
+        }
+
+        /* Overlay for mobile menu */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        @media (min-width: 1025px) {
+            .overlay {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="index.html" class="sidebar-logo">Traking</a>
+        <div style="width: 40px;"></div>
+    </header>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="page-header">
+                <h1 class="page-title" data-en="Welcome back, John" data-pt="Bem-vindo, John">Welcome back, John</h1>
+
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label-card" data-en="Total Trips" data-pt="Viagens Totais">Total Trips</span>
+                        <div class="stat-icon accent">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-value-card">12</div>
+                    <div class="stat-change positive" data-en="+2 this month" data-pt="+2 este mês">+2 this month</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label-card" data-en="Active Bookings" data-pt="Reservas Ativas">Active Bookings</span>
+                        <div class="stat-icon warning">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-value-card">2</div>
+                    <div class="stat-change" data-en="Upcoming trips" data-pt="Viagens futuras">Upcoming trips</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label-card" data-en="Bags Transported" data-pt="Malas Transportadas">Bags Transported</span>
+                        <div class="stat-icon success">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 01-8 0"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-value-card">24</div>
+                    <div class="stat-change positive" data-en="All delivered safely" data-pt="Todas entregues em segurança">All delivered safely</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label-card" data-en="Total Distance" data-pt="Distância Total">Total Distance</span>
+                        <div class="stat-icon primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-value-card">156 km</div>
+                    <div class="stat-change" data-en="On the Fishermen's Trail" data-pt="No Trilho dos Pescadores">On the Fishermen's Trail</div>
+                </div>
+            </div>
+
+            <!-- Panels -->
+            <div class="panels-grid">
+                <!-- My Bookings Panel -->
+                <div class="panel" id="bookings">
+                    <div class="panel-header">
+                        <h2 class="panel-title" data-en="My Bookings" data-pt="As Minhas Reservas">My Bookings</h2>
+                        <a href="bookings.html" class="panel-action" data-en="View All" data-pt="Ver Todas">View All</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="bookings-list">
+                            <div class="booking-item">
+                                <div class="booking-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
+                                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                                        <path d="M16 10a4 4 0 01-8 0"></path>
+                                    </svg>
+                                </div>
+                                <div class="booking-details">
+                                    <div class="booking-route">Vila Nova de Milfontes → Almograve</div>
+                                    <div class="booking-meta" data-en="March 15, 2025 • 2 bags" data-pt="15 de Março de 2025 • 2 malas">March 15, 2025 • 2 bags</div>
+                                </div>
+                                <span class="booking-status confirmed" data-en="Confirmed" data-pt="Confirmada">Confirmed</span>
+                            </div>
+
+                            <div class="booking-item">
+                                <div class="booking-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
+                                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                                        <path d="M16 10a4 4 0 01-8 0"></path>
+                                    </svg>
+                                </div>
+                                <div class="booking-details">
+                                    <div class="booking-route">Almograve → Zambujeira do Mar</div>
+                                    <div class="booking-meta" data-en="March 16, 2025 • 2 bags" data-pt="16 de Março de 2025 • 2 malas">March 16, 2025 • 2 bags</div>
+                                </div>
+                                <span class="booking-status pending" data-en="Pending" data-pt="Pendente">Pending</span>
+                            </div>
+
+                            <div class="booking-item">
+                                <div class="booking-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
+                                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                                        <path d="M16 10a4 4 0 01-8 0"></path>
+                                    </svg>
+                                </div>
+                                <div class="booking-details">
+                                    <div class="booking-route">São Torpes → Vila Nova de Milfontes</div>
+                                    <div class="booking-meta" data-en="February 28, 2025 • 1 bag" data-pt="28 de Fevereiro de 2025 • 1 mala">February 28, 2025 • 1 bag</div>
+                                </div>
+                                <span class="booking-status completed" data-en="Completed" data-pt="Concluída">Completed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Account Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title" data-en="My Account" data-pt="A Minha Conta">My Account</h2>
+                        <a href="#" class="panel-action" data-en="Edit" data-pt="Editar">Edit</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="account-info">
+                            <div class="account-field">
+                                <div class="account-field-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="account-field-content">
+                                    <div class="account-field-label" data-en="Full Name" data-pt="Nome Completo">Full Name</div>
+                                    <div class="account-field-value">John Doe</div>
+                                </div>
+                            </div>
+
+                            <div class="account-field">
+                                <div class="account-field-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="account-field-content">
+                                    <div class="account-field-label">Email</div>
+                                    <div class="account-field-value">john@example.com</div>
+                                </div>
+                            </div>
+
+                            <div class="account-field">
+                                <div class="account-field-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path>
+                                    </svg>
+                                </div>
+                                <div class="account-field-content">
+                                    <div class="account-field-label" data-en="Phone" data-pt="Telefone">Phone</div>
+                                    <div class="account-field-value">+351 900 000 000</div>
+                                </div>
+                            </div>
+
+                            <div class="account-field">
+                                <div class="account-field-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                </div>
+                                <div class="account-field-content">
+                                    <div class="account-field-label" data-en="Address" data-pt="Morada">Address</div>
+                                    <div class="account-field-value">Lisbon, Portugal</div>
+                                </div>
+                            </div>
+
+                            <div class="account-actions">
+                                <a href="#" class="btn btn-secondary" data-en="Change Password" data-pt="Alterar Palavra-passe">Change Password</a>
+                                <a href="index.html" class="btn btn-secondary" style="color: #dc2626;" data-en="Logout" data-pt="Sair">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/components.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard('dashboard');
+        });
+    </script>
+</body>
+</html>

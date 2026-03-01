@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Luggage - Traking Transfers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* Track Page Specific Styles */
+        .tracking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .tracking-card {
+            background: var(--color-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .tracking-header {
+            padding: 1.5rem;
+            background: var(--color-secondary);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .tracking-route {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .tracking-route svg {
+            width: 24px;
+            height: 24px;
+            color: var(--color-accent);
+        }
+
+        .tracking-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.9375rem;
+            color: var(--color-text-light);
+        }
+
+        .tracking-body {
+            padding: 1.5rem;
+        }
+
+        /* Timeline specific styles */
+        .timeline-container {
+            margin-top: 1rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 11px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: var(--color-border);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2rem;
+        }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -2.5rem;
+            top: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--color-border);
+            border: 4px solid var(--color-white);
+            box-shadow: 0 0 0 2px var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .timeline-item.completed .timeline-dot {
+            background: var(--color-success);
+            box-shadow: 0 0 0 2px var(--color-success);
+        }
+
+        .timeline-item.active .timeline-dot {
+            background: var(--color-accent);
+            box-shadow: 0 0 0 2px var(--color-accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 2px var(--color-accent), 0 0 0 4px rgba(196, 167, 125, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 0 2px var(--color-accent), 0 0 0 8px rgba(196, 167, 125, 0);
+            }
+        }
+
+        .timeline-content {
+            background: var(--color-secondary);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .timeline-meta {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-description {
+            font-size: 0.9375rem;
+            color: var(--color-text);
+            margin-top: 0.5rem;
+        }
+
+        /* Map placeholder */
+        .map-container {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #e8e6e1 0%, #d5d3ce 100%);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(196, 167, 125, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(196, 167, 125, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .map-placeholder {
+            text-align: center;
+            z-index: 1;
+        }
+
+        .map-placeholder svg {
+            width: 48px;
+            height: 48px;
+            color: var(--color-text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .map-placeholder p {
+            font-size: 0.9375rem;
+            color: var(--color-text-light);
+        }
+
+        /* Driver info */
+        .driver-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--color-secondary);
+            border-radius: var(--radius-sm);
+            margin-top: 1rem;
+        }
+
+        .driver-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--color-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-white);
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .driver-info {
+            flex: 1;
+        }
+
+        .driver-name {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .driver-role {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+        }
+
+        .driver-phone {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--color-white);
+            border-radius: var(--radius-xs);
+            text-decoration: none;
+            color: var(--color-accent);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .driver-phone:hover {
+            background: var(--color-accent);
+            color: var(--color-white);
+        }
+
+        /* Notification preferences */
+        .notification-prefs {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .prefs-title {
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .toggle-group:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-size: 0.9375rem;
+            color: var(--color-text);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: var(--color-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle-switch.active {
+            background: var(--color-accent);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: var(--color-white);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        /* Delivery confirmation */
+        .delivery-section {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px dashed var(--color-success);
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+
+        .delivery-title {
+            font-family: var(--font-heading);
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--color-success);
+            margin-bottom: 0.5rem;
+        }
+
+        .delivery-text {
+            font-size: 0.9375rem;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .tracking-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .driver-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .driver-phone {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header"></header>
+
+    <!-- Overlay for mobile menu -->
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="page-header">
+                <h1 class="page-title" data-en="Track Luggage" data-pt="Rastrear Bagagem">Track Luggage</h1>
+            </div>
+
+            <!-- Tracking List -->
+            <div class="tracking-list" id="trackingList">
+                <!-- Tracking cards will be rendered here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="js/components.js"></script>
+    <script>
+        // Mock tracking data
+        const mockTracking = [
+            {
+                bookingId: 'BK-2025-001',
+                route: { from: 'Vila Nova de Milfontes', to: 'Almograve' },
+                date: '2025-03-15',
+                bags: 2,
+                status: 'in_transit',
+                currentLocation: 'Near Almograve',
+                estimatedDelivery: '15:30',
+                stages: [
+                    { name: 'Collected from Hotel Milfontes', completed: true, timestamp: '2025-03-15T08:30:00', description: 'Driver picked up 2 bags from reception' },
+                    { name: 'In Transit', completed: true, timestamp: '2025-03-15T09:00:00', description: 'Currently traveling along the coastline' },
+                    { name: 'Near Destination', completed: false, timestamp: null, description: 'Approaching Almograve area' },
+                    { name: 'Delivered', completed: false, timestamp: null, description: 'Waiting for confirmation' }
+                ],
+                driver: {
+                    name: 'António Silva',
+                    phone: '+351 912 345 678'
+                }
+            },
+            {
+                bookingId: 'BK-2025-002',
+                route: { from: 'Almograve', to: 'Zambujeira do Mar' },
+                date: '2025-03-16',
+                bags: 2,
+                status: 'pending',
+                currentLocation: null,
+                estimatedDelivery: '16:00',
+                stages: [
+                    { name: 'Collected from Casa do Pescador', completed: false, timestamp: null, description: 'Scheduled for 08:30 pickup' },
+                    { name: 'In Transit', completed: false, timestamp: null, description: 'Not started' },
+                    { name: 'Near Destination', completed: false, timestamp: null, description: 'Not started' },
+                    { name: 'Delivered', completed: false, timestamp: null, description: 'Not started' }
+                ],
+                driver: {
+                    name: 'Maria Santos',
+                    phone: '+351 923 456 789'
+                }
+            }
+        ];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard('track');
+            renderTracking(mockTracking);
+        });
+
+        // Render tracking cards
+        function renderTracking(trackings) {
+            const container = document.getElementById('trackingList');
+            
+            if (trackings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <h3 class="empty-state-title" data-en="No Active Transports" data-pt="Nenhum Transporte Ativo">No Active Transports</h3>
+                        <p class="empty-state-text" data-en="You don't have any luggage being transported right now." data-pt="Não tem nenhuma bagagem a ser transportada de momento.">You don't have any luggage being transported right now.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = trackings.map(tracking => `
+                <div class="tracking-card">
+                    <div class="tracking-header">
+                        <div class="tracking-route">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                            </svg>
+                            ${tracking.route.from} → ${tracking.route.to}
+                        </div>
+                        <div class="tracking-meta">
+                            <span><strong data-en="Date:" data-pt="Data:">Date:</strong> ${formatDate(tracking.date)}</span>
+                            <span><strong data-en="Bags:" data-pt="Malas:">Bags:</strong> ${tracking.bags}</span>
+                            <span><strong data-en="Est. Delivery:" data-pt="Entrega Est.:" data-en-placeholder="Est. Delivery:" data-pt-placeholder="Entrega Est.:">Est. Delivery:</strong> ${tracking.estimatedDelivery}</span>
+                        </div>
+                    </div>
+                    <div class="tracking-body">
+                        <div class="timeline-container">
+                            <div class="timeline">
+                                ${tracking.stages.map((stage, index) => `
+                                    <div class="timeline-item ${stage.completed ? 'completed' : ''} ${!stage.completed && index > 0 && tracking.stages[index - 1].completed ? 'active' : ''}">
+                                        <div class="timeline-dot"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-title" data-en="${stage.name}" data-pt="${getStageNamePT(stage.name)}">${stage.name}</div>
+                                            <div class="timeline-meta">
+                                                ${stage.timestamp ? formatDateTime(stage.timestamp) : (currentLang === 'pt' ? 'Pendente' : 'Pending')}
+                                            </div>
+                                            <div class="timeline-description" data-en="${stage.description}" data-pt="${getStageDescPT(stage.description)}">${stage.description}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Map Placeholder -->
+                        <div class="map-container">
+                            <div class="map-placeholder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <p data-en="Live GPS tracking will appear here" data-pt="Rastreamento GPS em tempo real aparecerá aqui">Live GPS tracking will appear here</p>
+                            </div>
+                        </div>
+
+                        <!-- Driver Info -->
+                        <div class="driver-card">
+                            <div class="driver-avatar">${getInitials(tracking.driver.name)}</div>
+                            <div class="driver-info">
+                                <div class="driver-name">${tracking.driver.name}</div>
+                                <div class="driver-role" data-en="Your Driver" data-pt="O Seu Motorista">Your Driver</div>
+                            </div>
+                            <a href="tel:${tracking.driver.phone}" class="driver-phone">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path>
+                                </svg>
+                                ${tracking.driver.phone}
+                            </a>
+                        </div>
+
+                        <!-- Notification Preferences -->
+                        <div class="notification-prefs">
+                            <div class="prefs-title" data-en="Notification Preferences" data-pt="Preferências de Notificação">Notification Preferences</div>
+                            <div class="toggle-group">
+                                <span class="toggle-label" data-en="SMS Updates" data-pt="Atualizações SMS">SMS Updates</span>
+                                <div class="toggle-switch active" onclick="toggleNotification(this)"></div>
+                            </div>
+                            <div class="toggle-group">
+                                <span class="toggle-label" data-en="Email Updates" data-pt="Atualizações Email">Email Updates</span>
+                                <div class="toggle-switch active" onclick="toggleNotification(this)"></div>
+                            </div>
+                            <div class="toggle-group">
+                                <span class="toggle-label" data-en="Push Notifications" data-pt="Notificações Push">Push Notifications</span>
+                                <div class="toggle-switch" onclick="toggleNotification(this)"></div>
+                            </div>
+                        </div>
+
+                        ${allStagesCompleted(tracking.stages) ? `
+                            <div class="delivery-section">
+                                <div class="delivery-title" data-en="Delivery Complete!" data-pt="Entrega Concluída!">Delivery Complete!</div>
+                                <div class="delivery-text" data-en="Your luggage has been successfully delivered." data-pt="A sua bagagem foi entregue com sucesso.">Your luggage has been successfully delivered.</div>
+                                <button class="btn btn-primary" onclick="confirmDelivery('${tracking.bookingId}')" data-en="Confirm Receipt" data-pt="Confirmar Receção">Confirm Receipt</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            // Re-apply language
+            applyLanguage(currentLang);
+        }
+
+        // Helper functions
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase();
+        }
+
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString(currentLang === 'pt' ? 'pt-PT' : 'en-US', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function allStagesCompleted(stages) {
+            return stages.every(stage => stage.completed);
+        }
+
+        function toggleNotification(element) {
+            element.classList.toggle('active');
+            const isActive = element.classList.contains('active');
+            const label = element.previousElementSibling.textContent;
+            showNotification(
+                `${label} ${isActive ? (currentLang === 'pt' ? 'ativado' : 'enabled') : (currentLang === 'pt' ? 'desativado' : 'disabled')}`,
+                'success'
+            );
+        }
+
+        function confirmDelivery(bookingId) {
+            showNotification(
+                currentLang === 'pt' ? `Entrega ${bookingId} confirmada!` : `Delivery ${bookingId} confirmed!`,
+                'success'
+            );
+        }
+
+        // Portuguese translations for stages
+        function getStageNamePT(name) {
+            const translations = {
+                'Collected from Hotel Milfontes': 'Recolhido no Hotel Milfontes',
+                'Collected from Casa do Pescador': 'Recolhido na Casa do Pescador',
+                'In Transit': 'Em Trânsito',
+                'Near Destination': 'Perto do Destino',
+                'Delivered': 'Entregue'
+            };
+            return translations[name] || name;
+        }
+
+        function getStageDescPT(desc) {
+            const translations = {
+                'Driver picked up 2 bags from reception': 'Motorista recolheu 2 malas na receção',
+                'Currently traveling along the coastline': 'A viajar atualmente ao longo da costa',
+                'Approaching Almograve area': 'A aproximar-se da área de Almograve',
+                'Waiting for confirmation': 'À espera de confirmação',
+                'Scheduled for 08:30 pickup': 'Agendado para recolha às 08:30',
+                'Not started': 'Não iniciado'
+            };
+            return translations[desc] || desc;
+        }
+    </script>
+</body>
+</html>

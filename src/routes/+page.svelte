@@ -1,242 +1,59 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
+	import Nav from '$lib/components/landing/Nav.svelte';
+	import Hero from '$lib/components/landing/Hero.svelte';
+	import BookingSection from '$lib/components/landing/BookingSection.svelte';
+	import Features from '$lib/components/landing/Features.svelte';
+	import Trail from '$lib/components/landing/Trail.svelte';
+	import Gallery from '$lib/components/landing/Gallery.svelte';
+	import Footer from '$lib/components/landing/Footer.svelte';
+	import { translations, type Language } from '$lib/translations';
 	import { language } from '$lib/stores/language';
-	import { translations } from '$lib/translations';
-	import BookingForm from '$lib/components/BookingForm.svelte';
 
 	let { data } = $props();
+	let scrolled = $state(false);
 
-	const t = $derived(translations[$language]);
+	const t = $derived((key: string) => {
+		const currentLang = $language as Language;
+		return translations[currentLang]?.[key as keyof typeof translations.en] || key;
+	});
 
-	const scrollToBooking = () => {
-		const bookingSection = document.getElementById('booking-section');
-		if (bookingSection) {
-			bookingSection.scrollIntoView({ behavior: 'smooth' });
+	onMount(() => {
+		if (browser) {
+			// Initialize language store
+			language.init();
+
+			// Scroll handler for nav
+			const handleScroll = () => {
+				scrolled = window.scrollY > 50;
+			};
+
+			window.addEventListener('scroll', handleScroll);
+			handleScroll(); // Check initial state
+
+			return () => {
+				window.removeEventListener('scroll', handleScroll);
+			};
 		}
-	};
+	});
 </script>
 
-<div class="auth-flag" aria-hidden="true">{data?.user ? 'LOGGED IN' : 'LOGGED OUT'}</div>
+<svelte:head>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+		rel="stylesheet"
+	/>
+</svelte:head>
 
-<section class="hero">
-	<div class="hero-image">
-		<img src="/hero.png" alt="Fisherman's Trail - TrakingTransfers" />
-	</div>
-	<button class="book-button" onclick={scrollToBooking}>{t.book_now}</button>
-</section>
-
-<section class="about-us">
-	<div class="about-container">
-		<h2 class="about-title">{t.about_us_title}</h2>
-		<h3 class="about-subtitle">{t.about_us_subtitle}</h3>
-		<div class="about-content">
-			<p class="about-text">{t.about_us_text}</p>
-			<p class="about-text">{t.about_us_text_2}</p>
-		</div>
-	</div>
-</section>
-
-<BookingForm user={data?.user ?? null} />
-
-<section class="gallery">
-	<div class="gallery-container">
-		<h2 class="gallery-title">{t.gallery_title}</h2>
-		<div class="gallery-grid">
-			<div class="gallery-item">
-				<img src="/g1.png" alt="Fisherman's Trail" />
-			</div>
-			<div class="gallery-item">
-				<img src="/g2.jpg" alt="Fisherman's Trail" />
-			</div>
-			<div class="gallery-item">
-				<img src="/g3.png" alt="Fisherman's Trail" />
-			</div>
-			<div class="gallery-item">
-				<img src="/g4.jpg" alt="Fisherman's Trail" />
-			</div>
-		</div>
-	</div>
-</section>
-
-<style>
-	.auth-flag {
-		position: fixed;
-		top: 0.5rem;
-		left: 50%;
-		transform: translateX(-50%);
-		z-index: 100;
-		padding: 0.5rem 1rem;
-		background: #333;
-		color: white;
-		font-size: 0.9rem;
-		font-weight: 700;
-		border-radius: 6px;
-		pointer-events: none;
-	}
-
-	.hero {
-		position: relative;
-		width: 100%;
-		height: 100vh;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		overflow: hidden;
-	}
-
-	.hero-image {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		z-index: -1;
-		overflow: hidden;
-	}
-
-	.hero-image img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		object-position: center center;
-	}
-
-	.book-button {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		z-index: 10;
-		padding: 0.75rem 2rem;
-		font-size: 1rem;
-		background: #007bff;
-		color: white;
-		border: none;
-		border-radius: 5px;
-		cursor: pointer;
-		font-weight: 600;
-		transition: all 0.3s;
-	}
-
-	.book-button:hover {
-		background: #0056b3;
-	}
-
-	/* About Us Section */
-	.about-us {
-		padding: 5rem 2rem;
-		background: #ffffff;
-	}
-
-	.about-container {
-		max-width: 900px;
-		margin: 0 auto;
-		text-align: center;
-	}
-
-	.about-title {
-		font-size: 2.5rem;
-		font-weight: 700;
-		color: #333;
-		margin-bottom: 1rem;
-	}
-
-	.about-subtitle {
-		font-size: 1.5rem;
-		font-weight: 600;
-		color: #007bff;
-		margin-bottom: 2rem;
-	}
-
-	.about-content {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-		text-align: left;
-	}
-
-	.about-text {
-		font-size: 1.1rem;
-		line-height: 1.8;
-		color: #555;
-		margin: 0;
-	}
-
-	@media (max-width: 768px) {
-		.about-us {
-			padding: 3rem 1.5rem;
-		}
-
-		.about-title {
-			font-size: 2rem;
-		}
-
-		.about-subtitle {
-			font-size: 1.25rem;
-		}
-
-		.about-text {
-			font-size: 1rem;
-		}
-	}
-
-	/* Gallery Section */
-	.gallery {
-		padding: 5rem 2rem;
-		background: #f8f9fa;
-	}
-
-	.gallery-container {
-		max-width: 1200px;
-		margin: 0 auto;
-	}
-
-	.gallery-title {
-		font-size: 2.5rem;
-		font-weight: 700;
-		color: #333;
-		text-align: center;
-		margin-bottom: 3rem;
-	}
-
-	.gallery-grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 1.5rem;
-	}
-
-	.gallery-item {
-		position: relative;
-		overflow: hidden;
-		border-radius: 8px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-		aspect-ratio: 4 / 3;
-		background: #e0e0e0;
-	}
-
-	.gallery-item img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		transition: transform 0.3s ease;
-	}
-
-	.gallery-item:hover img {
-		transform: scale(1.05);
-	}
-
-	@media (max-width: 768px) {
-		.gallery {
-			padding: 3rem 1rem;
-		}
-
-		.gallery-title {
-			font-size: 2rem;
-			margin-bottom: 2rem;
-		}
-
-		.gallery-grid {
-			grid-template-columns: 1fr;
-			gap: 1rem;
-		}
-	}
-</style>
+<div class="new-landing">
+	<Nav {scrolled} user={data.user} />
+	<Hero {t} />
+	<BookingSection user={data.user} />
+	<Features />
+	<Trail />
+	<Gallery />
+	<Footer />
+</div>

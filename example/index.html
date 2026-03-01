@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traking Transfers - Luggage Transport Rota Vicentina</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1a1a1a;
+            --color-secondary: #f5f5f0;
+            --color-accent: #c4a77d;
+            --color-accent-dark: #a08960;
+            --color-white: #ffffff;
+            --color-text: #333333;
+            --color-text-light: #666666;
+            --color-border: #e0e0e0;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Inter', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--color-text);
+            background-color: var(--color-white);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1.5rem 2rem;
+            transition: var(--transition);
+        }
+
+        .nav.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--color-white);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            transition: var(--transition);
+        }
+
+        .nav.scrolled .logo {
+            color: var(--color-primary);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .language-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-white);
+            transition: var(--transition);
+        }
+
+        .nav.scrolled .language-toggle {
+            color: var(--color-primary);
+        }
+
+        .language-toggle button {
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+
+        .language-toggle button.active {
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        .language-toggle button:hover {
+            opacity: 0.8;
+        }
+
+        .login-btn {
+            padding: 0.625rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--color-white);
+            color: var(--color-white);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border-radius: 2px;
+        }
+
+        .nav.scrolled .login-btn {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .login-btn:hover {
+            background: var(--color-white);
+            color: var(--color-primary);
+        }
+
+        .nav.scrolled .login-btn:hover {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            min-height: 700px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.4) 0%, rgba(26, 26, 26, 0.6) 100%),
+                        url('pics/tobias-kaiser-rYROyQB9QGA-unsplash.jpg') center/cover;
+            z-index: -1;
+        }
+
+        .hero-content {
+            text-align: center;
+            color: var(--color-white);
+            max-width: 900px;
+            padding: 0 2rem;
+            z-index: 1;
+        }
+
+        .hero-subtitle {
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .hero-title {
+            font-family: var(--font-heading);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 400;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-description {
+            font-size: 1.125rem;
+            font-weight: 300;
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            opacity: 0.9;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2.5rem;
+            background: var(--color-accent);
+            color: var(--color-white);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            letter-spacing: 0.05em;
+            transition: var(--transition);
+            border-radius: 2px;
+        }
+
+        .hero-cta:hover {
+            background: var(--color-accent-dark);
+            transform: translateY(-2px);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--color-white);
+            opacity: 0.6;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* Booking Section */
+        .booking-section {
+            padding: 6rem 2rem;
+            background: var(--color-secondary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 400;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--color-text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .booking-form {
+            background: var(--color-white);
+            padding: 3rem;
+            border-radius: 4px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 1rem;
+            border: 1px solid var(--color-border);
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--color-primary);
+            background: var(--color-white);
+            transition: var(--transition);
+            border-radius: 2px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--color-accent);
+        }
+
+        .form-group input::placeholder {
+            color: #999;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.25rem;
+            background: var(--color-primary);
+            color: var(--color-white);
+            border: none;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: var(--transition);
+            border-radius: 2px;
+            margin-top: 1rem;
+        }
+
+        .submit-btn:hover {
+            background: var(--color-accent);
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 6rem 2rem;
+            background: var(--color-white);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-secondary);
+            border-radius: 50%;
+        }
+
+        .feature-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--color-accent);
+        }
+
+        .feature-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .feature-description {
+            font-size: 1rem;
+            color: var(--color-text-light);
+            line-height: 1.7;
+        }
+
+        /* Trail Section */
+        .trail-section {
+            padding: 6rem 2rem;
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .trail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .trail-content {
+            padding-right: 2rem;
+        }
+
+        .trail-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: 1rem;
+        }
+
+        .trail-title {
+            font-family: var(--font-heading);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .trail-description {
+            font-size: 1.125rem;
+            font-weight: 300;
+            line-height: 1.8;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .trail-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            font-weight: 500;
+            color: var(--color-accent);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .trail-image {
+            position: relative;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .trail-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Gallery Section */
+        .gallery-section {
+            padding: 6rem 2rem;
+            background: var(--color-secondary);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 4rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 3/4;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .gallery-item:nth-child(2),
+        .gallery-item:nth-child(3) {
+            aspect-ratio: 1/1;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: var(--color-white);
+            transform: translateY(100%);
+            transition: transform 0.4s ease;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            transform: translateY(0);
+        }
+
+        .gallery-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--color-primary);
+            color: var(--color-white);
+            padding: 4rem 2rem 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-brand {
+            max-width: 300px;
+        }
+
+        .footer-logo {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--color-white);
+        }
+
+        .footer-description {
+            font-size: 0.9375rem;
+            line-height: 1.8;
+            opacity: 0.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            color: var(--color-accent);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: var(--color-white);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+            color: var(--color-accent);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-copyright {
+            font-size: 0.875rem;
+            opacity: 0.6;
+        }
+
+        .livro-reclamacoes {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            text-decoration: none;
+            color: var(--color-white);
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+
+        .livro-reclamacoes:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .livro-reclamacoes img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--color-white);
+        }
+
+        .nav.scrolled .mobile-menu-btn svg {
+            stroke: var(--color-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .trail-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .trail-content {
+                padding-right: 0;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                padding: 1rem;
+            }
+
+            .nav-right {
+                gap: 1rem;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .language-toggle {
+                font-size: 0.75rem;
+            }
+
+            .login-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .trail-stats {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .gallery-item {
+                aspect-ratio: 16/9 !important;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .booking-form {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Login Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--color-white);
+            width: 100%;
+            max-width: 440px;
+            margin: 1rem;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 2rem 2rem 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--color-secondary);
+        }
+
+        .modal-close svg {
+            width: 20px;
+            height: 20px;
+            color: var(--color-text-light);
+        }
+
+        .modal-logo {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-logo::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 3px;
+            background: var(--color-accent);
+            margin: 0.75rem auto 0;
+            border-radius: 2px;
+        }
+
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-subtitle {
+            font-size: 0.9375rem;
+            color: var(--color-text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-body {
+            padding: 0 2rem 2rem;
+        }
+
+        .form-group-modal {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group-modal label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper svg {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: var(--color-text-light);
+            pointer-events: none;
+        }
+
+        .form-group-modal input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            border: 1.5px solid var(--color-border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            color: var(--color-primary);
+            background: var(--color-white);
+            transition: var(--transition);
+        }
+
+        .form-group-modal input:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 4px rgba(196, 167, 125, 0.1);
+        }
+
+        .form-group-modal input::placeholder {
+            color: #999;
+        }
+
+        .form-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--color-accent);
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper span {
+            font-size: 0.875rem;
+            color: var(--color-text);
+        }
+
+        .forgot-password {
+            font-size: 0.875rem;
+            color: var(--color-accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .forgot-password:hover {
+            color: var(--color-accent-dark);
+        }
+
+        .btn-modal {
+            width: 100%;
+            padding: 1rem;
+            background: var(--color-accent);
+            color: var(--color-white);
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-modal:hover {
+            background: var(--color-accent-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(196, 167, 125, 0.4);
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            background: var(--color-secondary);
+            text-align: center;
+        }
+
+        .modal-footer-text {
+            font-size: 0.9375rem;
+            color: var(--color-text);
+        }
+
+        .modal-footer-link {
+            color: var(--color-accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .modal-footer-link:hover {
+            color: var(--color-accent-dark);
+        }
+
+        @media (max-width: 480px) {
+            .modal {
+                margin: 0;
+                border-radius: 0;
+                max-width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .modal-body {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="nav-container">
+            <a href="#" class="logo">Traking</a>
+            <div class="nav-right">
+                <div class="language-toggle">
+                    <button class="active" data-lang="en">EN</button>
+                    <span>|</span>
+                    <button data-lang="pt">PT</button>
+                </div>
+                <button class="login-btn" data-en="Login" data-pt="Entrar">Login</button>
+                <button class="mobile-menu-btn" aria-label="Menu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <p class="hero-subtitle" data-en="Fishermen's Trail" data-pt="Trilho dos Pescadores">Fishermen's Trail</p>
+            <h1 class="hero-title" data-en="Walk Light, Travel Free" data-pt="Caminhe Leve, Viaje Livre">Walk Light, Travel Free</h1>
+            <p class="hero-description" data-en="Professional luggage transport service along the Rota Vicentina. We carry your bags so you can focus on the breathtaking coastal views." data-pt="Serviço profissional de transporte de bagagem ao longo da Rota Vicentina. Levamos as suas malas para que possa focar nas vistas costeiras deslumbrantes.">Professional luggage transport service along the Rota Vicentina. We carry your bags so you can focus on the breathtaking coastal views.</p>
+            <a href="#book" class="hero-cta" data-en="Book Transport" data-pt="Reservar Transporte">Book Transport</a>
+        </div>
+        <div class="scroll-indicator">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Booking Section -->
+    <section class="booking-section" id="book">
+        <div class="container">
+            <div class="section-header fade-in">
+                <p class="section-label" data-en="Book Your Transfer" data-pt="Reserve o Seu Transfer">Book Your Transfer</p>
+                <h2 class="section-title" data-en="Simple & Reliable" data-pt="Simples e Confiável">Simple & Reliable</h2>
+                <p class="section-subtitle" data-en="Book your luggage transport in minutes. We collect your bags in the morning and deliver them to your next accommodation." data-pt="Reserve o transporte da sua bagagem em minutos. Recolhemos as suas malas de manhã e entregamos na sua próxima acomodação.">Book your luggage transport in minutes. We collect your bags in the morning and deliver them to your next accommodation.</p>
+            </div>
+            
+            <form class="booking-form fade-in">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label data-en="From" data-pt="De">From</label>
+                        <select required>
+                            <option value="" data-en="Select starting point" data-pt="Selecione ponto de partida">Select starting point</option>
+                            <option>São Torpes</option>
+                            <option>Vila Nova de Milfontes</option>
+                            <option>Almograve</option>
+                            <option>Zambujeira do Mar</option>
+                            <option>Odeceixe</option>
+                            <option>Aljezur</option>
+                            <option>Arrifana</option>
+                            <option>Carrapateira</option>
+                            <option>Vila do Bispo</option>
+                            <option>Sagres</option>
+                            <option>Lagos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="To" data-pt="Para">To</label>
+                        <select required>
+                            <option value="" data-en="Select destination" data-pt="Selecione destino">Select destination</option>
+                            <option>São Torpes</option>
+                            <option>Vila Nova de Milfontes</option>
+                            <option>Almograve</option>
+                            <option>Zambujeira do Mar</option>
+                            <option>Odeceixe</option>
+                            <option>Aljezur</option>
+                            <option>Arrifana</option>
+                            <option>Carrapateira</option>
+                            <option>Vila do Bispo</option>
+                            <option>Sagres</option>
+                            <option>Lagos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Date" data-pt="Data">Date</label>
+                        <input type="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Number of Bags" data-pt="Número de Malas">Number of Bags</label>
+                        <select required>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5+</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-en="Full Name" data-pt="Nome Completo">Full Name</label>
+                        <input type="text" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Email" data-pt="Email">Email</label>
+                        <input type="email" placeholder="john@example.com" required>
+                    </div>
+                </div>
+                
+                <div class="form-row" style="margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label data-en="Phone" data-pt="Telefone">Phone</label>
+                        <input type="tel" placeholder="+351 900 000 000">
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Accommodation Name" data-pt="Nome da Acomodação">Accommodation Name</label>
+                        <input type="text" placeholder="Hotel name or address">
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" data-en="Request Quote" data-pt="Solicitar Orçamento">Request Quote</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header fade-in">
+                <p class="section-label" data-en="Why Choose Us" data-pt="Porquê Nós">Why Choose Us</p>
+                <h2 class="section-title" data-en="Your Journey, Our Care" data-pt="A Sua Jornada, O Nosso Cuidado">Your Journey, Our Care</h2>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-en="Fully Insured" data-pt="Totalmente Seguro">Fully Insured</h3>
+                    <p class="feature-description" data-en="Your luggage is fully insured during transport. Travel with complete peace of mind." data-pt="A sua bagagem está totalmente segurada durante o transporte. Viaje com total tranquilidade.">Your luggage is fully insured during transport. Travel with complete peace of mind.</p>
+                </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-en="On Time, Every Time" data-pt="Na Hora, Sempre">On Time, Every Time</h3>
+                    <p class="feature-description" data-en="We guarantee delivery before 4 PM to your next accommodation. Reliable service you can count on." data-pt="Garantimos entrega antes das 16h na sua próxima acomodação. Serviço confiável em quem pode contar.">We guarantee delivery before 4 PM to your next accommodation. Reliable service you can count on.</p>
+                </div>
+                
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </div>
+                    <h3 class="feature-title" data-en="Local Expertise" data-pt="Conhecimento Local">Local Expertise</h3>
+                    <p class="feature-description" data-en="Deep knowledge of the Rota Vicentina trail and all accommodations along the route." data-pt="Conhecimento profundo do trilho da Rota Vicentina e de todas as acomodações ao longo do percurso.">Deep knowledge of the Rota Vicentina trail and all accommodations along the route.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trail Section -->
+    <section class="trail-section">
+        <div class="container">
+            <div class="trail-grid">
+                <div class="trail-content fade-in">
+                    <p class="trail-label" data-en="The Trail" data-pt="O Trilho">The Trail</p>
+                    <h2 class="trail-title" data-en="Rota Vicentina Fishermen's Trail" data-pt="Trilho dos Pescadores da Rota Vicentina">Rota Vicentina Fishermen's Trail</h2>
+                    <p class="trail-description" data-en="One of the world's most beautiful coastal trails. 226.5 kilometers of stunning cliffs, wild beaches, and traditional fishing villages along Portugal's unspoiled southwest coast." data-pt="Um dos trilhos costeiros mais bonitos do mundo. 226,5 quilómetros de falésias deslumbrantes, praias selvagens e aldeias de pesca tradicionais ao longo da costa sudoeste de Portugal.">One of the world's most beautiful coastal trails. 226.5 kilometers of stunning cliffs, wild beaches, and traditional fishing villages along Portugal's unspoiled southwest coast.</p>
+                    
+                    <div class="trail-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">226.5</div>
+                            <div class="stat-label" data-en="Kilometers" data-pt="Quilómetros">Kilometers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">13</div>
+                            <div class="stat-label" data-en="Stages" data-pt="Etapas">Stages</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">100%</div>
+                            <div class="stat-label" data-en="Coastal" data-pt="Costeiro">Coastal</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="trail-image fade-in">
+                    <img src="pics/leon-rohrwild-7aq46hf4wJY-unsplash.jpg" alt="Rota Vicentina aerial beach view">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery-section">
+        <div class="container">
+            <div class="section-header fade-in">
+                <p class="section-label" data-en="Gallery" data-pt="Galeria">Gallery</p>
+                <h2 class="section-title" data-en="Along the Way" data-pt="Ao Longo do Caminho">Along the Way</h2>
+            </div>
+            
+            <div class="gallery-grid">
+                <div class="gallery-item fade-in">
+                    <img src="pics/joao-rodrigues-AKt789CU5Ic-unsplash.jpg" alt="Beach path with flowers">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">São Torpes</h3>
+                    </div>
+                </div>
+                <div class="gallery-item fade-in">
+                    <img src="pics/joao-rodrigues--ARsqDCL_-Y-unsplash.jpg" alt="Street scene">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Vila Nova de Milfontes</h3>
+                    </div>
+                </div>
+                <div class="gallery-item fade-in">
+                    <img src="pics/mario-rui-andre-wYneCiecBEo-unsplash.jpg" alt="Portuguese house">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Zambujeira do Mar</h3>
+                    </div>
+                </div>
+                <div class="gallery-item fade-in">
+                    <img src="pics/joao-rodrigues-32a1R1oqwNo-unsplash.jpg" alt="Aerial coastal road">
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title">Odeceixe</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">Traking</div>
+                    <p class="footer-description" data-en="Professional luggage transport service for walkers on the Rota Vicentina. Walk light, travel free." data-pt="Serviço profissional de transporte de bagagem para caminhantes na Rota Vicentina. Caminhe leve, viaje livre.">Professional luggage transport service for walkers on the Rota Vicentina. Walk light, travel free.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h4 class="footer-title" data-en="Services" data-pt="Serviços">Services</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" data-en="Luggage Transport" data-pt="Transporte de Bagagem">Luggage Transport</a></li>
+                        <li><a href="#" data-en="Group Bookings" data-pt="Reservas de Grupo">Group Bookings</a></li>
+                        <li><a href="#" data-en="Custom Transfers" data-pt="Transferes Personalizados">Custom Transfers</a></li>
+                        <li><a href="#" data-en="Trail Support" data-pt="Apoio no Trilho">Trail Support</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4 class="footer-title" data-en="Company" data-pt="Empresa">Company</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" data-en="About Us" data-pt="Sobre Nós">About Us</a></li>
+                        <li><a href="#" data-en="Contact" data-pt="Contacto">Contact</a></li>
+                        <li><a href="#" data-en="FAQ" data-pt="FAQ">FAQ</a></li>
+                        <li><a href="#" data-en="Terms & Conditions" data-pt="Termos e Condições">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4 class="footer-title" data-en="Contact" data-pt="Contacto">Contact</h4>
+                    <ul class="footer-links">
+                        <li>info@trakingtransfers.com</li>
+                        <li>+351 000 000 000</li>
+                        <li data-en="Southwest Portugal" data-pt="Sudoeste de Portugal">Southwest Portugal</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2025 Traking Transfers. All rights reserved.</p>
+                <a href="https://www.livroreclamacoes.pt" target="_blank" class="livro-reclamacoes">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span data-en="Livro de Reclamações" data-pt="Livro de Reclamações">Livro de Reclamações</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navigation scroll effect
+        const nav = document.getElementById('nav');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Language toggle
+        const langButtons = document.querySelectorAll('.language-toggle button');
+        let currentLang = 'en';
+
+        langButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                if (lang === currentLang) return;
+
+                // Update active state
+                langButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLang = lang;
+
+                // Update all translatable elements
+                document.querySelectorAll('[data-en][data-pt]').forEach(el => {
+                    if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+                        // Handle placeholders for inputs
+                        if (el.hasAttribute('placeholder')) {
+                            el.placeholder = el.getAttribute(`data-${lang}-placeholder`) || el.getAttribute(`data-${lang}`);
+                        }
+                    } else if (el.tagName === 'OPTION') {
+                        // Handle option text
+                        el.textContent = el.getAttribute(`data-${lang}`) || el.textContent;
+                    } else {
+                        el.textContent = el.getAttribute(`data-${lang}`);
+                    }
+                });
+            });
+        });
+
+        // Fade in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Form submission
+        document.querySelector('.booking-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert(currentLang === 'en' ? 'Thank you! We will send you a quote shortly.' : 'Obrigado! Enviaremos um orçamento em breve.');
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Login Modal
+        const loginBtn = document.querySelector('.login-btn');
+        const modalOverlay = document.getElementById('loginModal');
+        const modalClose = document.querySelector('.modal-close');
+        const loginForm = document.getElementById('loginForm');
+
+        function openModal() {
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        loginBtn.addEventListener('click', openModal);
+        modalClose.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            window.location.href = 'customer.html';
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+                closeModal();
+            }
+        });
+    </script>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <div class="modal-header">
+                <button class="modal-close" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="modal-logo">Traking</div>
+                <h2 class="modal-title">Welcome Back</h2>
+                <p class="modal-subtitle">Sign in to access your bookings</p>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group-modal">
+                        <label for="loginEmail">Email Address</label>
+                        <div class="input-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                            <input type="email" id="loginEmail" placeholder="john@example.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group-modal">
+                        <label for="loginPassword">Password</label>
+                        <div class="input-wrapper">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                            </svg>
+                            <input type="password" id="loginPassword" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="rememberMe">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn-modal">Sign In</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <p class="modal-footer-text">Don't have an account? <a href="#" class="modal-footer-link">Create one</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

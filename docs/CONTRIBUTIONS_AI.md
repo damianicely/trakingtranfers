@@ -17,8 +17,8 @@ This document gives declarative, factual descriptions of the app architecture an
 
 - **Public (no auth):** `/` (landing + booking form), `/login`, `/register`, `/booking-success`, `/reset-password/[token]`, and example routes under `/eg/*`. The home page does not require a session; guests can complete the booking form and pay.
 - **Protected:** `/dashboard` requires a valid session. `src/routes/dashboard/+page.server.ts` redirects unauthenticated users to `/login` and loads role-specific data. The dashboard page then renders one of: `CustomerDashboard`, `OwnerDashboard`, `DriverDashboard`, `AdminDashboard`, based on `user.role`.
-- **API:**  
-  - `POST /api/booking/check` — JSON API for booking checks (email, availability). Rate-limited per IP.  
+- **API:**
+  - `POST /api/booking/check` — JSON API for booking checks (email, availability). Rate-limited per IP.
   - `POST /api/webhook/stripe` — Stripe webhook; validates signature, then handles `checkout.session.completed` (update booking, find/create user, link booking to user, create password-setup token).
 
 ### Authentication and session
@@ -29,13 +29,13 @@ This document gives declarative, factual descriptions of the app architecture an
 
 ### Data model (high level)
 
-- **user** — id, username (login email), passwordHash, role, firstName, lastName. Canonical names live here; booking first/last names are deprecated for display (kept for transition).  
-- **session** — id, userId, expiresAt.  
-- **booking** — id, userId (nullable until after payment), status (pending | paid | cancelled), Stripe session id, customer and trip fields (firstName, lastName deprecated for display—prefer user names; email, phone, departureDate, departureStageId, destinationStageId, numBags, numTransfers, totalPrice), timestamps.  
-- **booking_segment** — one row per leg of a booking’s route: bookingId, segmentIndex, fromStageId, toStageId, travelDate; optional hotel links and notes.  
-- **hotel** — id, locationId (stage id), name, contactInfo.  
-- **driver_profile** / **owner_profile** — extend `user` with role-specific fields. `driver_profile.vehicle_type` is deprecated (no longer read or written); consider dropping the column in a follow-up migration.  
-- **password_reset_token** — for password setup/reset flows.  
+- **user** — id, username (login email), passwordHash, role, firstName, lastName. Canonical names live here; booking first/last names are deprecated for display (kept for transition).
+- **session** — id, userId, expiresAt.
+- **booking** — id, userId (nullable until after payment), status (pending | paid | cancelled), Stripe session id, customer and trip fields (firstName, lastName deprecated for display—prefer user names; email, phone, departureDate, departureStageId, destinationStageId, numBags, numTransfers, totalPrice), timestamps.
+- **booking_segment** — one row per leg of a booking’s route: bookingId, segmentIndex, fromStageId, toStageId, travelDate; optional hotel links and notes.
+- **hotel** — id, locationId (stage id), name, contactInfo.
+- **driver_profile** / **owner_profile** — extend `user` with role-specific fields. `driver_profile.vehicle_type` is deprecated (no longer read or written); consider dropping the column in a follow-up migration.
+- **password_reset_token** — for password setup/reset flows.
 - **driver_step_assignment** — id, date (YYYY-MM-DD), from_stage_id, to_stage_id, driver_id (FK user). Unique on (date, from_stage_id, to_stage_id). One driver per delivery step per calendar day.
 
 Booking and segment rows are created in the `createCheckout` action; the webhook only updates booking status and `userId`. Delivery steps are the 26 trail segments (13 North→South, 13 South→North) from `$lib/trail.ts`; `$lib/delivery-steps.ts` exposes `getAllDeliverySteps()` and `getStepLabel(from, to)`.
@@ -65,11 +65,11 @@ Booking and segment rows are created in the `createCheckout` action; the webhook
 
 ### Booking and payment flow (end-to-end)
 
-1. User fills the form on `/` (basic details + trip). Optional: email check on blur; availability check when clicking Pay Now.  
-2. User clicks Pay Now. Form validates, calls the check API again for email and availability, then POSTs to `/?/createCheckout` with `bookingPayload` and `amount`.  
-3. `createCheckout` (in `+page.server.ts`): runs server-side email and availability checks; creates a `booking` (status pending) and `booking_segment` rows; creates a Stripe Checkout Session with `bookingId` in metadata; returns the checkout URL.  
-4. Client redirects to Stripe Checkout; user pays.  
-5. Stripe sends `checkout.session.completed` to `POST /api/webhook/stripe`. Webhook marks the booking paid, finds or creates `user` by email (username), links booking to user, and creates a password-setup token (e.g. for email later).  
+1. User fills the form on `/` (basic details + trip). Optional: email check on blur; availability check when clicking Pay Now.
+2. User clicks Pay Now. Form validates, calls the check API again for email and availability, then POSTs to `/?/createCheckout` with `bookingPayload` and `amount`.
+3. `createCheckout` (in `+page.server.ts`): runs server-side email and availability checks; creates a `booking` (status pending) and `booking_segment` rows; creates a Stripe Checkout Session with `bookingId` in metadata; returns the checkout URL.
+4. Client redirects to Stripe Checkout; user pays.
+5. Stripe sends `checkout.session.completed` to `POST /api/webhook/stripe`. Webhook marks the booking paid, finds or creates `user` by email (username), links booking to user, and creates a password-setup token (e.g. for email later).
 6. User is redirected to `/booking-success` (or cancel URL back to `/`).
 
 ### Driver assignment and schedule
@@ -82,11 +82,11 @@ Booking and segment rows are created in the `createCheckout` action; the webhook
 
 ### Where to put new code
 
-- **Server-only (DB, secrets, checks):** `src/lib/server/` (e.g. `server/booking/checks.ts`, `server/db/`, `server/driver-assignment/`, `server/auth/`).  
-- **Shared client/server types or pure logic:** `src/lib/` but outside `server/` (e.g. `lib/trail.ts`, `lib/booking/price.ts`).  
-- **UI components:** `src/lib/components/`.  
-- **New pages or API routes:** `src/routes/` (e.g. `routes/api/booking/check/+server.ts`).  
-- **Auth and global request behavior:** `src/hooks.server.ts`.  
+- **Server-only (DB, secrets, checks):** `src/lib/server/` (e.g. `server/booking/checks.ts`, `server/db/`, `server/driver-assignment/`, `server/auth/`).
+- **Shared client/server types or pure logic:** `src/lib/` but outside `server/` (e.g. `lib/trail.ts`, `lib/booking/price.ts`).
+- **UI components:** `src/lib/components/`.
+- **New pages or API routes:** `src/routes/` (e.g. `routes/api/booking/check/+server.ts`).
+- **Auth and global request behavior:** `src/hooks.server.ts`.
 - **Env:** Use `$env/static/private` for build-time secrets (e.g. Stripe, DB); use `$env/dynamic/private` for optional or runtime config (e.g. `MAX_TRANSFERS_PER_DAY`).
 
 ---
@@ -102,15 +102,15 @@ Booking and segment rows are created in the `createCheckout` action; the webhook
 
 ## How the form uses the API
 
-- **Email check:**  
-  - The booking form calls `POST /api/booking/check` with `{ type: 'email', email }` in two places: (1) when the user leaves the email field (onblur), via a 400 ms debounced callback `scheduleEmailCheck` passed into `BasicDetailsStep` as `onEmailBlur`; (2) again when the user clicks Pay Now, via `checkEmailWithServer()` before submitting to `createCheckout`.  
+- **Email check:**
+  - The booking form calls `POST /api/booking/check` with `{ type: 'email', email }` in two places: (1) when the user leaves the email field (onblur), via a 400 ms debounced callback `scheduleEmailCheck` passed into `BasicDetailsStep` as `onEmailBlur`; (2) again when the user clicks Pay Now, via `checkEmailWithServer()` before submitting to `createCheckout`.
   - If the response has `ok: false`, the form sets `fieldErrors.email` to `message` (and on Pay Now also sets `paymentError` from that message) and does not proceed. The form never sends the email to any other endpoint for “check only”; the only other place that sees the email is `createCheckout`, which re-runs the same check.
 
-- **Availability (daily capacity) check:**  
-  - The form calls `POST /api/booking/check` with `{ type: 'availability', departureDate, route }` only when the user clicks Pay Now, via `checkAvailabilityWithServer()`. It does not call this on every route or date change.  
+- **Availability (daily capacity) check:**
+  - The form calls `POST /api/booking/check` with `{ type: 'availability', departureDate, route }` only when the user clicks Pay Now, via `checkAvailabilityWithServer()`. It does not call this on every route or date change.
   - If the response has `ok: false`, the form sets `availabilityError` and `paymentError` and does not call `createCheckout`. The `createCheckout` action also runs the same availability logic and can return `fail(400, { message })` if capacity would be exceeded.
 
-- **Pay Now flow:**  
+- **Pay Now flow:**
   - On Pay Now, the form (1) validates basic details and trip (client-side), (2) calls `checkEmailWithServer()`, (3) calls `checkAvailabilityWithServer()`, (4) only then sets `paymentProcessing = true` and POSTs to `/?/createCheckout` with `bookingPayload` and `amount`. Any failure from (2) or (3) is shown as `paymentError` or `fieldErrors.email` / `availabilityError` and the request to `createCheckout` is not sent.
 
 ---
@@ -146,9 +146,9 @@ Use this endpoint to check whether a booking is allowed (e.g. email not already 
 - **Headers:** `Content-Type: application/json`
 - **Body:** JSON object with a `type` field and type-specific fields:
 
-| `type`         | Required body fields     | Description |
-|----------------|--------------------------|-------------|
-| `email`        | `email` (string)         | Check if a user with this email (username) already exists. |
+| `type`         | Required body fields                                                            | Description                                                                |
+| -------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `email`        | `email` (string)                                                                | Check if a user with this email (username) already exists.                 |
 | `availability` | `departureDate` (string, YYYY-MM-DD), `route` (array of `[from, to]` stage IDs) | Check if the given trip would exceed the daily transfer limit on any date. |
 
 **Response**
@@ -190,3 +190,82 @@ Content-Type: application/json
 **Configuration**
 
 - **Daily transfer limit:** Set the env var `MAX_TRANSFERS_PER_DAY` (integer). If unset or invalid, the availability check always returns `ok: true` (no cap). See README for other env vars.
+
+---
+
+# Session Summary: March 1, 2025 - Frontend Redesign Complete
+
+## Overview
+
+Completed full redesign of the landing page with premium aesthetic while preserving all existing functionality.
+
+## Changes Made
+
+### 1. New Landing Page Design (Now at Root `/`)
+
+- **Design System**: New color palette (dark primary #1a1a1a, warm accent #c4a77d, cream secondary #f5f5f0)
+- **Typography**: Playfair Display (headings) + Inter (body) via Google Fonts
+- **Components Created**:
+  - `Nav.svelte` - Fixed navigation with scroll effect, language toggle (EN/PT), auth buttons
+  - `Hero.svelte` - Full-height hero section with background image and CTA
+  - `BookingSection.svelte` - Booking form container
+  - `BookingForm.svelte` - Single-step booking form with all validations
+  - `Features.svelte` - 3-column feature grid
+  - `Trail.svelte` - Trail statistics section
+  - `Gallery.svelte` - 4-image gallery with hover overlays
+  - `Footer.svelte` - New footer design
+
+### 2. Layout Changes
+
+- **Old site moved to `/old`**: Preserved original design for reference
+- **New design at root `/`**: Main site now uses new design
+- **Layout logic**: Old header/footer only show on `/old/*` routes
+- **Assets**: Copied 25 images from `/example/pics/` to `/static/images/`
+
+### 3. Login Modal Redesign
+
+- Styled to match new design system
+- Dark overlay with blur effect
+- Centered card with rounded corners
+- Form inputs with icons
+- Accent-colored buttons
+- i18n support (EN/PT)
+- Added logout button to new navigation
+
+### 4. Booking Form Integration
+
+- Single-step form (simplified from multi-step)
+- **Fields**: From, To, Date, Bags (row 1); First Name, Last Name, Email, Phone (row 2); Names at accommodation (row 3)
+- All validations preserved:
+  - Email validation API check
+  - Availability checking
+  - Route calculation
+  - Price calculation
+- Stripe checkout integration working
+- i18n support
+
+### 5. Enhanced Debugging
+
+- Added comprehensive logging to Stripe webhook
+- Created debug endpoint `/api/debug/create-reset-token` for manual password reset link generation
+- Better error handling and console output
+
+## Testing
+
+- **New site**: http://localhost:5173/
+- **Old site**: http://localhost:5173/old
+- Login/logout flow working
+- Booking form validation working
+- Stripe payment flow working
+- Language toggle (EN/PT) working
+
+## Files Modified/Created
+
+- `src/lib/styles/new-landing.css` - Design system CSS
+- `src/lib/components/landing/*` - All new landing components
+- `src/routes/+page.svelte` - New root page
+- `src/routes/+layout.svelte` - Updated layout logic
+- `src/routes/old/+page.svelte` - Old site preserved
+- `src/routes/api/webhook/stripe/+server.ts` - Enhanced logging
+- `src/routes/api/debug/create-reset-token/+server.ts` - Debug endpoint
+- `REDESIGN_PROGRESS.md` - Project documentation

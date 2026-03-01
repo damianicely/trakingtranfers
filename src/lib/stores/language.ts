@@ -7,6 +7,12 @@ function createLanguageStore() {
 
 	return {
 		subscribe,
+		set: (lang: Language) => {
+			if (browser) {
+				localStorage.setItem('language', lang);
+			}
+			set(lang);
+		},
 		init: () => {
 			if (browser) {
 				const saved = localStorage.getItem('language') as Language;

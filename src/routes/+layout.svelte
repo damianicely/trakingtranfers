@@ -13,6 +13,8 @@
 		$page.url.pathname === '/dashboard' && data?.user?.role === 'owner'
 	);
 
+	const isOldSite = $derived($page.url.pathname.startsWith('/old'));
+
 	onMount(() => {
 		language.init();
 	});
@@ -57,7 +59,11 @@
 				credentials: 'include',
 				headers: { Accept: 'application/json' }
 			});
-			console.log('[login modal] response:', { status: res.status, ok: res.ok, contentType: res.headers.get('Content-Type') });
+			console.log('[login modal] response:', {
+				status: res.status,
+				ok: res.ok,
+				contentType: res.headers.get('Content-Type')
+			});
 			const raw = await res.text();
 			console.log('[login modal] raw body:', raw?.slice(0, 300));
 			let result: Record<string, unknown> = {};
@@ -74,13 +80,22 @@
 				if (typeof d === 'string') {
 					try {
 						const parsed = JSON.parse(d) as unknown;
-						if (Array.isArray(parsed) && parsed.length >= 3 && parsed[1] === true && typeof parsed[2] === 'string') {
+						if (
+							Array.isArray(parsed) &&
+							parsed.length >= 3 &&
+							parsed[1] === true &&
+							typeof parsed[2] === 'string'
+						) {
 							redirectUrl = parsed[2];
 						}
 					} catch (_) {
 						// ignore
 					}
-				} else if (d && typeof d === 'object' && typeof (d as Record<string, unknown>).redirectTo === 'string') {
+				} else if (
+					d &&
+					typeof d === 'object' &&
+					typeof (d as Record<string, unknown>).redirectTo === 'string'
+				) {
 					redirectUrl = (d as Record<string, unknown>).redirectTo as string;
 				}
 			}
@@ -94,9 +109,11 @@
 				window.location.href = redirectUrl;
 				return;
 			}
-			const msg = (result?.data && typeof (result.data as Record<string, unknown>).message === 'string'
-				? (result.data as Record<string, unknown>).message
-				: result?.message) as string | undefined;
+			const msg = (
+				result?.data && typeof (result.data as Record<string, unknown>).message === 'string'
+					? (result.data as Record<string, unknown>).message
+					: result?.message
+			) as string | undefined;
 			if (msg) loginError = msg;
 		} catch (err) {
 			console.error('[login modal] submit error:', err);
@@ -133,7 +150,16 @@
 	}
 </script>
 
-{#if !isOwnerDashboard}
+<svelte:head>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+		rel="stylesheet"
+	/>
+</svelte:head>
+
+{#if !isOwnerDashboard && isOldSite}
 	<header class="header">
 		<div class="container">
 			<a href="/" class="logo">TrakingTransfers.pt</a>
@@ -144,7 +170,14 @@
 						<button type="submit" class="header-btn header-btn-logout">Log out</button>
 					</form>
 				{:else}
-					<button type="button" class="header-btn header-btn-login" onclick={() => { showModal = true; openLoginModal.set(true); }}>Login</button>
+					<button
+						type="button"
+						class="header-btn header-btn-login"
+						onclick={() => {
+							showModal = true;
+							openLoginModal.set(true);
+						}}>Login</button
+					>
 				{/if}
 				<span class="separator">|</span>
 				<div class="language-toggle">
@@ -174,9 +207,193 @@
 {/if}
 
 {#if showModal}
-	<div class="modal-backdrop" role="dialog" aria-modal="true" onclick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
+	<!-- New Design Modal -->
+	<div
+		class="modal-overlay-new"
+		class:active={showModal}
+		role="dialog"
+		aria-modal="true"
+		onclick={(e) => {
+			if (e.target === e.currentTarget) closeModal();
+		}}
+	>
+		<div class="modal-new" onclick={(e) => e.stopPropagation()}>
+			<div class="modal-header-new">
+				<button class="modal-close-new" aria-label="Close" onclick={closeModal}>
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<line x1="18" y1="6" x2="6" y2="18"></line>
+						<line x1="6" y1="6" x2="18" y2="18"></line>
+					</svg>
+				</button>
+				<div class="modal-logo-new">Traking</div>
+				{#if !showForgotPassword}
+					<h2 class="modal-title-new">
+						{$language === 'en' ? 'Welcome Back' : 'Bem-vindo de Volta'}
+					</h2>
+					<p class="modal-subtitle-new">
+						{$language === 'en'
+							? 'Sign in to access your bookings'
+							: 'Inicie sessão para aceder às suas reservas'}
+					</p>
+				{:else}
+					<h2 class="modal-title-new">
+						{$language === 'en' ? 'Reset Password' : 'Redefinir Palavra-passe'}
+					</h2>
+					<p class="modal-subtitle-new">
+						{$language === 'en'
+							? "Enter your email and we'll send you a password reset link."
+							: 'Introduza o seu email e enviaremos um link para redefinir a palavra-passe.'}
+					</p>
+				{/if}
+			</div>
+			<div class="modal-body-new">
+				{#if !showForgotPassword}
+					{#if loginError}
+						<div class="alert-new alert-error-new">{loginError}</div>
+					{/if}
+					<form class="auth-form-new" onsubmit={handleLoginSubmit}>
+						<div class="form-group-modal-new">
+							<label for="modal-username"
+								>{$language === 'en' ? 'Email Address' : 'Endereço de Email'}</label
+							>
+							<div class="input-wrapper-new">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path
+										d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+									></path>
+									<polyline points="22,6 12,13 2,6"></polyline>
+								</svg>
+								<input
+									name="username"
+									id="modal-username"
+									type="email"
+									placeholder="john@example.com"
+									required
+								/>
+							</div>
+						</div>
+						<div class="form-group-modal-new">
+							<label for="modal-password">{$language === 'en' ? 'Password' : 'Palavra-passe'}</label
+							>
+							<div class="input-wrapper-new">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+									<path d="M7 11V7a5 5 0 0110 0v4"></path>
+								</svg>
+								<input
+									name="password"
+									id="modal-password"
+									type="password"
+									placeholder="••••••••"
+									required
+								/>
+							</div>
+						</div>
+						<div class="form-options-new">
+							<label class="checkbox-wrapper-new">
+								<input type="checkbox" name="remember" />
+								<span>{$language === 'en' ? 'Remember me' : 'Lembrar-me'}</span>
+							</label>
+							<button
+								type="button"
+								class="forgot-password-new"
+								onclick={() => {
+									showForgotPassword = true;
+									loginError = '';
+								}}
+								>{$language === 'en' ? 'Forgot password?' : 'Esqueceu-se da palavra-passe?'}</button
+							>
+						</div>
+						<button type="submit" class="btn-modal-new" disabled={loginSubmitting}
+							>{loginSubmitting
+								? $language === 'en'
+									? 'Signing in…'
+									: 'A iniciar sessão…'
+								: $language === 'en'
+									? 'Sign In'
+									: 'Iniciar Sessão'}</button
+						>
+					</form>
+				{:else}
+					{#if resetSuccess}
+						<div class="alert-new alert-success-new">{resetSuccess}</div>
+					{/if}
+					{#if resetError}
+						<div class="alert-new alert-error-new">{resetError}</div>
+					{/if}
+					<form class="auth-form-new" onsubmit={handleResetSubmit}>
+						<div class="form-group-modal-new">
+							<label for="modal-email"
+								>{$language === 'en' ? 'Email Address' : 'Endereço de Email'}</label
+							>
+							<div class="input-wrapper-new">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path
+										d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+									></path>
+									<polyline points="22,6 12,13 2,6"></polyline>
+								</svg>
+								<input
+									name="email"
+									id="modal-email"
+									type="email"
+									placeholder="john@example.com"
+									required
+								/>
+							</div>
+						</div>
+						<button type="submit" class="btn-modal-new" disabled={resetSubmitting}
+							>{resetSubmitting
+								? $language === 'en'
+									? 'Sending…'
+									: 'A enviar…'
+								: $language === 'en'
+									? 'Send Reset Link'
+									: 'Enviar Link de Redefinição'}</button
+						>
+					</form>
+				{/if}
+			</div>
+			{#if !showForgotPassword}
+				<div class="modal-footer-new">
+					<p class="modal-footer-text-new">
+						{$language === 'en' ? "Don't have an account?" : 'Não tem uma conta?'}
+						<a href="/register" class="modal-footer-link-new" onclick={() => closeModal()}
+							>{$language === 'en' ? 'Create one' : 'Criar uma'}</a
+						>
+					</p>
+				</div>
+			{:else}
+				<div class="modal-footer-new">
+					<p class="modal-footer-text-new">
+						<button
+							type="button"
+							class="modal-footer-link-new"
+							onclick={() => {
+								showForgotPassword = false;
+								resetSuccess = '';
+								resetError = '';
+							}}>{$language === 'en' ? 'Back to login' : 'Voltar ao login'}</button
+						>
+					</p>
+				</div>
+			{/if}
+		</div>
+	</div>
+{:else if showModal}
+	<!-- Legacy Modal (for old design pages) -->
+	<div
+		class="modal-backdrop"
+		role="dialog"
+		aria-modal="true"
+		onclick={(e) => {
+			if (e.target === e.currentTarget) closeModal();
+		}}
+	>
 		<div class="modal-card" onclick={(e) => e.stopPropagation()}>
-			<button type="button" class="modal-close" aria-label="Close" onclick={closeModal}>&times;</button>
+			<button type="button" class="modal-close" aria-label="Close" onclick={closeModal}
+				>&times;</button
+			>
 			{#if !showForgotPassword}
 				<h2 class="modal-title">Log In</h2>
 				<p class="modal-subtitle">Sign in to your account</p>
@@ -192,10 +409,19 @@
 						<label for="modal-password">Password</label>
 						<input name="password" id="modal-password" type="password" required />
 					</div>
-					<button type="submit" class="btn-primary" disabled={loginSubmitting}>{loginSubmitting ? 'Signing in…' : 'Sign In'}</button>
+					<button type="submit" class="btn-primary" disabled={loginSubmitting}
+						>{loginSubmitting ? 'Signing in…' : 'Sign In'}</button
+					>
 				</form>
 				<div class="auth-links">
-					<button type="button" class="link-button" onclick={() => { showForgotPassword = true; loginError = ''; }}>Forgot your password?</button>
+					<button
+						type="button"
+						class="link-button"
+						onclick={() => {
+							showForgotPassword = true;
+							loginError = '';
+						}}>Forgot your password?</button
+					>
 				</div>
 				<p class="auth-footer">
 					Need an account? <a href="/register">Register</a>
@@ -214,10 +440,20 @@
 						<label for="modal-email">Email</label>
 						<input name="email" id="modal-email" type="email" required />
 					</div>
-					<button type="submit" class="btn-primary" disabled={resetSubmitting}>{resetSubmitting ? 'Sending…' : 'Send Reset Link'}</button>
+					<button type="submit" class="btn-primary" disabled={resetSubmitting}
+						>{resetSubmitting ? 'Sending…' : 'Send Reset Link'}</button
+					>
 				</form>
 				<p class="auth-footer">
-					<button type="button" class="link-button" onclick={() => { showForgotPassword = false; resetSuccess = ''; resetError = ''; }}>Back to login</button>
+					<button
+						type="button"
+						class="link-button"
+						onclick={() => {
+							showForgotPassword = false;
+							resetSuccess = '';
+							resetError = '';
+						}}>Back to login</button
+					>
 				</p>
 			{/if}
 		</div>
@@ -228,36 +464,38 @@
 	<slot />
 </main>
 
-<footer class="footer">
-	<div class="footer-container">
-		<div class="footer-content">
-			<div class="footer-logo">
-				<img src="/logo.png" alt="TrakingTransfers" class="logo-image" />
-			</div>
-			
-			<div class="footer-info">
-				<p class="copyright">
-					© {currentYear} TrakingTransfers.pt. {t.footer_all_rights_reserved}
-				</p>
-			</div>
+{#if isOldSite}
+	<footer class="footer">
+		<div class="footer-container">
+			<div class="footer-content">
+				<div class="footer-logo">
+					<img src="/logo.png" alt="TrakingTransfers" class="logo-image" />
+				</div>
 
-			<div class="footer-reclamacoes">
-				<a
-					href="https://www.livroreclamacoes.pt"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="reclamacoes-link"
-				>
-					<img
-						src="/livro_reclamacoes2.png"
-						alt="Livro de Reclamações"
-						class="reclamacoes-logo"
-					/>
-				</a>
+				<div class="footer-info">
+					<p class="copyright">
+						© {currentYear} TrakingTransfers.pt. {t.footer_all_rights_reserved}
+					</p>
+				</div>
+
+				<div class="footer-reclamacoes">
+					<a
+						href="https://www.livroreclamacoes.pt"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="reclamacoes-link"
+					>
+						<img
+							src="/livro_reclamacoes2.png"
+							alt="Livro de Reclamações"
+							class="reclamacoes-logo"
+						/>
+					</a>
+				</div>
 			</div>
 		</div>
-	</div>
-</footer>
+	</footer>
+{/if}
 
 <style>
 	.header {
@@ -303,7 +541,9 @@
 		cursor: pointer;
 		font-weight: 500;
 		border: none;
-		transition: background-color 0.2s, color 0.2s;
+		transition:
+			background-color 0.2s,
+			color 0.2s;
 	}
 
 	.header-btn-login {
@@ -601,6 +841,303 @@
 
 		.footer-reclamacoes {
 			order: 3;
+		}
+	}
+
+	/* New Design Modal Styles */
+	.modal-overlay-new {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(26, 26, 26, 0.6);
+		backdrop-filter: blur(8px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 2000;
+		opacity: 0;
+		visibility: hidden;
+		transition: all 0.3s ease;
+	}
+
+	.modal-overlay-new.active {
+		opacity: 1;
+		visibility: visible;
+	}
+
+	.modal-new {
+		background: #ffffff;
+		width: 100%;
+		max-width: 440px;
+		margin: 1rem;
+		border-radius: 16px;
+		box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+		transform: scale(0.95) translateY(20px);
+		transition: all 0.3s ease;
+		overflow: hidden;
+	}
+
+	.modal-overlay-new.active .modal-new {
+		transform: scale(1) translateY(0);
+	}
+
+	.modal-header-new {
+		padding: 2rem 2rem 1rem;
+		text-align: center;
+		position: relative;
+	}
+
+	.modal-close-new {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		width: 36px;
+		height: 36px;
+		border: none;
+		background: none;
+		cursor: pointer;
+		border-radius: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		padding: 0;
+	}
+
+	.modal-close-new:hover {
+		background: #f5f5f0;
+	}
+
+	.modal-close-new svg {
+		width: 20px;
+		height: 20px;
+		color: #666666;
+	}
+
+	.modal-logo-new {
+		font-family: 'Playfair Display', serif;
+		font-size: 1.75rem;
+		font-weight: 600;
+		color: #1a1a1a;
+		margin-bottom: 0.5rem;
+	}
+
+	.modal-logo-new::after {
+		content: '';
+		display: block;
+		width: 40px;
+		height: 3px;
+		background: #c4a77d;
+		margin: 0.75rem auto 0;
+		border-radius: 2px;
+	}
+
+	.modal-title-new {
+		font-family: 'Playfair Display', serif;
+		font-size: 1.5rem;
+		font-weight: 500;
+		color: #1a1a1a;
+		margin-bottom: 0.5rem;
+	}
+
+	.modal-subtitle-new {
+		font-size: 0.9375rem;
+		color: #666666;
+		margin-bottom: 1.5rem;
+	}
+
+	.modal-body-new {
+		padding: 0 2rem 2rem;
+	}
+
+	.auth-form-new {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.form-group-modal-new {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.form-group-modal-new label {
+		display: block;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: #333333;
+	}
+
+	.input-wrapper-new {
+		position: relative;
+	}
+
+	.input-wrapper-new svg {
+		position: absolute;
+		left: 1rem;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 20px;
+		height: 20px;
+		color: #666666;
+		pointer-events: none;
+	}
+
+	.form-group-modal-new input {
+		width: 100%;
+		padding: 0.875rem 1rem 0.875rem 2.75rem;
+		border: 1.5px solid #e0e0e0;
+		border-radius: 10px;
+		font-family: inherit;
+		font-size: 0.9375rem;
+		color: #1a1a1a;
+		background: #ffffff;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.form-group-modal-new input:focus {
+		outline: none;
+		border-color: #c4a77d;
+		box-shadow: 0 0 0 4px rgba(196, 167, 125, 0.1);
+	}
+
+	.form-group-modal-new input::placeholder {
+		color: #999;
+	}
+
+	.form-options-new {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 0.5rem;
+	}
+
+	.checkbox-wrapper-new {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+	}
+
+	.checkbox-wrapper-new input[type='checkbox'] {
+		width: 18px;
+		height: 18px;
+		accent-color: #c4a77d;
+		cursor: pointer;
+	}
+
+	.checkbox-wrapper-new span {
+		font-size: 0.875rem;
+		color: #333333;
+	}
+
+	.forgot-password-new {
+		font-size: 0.875rem;
+		color: #c4a77d;
+		text-decoration: none;
+		font-weight: 500;
+		background: none;
+		border: none;
+		cursor: pointer;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		padding: 0;
+	}
+
+	.forgot-password-new:hover {
+		color: #a08960;
+	}
+
+	.btn-modal-new {
+		width: 100%;
+		padding: 1rem;
+		background: #c4a77d;
+		color: #ffffff;
+		border: none;
+		border-radius: 10px;
+		font-family: inherit;
+		font-size: 1rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.btn-modal-new:hover:not(:disabled) {
+		background: #a08960;
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba(196, 167, 125, 0.4);
+	}
+
+	.btn-modal-new:disabled {
+		opacity: 0.7;
+		cursor: not-allowed;
+	}
+
+	.modal-footer-new {
+		padding: 1.5rem 2rem;
+		background: #f5f5f0;
+		text-align: center;
+	}
+
+	.modal-footer-text-new {
+		font-size: 0.9375rem;
+		color: #333333;
+		margin: 0;
+	}
+
+	.modal-footer-link-new {
+		color: #c4a77d;
+		text-decoration: none;
+		font-weight: 600;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	.modal-footer-link-new:hover {
+		color: #a08960;
+	}
+
+	.alert-new {
+		padding: 0.875rem 1rem;
+		border-radius: 10px;
+		font-size: 0.9375rem;
+		margin-bottom: 1rem;
+	}
+
+	.alert-error-new {
+		background: rgba(220, 38, 38, 0.1);
+		color: #dc2626;
+		border: 1px solid rgba(220, 38, 38, 0.2);
+	}
+
+	.alert-success-new {
+		background: rgba(34, 197, 94, 0.1);
+		color: #22c55e;
+		border: 1px solid rgba(34, 197, 94, 0.2);
+	}
+
+	@media (max-width: 480px) {
+		.modal-new {
+			margin: 0;
+			border-radius: 0;
+			max-width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.modal-body-new {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
 		}
 	}
 </style>

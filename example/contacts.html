@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Traking Transfers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* Contact Page Specific Styles */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .contact-form-container {
+            background: var(--color-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 2rem;
+        }
+
+        .contact-info-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            background: var(--color-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+        }
+
+        .info-card-title {
+            font-family: var(--font-heading);
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-card-title svg {
+            width: 20px;
+            height: 20px;
+            color: var(--color-accent);
+        }
+
+        .contact-method {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .contact-method:last-child {
+            border-bottom: none;
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--color-secondary);
+            border-radius: var(--radius-xs);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .contact-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--color-accent);
+        }
+
+        .contact-details {
+            flex: 1;
+        }
+
+        .contact-label {
+            font-size: 0.8125rem;
+            color: var(--color-text-light);
+        }
+
+        .contact-value {
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        .contact-value a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .contact-value a:hover {
+            color: var(--color-accent);
+        }
+
+        /* WhatsApp Button */
+        .whatsapp-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 1rem;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .whatsapp-btn:hover {
+            background: #128C7E;
+            transform: translateY(-1px);
+        }
+
+        .whatsapp-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Office Hours */
+        .office-hours {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .office-hours-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9375rem;
+        }
+
+        .office-hours-row .day {
+            color: var(--color-text-light);
+        }
+
+        .office-hours-row .time {
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        .office-hours-row.closed .time {
+            color: var(--color-danger);
+        }
+
+        /* FAQ Accordion */
+        .faq-section {
+            margin-top: 2rem;
+        }
+
+        .faq-title {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .faq-item {
+            background: var(--color-white);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .faq-question:hover {
+            background: var(--color-secondary);
+        }
+
+        .faq-question h4 {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin: 0;
+        }
+
+        .faq-icon {
+            width: 24px;
+            height: 24px;
+            transition: var(--transition);
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+
+        .faq-answer-content {
+            padding: 0 1.25rem 1.25rem;
+            font-size: 0.9375rem;
+            color: var(--color-text);
+            line-height: 1.7;
+        }
+
+        /* Booking Reference Field */
+        .booking-ref-notice {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(196, 167, 125, 0.1);
+            border-radius: var(--radius-xs);
+            margin-bottom: 1.5rem;
+            font-size: 0.9375rem;
+            color: var(--color-text);
+        }
+
+        .booking-ref-notice svg {
+            width: 20px;
+            height: 20px;
+            color: var(--color-accent);
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 1024px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header"></header>
+
+    <!-- Overlay for mobile menu -->
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="page-header">
+                <h1 class="page-title" data-en="Contact Us" data-pt="Contacte-nos">Contact Us</h1>
+            </div>
+
+            <!-- Contact Grid -->
+            <div class="contact-grid">
+                <!-- Contact Form -->
+                <div class="contact-form-container">
+                    <h2 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 500; margin-bottom: 0.5rem;" data-en="Send us a message" data-pt="Envie-nos uma mensagem">Send us a message</h2>
+                    <p style="color: var(--color-text-light); margin-bottom: 1.5rem;" data-en="We'll get back to you within 24 hours" data-pt="Responderemos dentro de 24 horas">We'll get back to you within 24 hours</p>
+
+                    <div class="booking-ref-notice">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span data-en="Have a booking reference? Include it below for faster support" data-pt="Tem uma referência de reserva? Inclua-a abaixo para suporte mais rápido">Have a booking reference? Include it below for faster support</span>
+                    </div>
+
+                    <form id="contactForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-en="Subject" data-pt="Assunto">Subject</label>
+                                <select id="subject" required>
+                                    <option value="" data-en="Select a subject" data-pt="Selecione um assunto">Select a subject</option>
+                                    <option value="general" data-en="General Inquiry" data-pt="Questão Geral">General Inquiry</option>
+                                    <option value="booking" data-en="Booking Issue" data-pt="Problema com Reserva">Booking Issue</option>
+                                    <option value="lost" data-en="Lost Luggage" data-pt="Bagagem Perdida">Lost Luggage</option>
+                                    <option value="feedback" data-en="Feedback" data-pt="Feedback">Feedback</option>
+                                    <option value="other" data-en="Other" data-pt="Outro">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label data-en="Booking Reference (Optional)" data-pt="Referência da Reserva (Opcional)">Booking Reference (Optional)</label>
+                                <input type="text" id="bookingRef" placeholder="BK-2025-001" data-en-placeholder="BK-2025-001" data-pt-placeholder="BK-2025-001">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label data-en="Your Email" data-pt="O Seu Email">Your Email</label>
+                            <input type="email" id="email" value="john@example.com" required readonly style="background: var(--color-secondary);">
+                        </div>
+
+                        <div class="form-group">
+                            <label data-en="Message" data-pt="Mensagem">Message</label>
+                            <textarea id="message" rows="6" required placeholder="How can we help you?" data-en-placeholder="How can we help you?" data-pt-placeholder="Como podemos ajudar?"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" data-en="Send Message" data-pt="Enviar Mensagem">Send Message</button>
+                    </form>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="contact-info-container">
+                    <!-- Quick Contact Methods -->
+                    <div class="info-card">
+                        <div class="info-card-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path>
+                            </svg>
+                            <span data-en="Quick Contact" data-pt="Contacto Rápido">Quick Contact</span>
+                        </div>
+
+                        <a href="https://wa.me/351912345678" target="_blank" class="whatsapp-btn">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                            </svg>
+                            <span data-en="Chat on WhatsApp" data-pt="Conversar no WhatsApp">Chat on WhatsApp</span>
+                        </a>
+
+                        <div class="contact-method" style="margin-top: 1rem;">
+                            <div class="contact-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-label" data-en="Email" data-pt="Email">Email</div>
+                                <div class="contact-value">
+                                    <a href="mailto:info@trakingtransfers.com">info@trakingtransfers.com</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="contact-method">
+                            <div class="contact-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-label" data-en="Phone" data-pt="Telefone">Phone</div>
+                                <div class="contact-value">
+                                    <a href="tel:+351283990000">+351 283 990 000</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Office Hours -->
+                    <div class="info-card">
+                        <div class="info-card-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span data-en="Office Hours" data-pt="Horário de Atendimento">Office Hours</span>
+                        </div>
+                        <div class="office-hours">
+                            <div class="office-hours-row">
+                                <span class="day" data-en="Monday - Friday" data-pt="Segunda - Sexta">Monday - Friday</span>
+                                <span class="time">08:00 - 18:00</span>
+                            </div>
+                            <div class="office-hours-row">
+                                <span class="day" data-en="Saturday" data-pt="Sábado">Saturday</span>
+                                <span class="time">09:00 - 13:00</span>
+                            </div>
+                            <div class="office-hours-row closed">
+                                <span class="day" data-en="Sunday" data-pt="Domingo">Sunday</span>
+                                <span class="time" data-en="Closed" data-pt="Fechado">Closed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="info-card">
+                        <div class="info-card-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span data-en="Location" data-pt="Localização">Location</span>
+                        </div>
+                        <div class="contact-method" style="padding: 0; border: none;">
+                            <div class="contact-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-value">
+                                    <span data-en="Southwest Portugal" data-pt="Sudoeste de Portugal">Southwest Portugal</span><br>
+                                    <small style="color: var(--color-text-light);">Vila Nova de Milfontes</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="faq-section">
+                <h2 class="faq-title" data-en="Frequently Asked Questions" data-pt="Perguntas Frequentes">Frequently Asked Questions</h2>
+                
+                <div class="faq-list" id="faqList">
+                    <!-- FAQs will be rendered here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/components.js"></script>
+    <script>
+        // FAQ Data
+        const faqs = [
+            {
+                question: {
+                    en: 'What time will my luggage be picked up?',
+                    pt: 'A que horas será recolhida a minha bagagem?'
+                },
+                answer: {
+                    en: 'We typically collect luggage between 8:00 AM and 10:00 AM from your accommodation. You will receive an SMS with a more specific time window the evening before your pickup.',
+                    pt: 'Normalmente recolhemos a bagagem entre as 8:00 e as 10:00 da manhã no seu alojamento. Receberá uma SMS com uma janela de tempo mais específica na véspera da recolha.'
+                }
+            },
+            {
+                question: {
+                    en: 'When will my luggage be delivered?',
+                    pt: 'Quando será entregue a minha bagagem?'
+                },
+                answer: {
+                    en: 'We guarantee delivery before 4:00 PM to your next accommodation. Most deliveries happen between 2:00 PM and 4:00 PM. You can track the real-time status in the Track Luggage section.',
+                    pt: 'Garantimos entrega antes das 16:00 na sua próxima acomodação. A maioria das entregas ocorre entre as 14:00 e as 16:00. Pode acompanhar o estado em tempo real na secção Rastrear Bagagem.'
+                }
+            },
+            {
+                question: {
+                    en: 'What is the maximum luggage weight?',
+                    pt: 'Qual é o peso máximo da bagagem?'
+                },
+                answer: {
+                    en: 'Each piece of luggage should not exceed 20kg. We can accommodate heavier items with prior arrangement. Please contact us if you have special requirements.',
+                    pt: 'Cada peça de bagagem não deve exceder 20kg. Podemos acomodar itens mais pesados com acordo prévio. Contacte-nos se tiver requisitos especiais.'
+                }
+            },
+            {
+                question: {
+                    en: 'Is my luggage insured?',
+                    pt: 'A minha bagagem está segurada?'
+                },
+                answer: {
+                    en: 'Yes, all luggage transported with Traking Transfers is fully insured up to €500 per bag. Additional insurance can be arranged for high-value items.',
+                    pt: 'Sim, toda a bagagem transportada pela Traking Transfers está totalmente segurada até €500 por mala. Seguro adicional pode ser arranjado para itens de alto valor.'
+                }
+            },
+            {
+                question: {
+                    en: 'Can I modify my booking?',
+                    pt: 'Posso modificar a minha reserva?'
+                },
+                answer: {
+                    en: 'Yes, you can modify your booking up to 24 hours before the scheduled pickup time through the My Bookings section. Changes made less than 24 hours before may incur a fee.',
+                    pt: 'Sim, pode modificar a sua reserva até 24 horas antes da hora de recolha agendada através da secção As Minhas Reservas. Alterações feitas com menos de 24 horas podem implicar uma taxa.'
+                }
+            }
+        ];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard('contacts');
+            renderFAQs();
+            setupForm();
+        });
+
+        // Render FAQs
+        function renderFAQs() {
+            const container = document.getElementById('faqList');
+            
+            container.innerHTML = faqs.map((faq, index) => `
+                <div class="faq-item" data-index="${index}">
+                    <div class="faq-question" onclick="toggleFAQ(${index})">
+                        <h4 data-en="${faq.question.en}" data-pt="${faq.question.pt}">${faq.question.en}</h4>
+                        <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content" data-en="${faq.answer.en}" data-pt="${faq.answer.pt}">
+                            ${faq.answer.en}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Re-apply language
+            applyLanguage(currentLang);
+        }
+
+        // Toggle FAQ
+        function toggleFAQ(index) {
+            const items = document.querySelectorAll('.faq-item');
+            items.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.toggle('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Setup contact form
+        function setupForm() {
+            const form = document.getElementById('contactForm');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const submitBtn = form.querySelector('button[type="submit"]');
+                setButtonLoading(submitBtn, true);
+
+                // Simulate form submission
+                setTimeout(() => {
+                    setButtonLoading(submitBtn, false);
+                    showNotification(
+                        currentLang === 'pt' ? 'Mensagem enviada com sucesso!' : 'Message sent successfully!',
+                        'success'
+                    );
+                    form.reset();
+                    document.getElementById('email').value = currentUser.email;
+                }, 1500);
+            });
+        }
+    </script>
+</body>
+</html>

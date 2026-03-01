@@ -31,10 +31,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		return new Response('Webhook signature verification failed', { status: 400 });
 	}
 
+	console.log(`[Stripe Webhook] Received event: ${event.type}`);
+
 	if (event.type === 'checkout.session.completed') {
+		console.log('[Stripe Webhook] Processing checkout.session.completed');
 		const session = event.data.object as Stripe.Checkout.Session;
 
 		const bookingId = session.metadata?.bookingId;
+		console.log('[Stripe Webhook] Booking ID from metadata:', bookingId);
 
 		if (!bookingId) {
 			console.error('checkout.session.completed without bookingId metadata');
@@ -43,17 +47,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// Extract customer email (used as username) from session
 		const email =
-			session.customer_details?.email ??
-			(session.customer_email as string | null) ??
-			null;
+			session.customer_details?.email ?? (session.customer_email as string | null) ?? null;
 
 		if (!email) {
 			console.error('checkout.session.completed without customer email');
 			// We still mark the booking as paid, but cannot auto-register a user
-			await db
-				.update(bookingTable)
-				.set({ status: 'paid' })
-				.where(eq(bookingTable.id, bookingId));
+			await db.update(bookingTable).set({ status: 'paid' }).where(eq(bookingTable.id, bookingId));
 			try {
 				await createBagsForBooking(db, bookingId);
 			} catch (bagErr) {
@@ -90,8 +89,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			if (existingUsers.length > 0) {
 				userId = existingUsers[0].id;
+				console.log('[Stripe Webhook] EXISTING user found:', username, 'UserID:', userId);
 				// Backfill user names from this booking if user has none
-				if ((bookingFirstName || bookingLastName) && (!existingUsers[0].firstName || !existingUsers[0].lastName)) {
+				if (
+					(bookingFirstName || bookingLastName) &&
+					(!existingUsers[0].firstName || !existingUsers[0].lastName)
+				) {
 					await db
 						.update(userTable)
 						.set({
@@ -102,6 +105,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				}
 			} else {
 				// 2. Auto-register a new customer with a random password and names from booking
+				console.log('[Stripe Webhook] Creating NEW user for:', username);
 				const randomPassword = crypto.randomBytes(32).toString('hex');
 				const passwordHash = await hash(randomPassword, {
 					memoryCost: 19456,
@@ -111,6 +115,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				});
 
 				userId = crypto.randomBytes(15).toString('hex');
+				console.log('[Stripe Webhook] Generated userId:', userId);
 
 				await db.insert(userTable).values({
 					id: userId,
@@ -119,6 +124,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					firstName: bookingFirstName,
 					lastName: bookingLastName
 				});
+				console.log('[Stripe Webhook] User inserted into database');
 			}
 
 			// 3. Update the booking: mark as paid and link to user + session id
@@ -138,12 +144,36 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 
 			// 4. Generate a password reset token so the guest can set their password
-			const { resetUrl } = await createPasswordResetToken(userId, 24, 'http://localhost:5173');
+			console.log(
+				'[Stripe Webhook] Step 4: Creating password reset token for user:',
+				username,
+				'UserID:',
+				userId
+			);
+
+			let resetUrl: string;
+			try {
+				const result = await createPasswordResetToken(userId, 24, 'http://localhost:5173');
+				resetUrl = result.resetUrl;
+				console.log('[Stripe Webhook] Token created successfully');
+			} catch (tokenErr) {
+				console.error('[Stripe Webhook] FAILED to create password reset token:', tokenErr);
+				throw tokenErr;
+			}
 
 			// For now, "send" the email by logging the reset link
-			console.log(`Password setup link for ${username}: ${resetUrl}`);
+			console.log('\n========================================');
+			console.log('PASSWORD SETUP LINK:');
+			console.log(`User: ${username}`);
+			console.log(`Link: ${resetUrl}`);
+			console.log('========================================\n');
+			console.log('[Stripe Webhook] Processing completed successfully');
+
+			// Force flush console output
+			await new Promise((resolve) => setTimeout(resolve, 100));
 		} catch (err) {
-			console.error('Error handling checkout.session.completed:', err);
+			console.error('[Stripe Webhook] CRITICAL ERROR:', err);
+			console.error('Error details:', err instanceof Error ? err.stack : String(err));
 			// Still return 200 so Stripe doesn't retry endlessly while you debug
 			return new Response('Webhook processing error', { status: 200 });
 		}
@@ -152,4 +182,3 @@ export const POST: RequestHandler = async ({ request }) => {
 	// For all other event types, just acknowledge
 	return new Response('ok', { status: 200 });
 };
-

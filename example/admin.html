@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Traking Transfers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js'></script>
+    <style>
+        /* Admin-specific styles */
+        .admin-nav-item {
+            margin-bottom: 0.25rem;
+        }
+        
+        .admin-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0.875rem 0.75rem;
+            color: var(--color-text);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .admin-nav-link:hover {
+            background: var(--color-secondary);
+            color: var(--color-primary);
+        }
+        
+        .admin-nav-link.active {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+        
+        .admin-nav-link svg {
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
+        }
+        
+        .admin-nav-link.active svg {
+            opacity: 1;
+        }
+
+        /* Stats Grid */
+        .stats-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card-large {
+            background: var(--color-white);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .stat-card-large:hover {
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        .stat-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon-box.accent { background: rgba(196, 167, 125, 0.15); color: var(--color-accent); }
+        .stat-icon-box.success { background: rgba(34, 197, 94, 0.15); color: var(--color-success); }
+        .stat-icon-box.primary { background: rgba(26, 26, 26, 0.08); color: var(--color-primary); }
+        .stat-icon-box.warning { background: rgba(245, 158, 11, 0.15); color: var(--color-warning); }
+
+        .stat-value-large {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label-large {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--color-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Section visibility */
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+
+        /* Table Styles */
+        .data-table-container {
+            background: var(--color-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .data-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.5rem;
+            background: var(--color-secondary);
+            border-bottom: 1px solid var(--color-border);
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.625rem 1rem 0.625rem 2.5rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xs);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            background: var(--color-white);
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--color-text-light);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: var(--color-secondary);
+            padding: 1rem 1.25rem;
+            text-align: left;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--color-text-light);
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+
+        .data-table th:hover {
+            background: #ebebe6;
+        }
+
+        .data-table td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.9375rem;
+        }
+
+        .data-table tr:hover {
+            background: rgba(245, 245, 240, 0.5);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Action Icons */
+        .action-icons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-xs);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--color-text-light);
+        }
+
+        .action-btn:hover {
+            background: var(--color-secondary);
+            color: var(--color-primary);
+        }
+
+        .action-btn.view:hover { color: var(--color-accent); }
+        .action-btn.edit:hover { color: var(--color-primary); }
+        .action-btn.delete:hover { color: var(--color-danger); background: rgba(220, 38, 38, 0.1); }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: var(--color-secondary);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .pagination-info {
+            font-size: 0.875rem;
+            color: var(--color-text-light);
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 0.75rem;
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xs);
+            font-family: inherit;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 36px;
+        }
+
+        .page-btn:hover:not(:disabled):not(.active) {
+            background: var(--color-secondary);
+        }
+
+        .page-btn.active {
+            background: var(--color-primary);
+            color: var(--color-white);
+            border-color: var(--color-primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--color-white);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 1rem;
+            border-radius: var(--radius);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--color-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius-xs);
+            transition: var(--transition);
+            color: var(--color-text-light);
+        }
+
+        .modal-close:hover {
+            background: var(--color-secondary);
+            color: var(--color-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            background: var(--color-secondary);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        /* Calendar container */
+        #calendar {
+            background: var(--color-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+        }
+
+        .fc {
+            font-family: var(--font-body);
+        }
+
+        .fc-button-primary {
+            background-color: var(--color-accent) !important;
+            border-color: var(--color-accent) !important;
+        }
+
+        .fc-button-primary:hover {
+            background-color: var(--color-accent-dark) !important;
+            border-color: var(--color-accent-dark) !important;
+        }
+
+        .fc-event {
+            background-color: var(--color-accent) !important;
+            border-color: var(--color-accent) !important;
+        }
+
+        /* Filter buttons */
+        .filter-group-inline {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.625rem 2rem 0.625rem 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xs);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            background: var(--color-white);
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid-4 {
+                grid-template-columns: 1fr;
+            }
+
+            .data-table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header" id="mobileHeader"></header>
+
+    <!-- Overlay for mobile menu -->
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="dashboard">
+        <!-- Admin Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <a href="admin.html" class="sidebar-logo">Traking</a>
+
+            <nav class="nav-section">
+                <ul class="nav-menu">
+                    <li class="admin-nav-item">
+                        <a onclick="showSection('overview')" class="admin-nav-link active" id="nav-overview" data-en="Overview" data-pt="Visão Geral">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            Overview
+                        </a>
+                    </li>
+                    <li class="admin-nav-item">
+                        <a onclick="showSection('sales')" class="admin-nav-link" id="nav-sales" data-en="Sales" data-pt="Vendas">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"></path>
+                            </svg>
+                            Sales
+                        </a>
+                    </li>
+                    <li class="admin-nav-item">
+                        <a onclick="showSection('schedule')" class="admin-nav-link" id="nav-schedule" data-en="Schedule" data-pt="Agenda">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            Schedule
+                        </a>
+                    </li>
+                    <li class="admin-nav-item">
+                        <a onclick="showSection('team')" class="admin-nav-link" id="nav-team" data-en="Team" data-pt="Equipa">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"></path>
+                            </svg>
+                            Team
+                        </a>
+                    </li>
+                    <li class="admin-nav-item">
+                        <a onclick="showSection('accommodations')" class="admin-nav-link" id="nav-accommodations" data-en="Accommodations" data-pt="Alojamentos">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            Accommodations
+                        </a>
+                    </li>
+                    <li class="admin-nav-item">
+                        <a onclick="showSection('customers')" class="admin-nav-link" id="nav-customers" data-en="Customers" data-pt="Clientes">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Customers
+                        </a>
+                    </li>
+                    <li class="admin-nav-item">
+                        <a href="#" class="admin-nav-link language-toggle-item" onclick="event.preventDefault();">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"></path>
+                            </svg>
+                            <span class="language-toggle">
+                                <button class="active" data-lang="en" onclick="setLanguage('en')">EN</button>
+                                <span>|</span>
+                                <button data-lang="pt" onclick="setLanguage('pt')">PT</button>
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="profile.html" class="user-card" style="text-decoration: none;">
+                    <div class="user-avatar">AD</div>
+                    <div class="user-info">
+                        <div class="user-name">Admin User</div>
+                        <div class="user-email">admin@traking.pt</div>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-text-light);">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="page-header">
+                <h1 class="page-title" id="pageTitle" data-en="Overview" data-pt="Visão Geral">Overview</h1>
+            </div>
+
+            <!-- Overview Section -->
+            <section id="overview-section" class="admin-section active">
+                <!-- Stats Cards -->
+                <div class="stats-grid-4">
+                    <div class="stat-card-large">
+                        <div class="stat-header-row">
+                            <span class="stat-label-large" data-en="Total Revenue (30 days)" data-pt="Receita Total (30 dias)">Total Revenue (30 days)</span>
+                            <div class="stat-icon-box accent">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-value-large">€12,450.00</div>
+                    </div>
+                    <div class="stat-card-large">
+                        <div class="stat-header-row">
+                            <span class="stat-label-large" data-en="Total Bookings (30 days)" data-pt="Total Reservas (30 dias)">Total Bookings (30 days)</span>
+                            <div class="stat-icon-box success">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z"></path>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-value-large">342</div>
+                    </div>
+                    <div class="stat-card-large">
+                        <div class="stat-header-row">
+                            <span class="stat-label-large" data-en="Average Daily Revenue" data-pt="Receita Média Diária">Average Daily Revenue</span>
+                            <div class="stat-icon-box primary">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-value-large">€415.00</div>
+                    </div>
+                    <div class="stat-card-large">
+                        <div class="stat-header-row">
+                            <span class="stat-label-large" data-en="Today's Sales" data-pt="Vendas de Hoje">Today's Sales</span>
+                            <div class="stat-icon-box warning">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-value-large">€680.00</div>
+                    </div>
+                </div>
+
+                <!-- Sales Chart -->
+                <div class="chart-container">
+                    <h3 class="chart-title" data-en="Daily Sales - Last 30 Days" data-pt="Vendas Diárias - Últimos 30 Dias">Daily Sales - Last 30 Days</h3>
+                    <canvas id="salesChart" height="100"></canvas>
+                </div>
+            </section>
+
+            <!-- Sales Section -->
+            <section id="sales-section" class="admin-section">
+                <div class="data-table-container">
+                    <div class="data-table-header">
+                        <div class="search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="salesSearch" placeholder="Search sales..." data-en-placeholder="Search sales..." data-pt-placeholder="Pesquisar vendas...">
+                        </div>
+                        <div class="filter-group-inline">
+                            <select class="filter-select" id="salesStatusFilter">
+                                <option value="" data-en="All Status" data-pt="Todos os Estados">All Status</option>
+                                <option value="paid" data-en="Paid" data-pt="Pago">Paid</option>
+                                <option value="pending" data-en="Pending" data-pt="Pendente">Pending</option>
+                                <option value="refunded" data-en="Refunded" data-pt="Reembolsado">Refunded</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="exportSales()" data-en="Export CSV" data-pt="Exportar CSV">Export CSV</button>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('sales', 'id')" data-en="Booking ID" data-pt="Nº Reserva">Booking ID</th>
+                                <th onclick="sortTable('sales', 'date')" data-en="Date" data-pt="Data">Date</th>
+                                <th onclick="sortTable('sales', 'customer')" data-en="Customer" data-pt="Cliente">Customer</th>
+                                <th onclick="sortTable('sales', 'route')" data-en="Route" data-pt="Rota">Route</th>
+                                <th onclick="sortTable('sales', 'amount')" data-en="Amount" data-pt="Valor">Amount</th>
+                                <th onclick="sortTable('sales', 'status')" data-en="Status" data-pt="Estado">Status</th>
+                                <th data-en="Actions" data-pt="Ações">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div class="pagination-container">
+                        <span class="pagination-info" id="salesPaginationInfo">Showing 1-10 of 50</span>
+                        <div class="pagination-buttons" id="salesPagination">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Schedule Section -->
+            <section id="schedule-section" class="admin-section">
+                <div id="calendar"></div>
+            </section>
+
+            <!-- Team Section -->
+            <section id="team-section" class="admin-section">
+                <div class="data-table-container">
+                    <div class="data-table-header">
+                        <div class="search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="teamSearch" placeholder="Search team members..." data-en-placeholder="Search team members..." data-pt-placeholder="Pesquisar membros da equipa...">
+                        </div>
+                        <div class="filter-group-inline">
+                            <select class="filter-select" id="teamRoleFilter">
+                                <option value="" data-en="All Roles" data-pt="Todas as Funções">All Roles</option>
+                                <option value="admin" data-en="Admin" data-pt="Administrador">Admin</option>
+                                <option value="driver" data-en="Driver" data-pt="Motorista">Driver</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="openTeamModal('add')" data-en="Add Team Member" data-pt="Adicionar Membro">Add Team Member</button>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('team', 'firstName')" data-en="First Name" data-pt="Nome">First Name</th>
+                                <th onclick="sortTable('team', 'lastName')" data-en="Last Name" data-pt="Apelido">Last Name</th>
+                                <th onclick="sortTable('team', 'email')" data-en="Email" data-pt="Email">Email</th>
+                                <th onclick="sortTable('team', 'role')" data-en="Role" data-pt="Função">Role</th>
+                                <th data-en="Actions" data-pt="Ações">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teamTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div class="pagination-container">
+                        <span class="pagination-info" id="teamPaginationInfo">Showing 1-10 of 8</span>
+                        <div class="pagination-buttons" id="teamPagination">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Accommodations Section -->
+            <section id="accommodations-section" class="admin-section">
+                <div class="data-table-container">
+                    <div class="data-table-header">
+                        <div class="search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="accommodationsSearch" placeholder="Search accommodations..." data-en-placeholder="Search accommodations..." data-pt-placeholder="Pesquisar alojamentos...">
+                        </div>
+                        <div class="filter-group-inline">
+                            <select class="filter-select" id="accommodationsLocationFilter">
+                                <option value="" data-en="All Locations" data-pt="Todas as Localizações">All Locations</option>
+                                <option value="Milfontes">Milfontes</option>
+                                <option value="Almograve">Almograve</option>
+                                <option value="Zambujeira">Zambujeira</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="openAccommodationModal('add')" data-en="Add Hotel" data-pt="Adicionar Hotel">Add Hotel</button>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('accommodations', 'name')" data-en="Hotel Name" data-pt="Nome do Hotel">Hotel Name</th>
+                                <th onclick="sortTable('accommodations', 'location')" data-en="Location" data-pt="Localização">Location</th>
+                                <th onclick="sortTable('accommodations', 'phone')" data-en="Phone" data-pt="Telefone">Phone</th>
+                                <th onclick="sortTable('accommodations', 'status')" data-en="Status" data-pt="Estado">Status</th>
+                                <th data-en="Actions" data-pt="Ações">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accommodationsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div class="pagination-container">
+                        <span class="pagination-info" id="accommodationsPaginationInfo">Showing 1-10 of 15</span>
+                        <div class="pagination-buttons" id="accommodationsPagination">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Customers Section -->
+            <section id="customers-section" class="admin-section">
+                <div class="data-table-container">
+                    <div class="data-table-header">
+                        <div class="search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="customersSearch" placeholder="Search customers..." data-en-placeholder="Search customers..." data-pt-placeholder="Pesquisar clientes...">
+                        </div>
+                        <div class="filter-group-inline">
+                            <select class="filter-select" id="customersCountryFilter">
+                                <option value="" data-en="All Countries" data-pt="Todos os Países">All Countries</option>
+                                <option value="GB">United Kingdom</option>
+                                <option value="DE">Germany</option>
+                                <option value="FR">France</option>
+                                <option value="PT">Portugal</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="openCustomerModal('add')" data-en="Add Customer" data-pt="Adicionar Cliente">Add Customer</button>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable('customers', 'firstName')" data-en="First Name" data-pt="Nome">First Name</th>
+                                <th onclick="sortTable('customers', 'lastName')" data-en="Last Name" data-pt="Apelido">Last Name</th>
+                                <th onclick="sortTable('customers', 'email')" data-en="Email" data-pt="Email">Email</th>
+                                <th onclick="sortTable('customers', 'totalBookings')" data-en="Bookings" data-pt="Reservas">Bookings</th>
+                                <th onclick="sortTable('customers', 'country')" data-en="Country" data-pt="País">Country</th>
+                                <th data-en="Actions" data-pt="Ações">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div class="pagination-container">
+                        <span class="pagination-info" id="customersPaginationInfo">Showing 1-10 of 25</span>
+                        <div class="pagination-buttons" id="customersPagination">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Team Modal -->
+    <div class="modal-overlay" id="teamModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="teamModalTitle" data-en="Add Team Member" data-pt="Adicionar Membro">Add Team Member</h3>
+                <button class="modal-close" onclick="closeModal('teamModal')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="teamForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-en="First Name" data-pt="Nome">First Name</label>
+                            <input type="text" id="teamFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Last Name" data-pt="Apelido">Last Name</label>
+                            <input type="text" id="teamLastName" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Email" data-pt="Email">Email</label>
+                        <input type="email" id="teamEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Password" data-pt="Palavra-passe">Password</label>
+                        <input type="password" id="teamPassword" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-en="Role" data-pt="Função">Role</label>
+                            <select id="teamRole" required>
+                                <option value="admin" data-en="Admin" data-pt="Administrador">Admin</option>
+                                <option value="driver" data-en="Driver" data-pt="Motorista">Driver</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="License Number" data-pt="Nº Carta">License Number</label>
+                            <input type="text" id="teamLicense" placeholder="PT123456">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('teamModal')" data-en="Cancel" data-pt="Cancelar">Cancel</button>
+                <button class="btn btn-primary" onclick="saveTeamMember()" data-en="Save" data-pt="Guardar">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accommodation Modal -->
+    <div class="modal-overlay" id="accommodationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="accommodationModalTitle" data-en="Add Hotel" data-pt="Adicionar Hotel">Add Hotel</h3>
+                <button class="modal-close" onclick="closeModal('accommodationModal')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="accommodationForm">
+                    <div class="form-group">
+                        <label data-en="Hotel Name" data-pt="Nome do Hotel">Hotel Name</label>
+                        <input type="text" id="accName" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Location" data-pt="Localização">Location</label>
+                        <input type="text" id="accLocation" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Phone" data-pt="Telefone">Phone</label>
+                        <input type="tel" id="accPhone">
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Address" data-pt="Morada">Address</label>
+                        <textarea id="accAddress" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Map Shortcode" data-pt="Código Mapa">Map Shortcode</label>
+                        <textarea id="accMapShortcode" rows="2" placeholder='<iframe src="..."></iframe>'></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="accStatus" checked>
+                            <span data-en="Active" data-pt="Ativo">Active</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('accommodationModal')" data-en="Cancel" data-pt="Cancelar">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAccommodation()" data-en="Save" data-pt="Guardar">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div class="modal-overlay" id="customerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="customerModalTitle" data-en="Add Customer" data-pt="Adicionar Cliente">Add Customer</h3>
+                <button class="modal-close" onclick="closeModal('customerModal')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-en="First Name" data-pt="Nome">First Name</label>
+                            <input type="text" id="custFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Last Name" data-pt="Apelido">Last Name</label>
+                            <input type="text" id="custLastName" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Email" data-pt="Email">Email</label>
+                        <input type="email" id="custEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Phone" data-pt="Telefone">Phone</label>
+                        <input type="tel" id="custPhone">
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Country" data-pt="País">Country</label>
+                        <select id="custCountry">
+                            <option value="GB">United Kingdom</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="PT">Portugal</option>
+                            <option value="ES">Spain</option>
+                            <option value="US">United States</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Notes" data-pt="Notas">Notes</label>
+                        <textarea id="custNotes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('customerModal')" data-en="Cancel" data-pt="Cancelar">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCustomer()" data-en="Save" data-pt="Guardar">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/components.js"></script>
+    <script>
+        // Mock Data
+        const mockSales = [
+            { id: 'BK-2025-001', date: '2025-02-28', customer: 'John Smith', route: 'Milfontes → Almograve', amount: 35, status: 'paid' },
+            { id: 'BK-2025-002', date: '2025-02-28', customer: 'Sarah Johnson', route: 'Almograve → Zambujeira', amount: 35, status: 'paid' },
+            { id: 'BK-2025-003', date: '2025-02-27', customer: 'Michael Brown', route: 'Zambujeira → Odeceixe', amount: 40, status: 'pending' },
+            { id: 'BK-2025-004', date: '2025-02-27', customer: 'Emma Wilson', route: 'Odeceixe → Aljezur', amount: 45, status: 'paid' },
+            { id: 'BK-2025-005', date: '2025-02-26', customer: 'James Davis', route: 'Aljezur → Arrifana', amount: 30, status: 'paid' },
+            { id: 'BK-2025-006', date: '2025-02-26', customer: 'Maria Garcia', route: 'Arrifana → Carrapateira', amount: 35, status: 'refunded' },
+            { id: 'BK-2025-007', date: '2025-02-25', customer: 'Robert Miller', route: 'Carrapateira → Vila Bispo', amount: 40, status: 'paid' },
+            { id: 'BK-2025-008', date: '2025-02-25', customer: 'Lisa Anderson', route: 'Vila Bispo → Sagres', amount: 35, status: 'paid' },
+            { id: 'BK-2025-009', date: '2025-02-24', customer: 'David Taylor', route: 'Sagres → Lagos', amount: 50, status: 'paid' },
+            { id: 'BK-2025-010', date: '2025-02-24', customer: 'Jennifer Martinez', route: 'Milfontes → Almograve', amount: 35, status: 'pending' },
+        ];
+
+        const mockTeam = [
+            { id: 1, firstName: 'António', lastName: 'Silva', email: 'antonio@traking.pt', role: 'driver', licenseNumber: 'PT123456' },
+            { id: 2, firstName: 'Maria', lastName: 'Santos', email: 'maria@traking.pt', role: 'driver', licenseNumber: 'PT789012' },
+            { id: 3, firstName: 'João', lastName: 'Ferreira', email: 'joao@traking.pt', role: 'admin', licenseNumber: '' },
+            { id: 4, firstName: 'Ana', lastName: 'Costa', email: 'ana@traking.pt', role: 'driver', licenseNumber: 'PT345678' },
+            { id: 5, firstName: 'Pedro', lastName: 'Oliveira', email: 'pedro@traking.pt', role: 'driver', licenseNumber: 'PT901234' },
+        ];
+
+        const mockAccommodations = [
+            { id: 1, name: 'Hotel Milfontes', location: 'Milfontes', phone: '+351283990000', address: 'Rua da Praia 25', mapShortcode: '', status: 'active' },
+            { id: 2, name: 'Casa do Pescador', location: 'Almograve', phone: '+351283995000', address: 'Rua dos Pescadores 10', mapShortcode: '', status: 'active' },
+            { id: 3, name: 'Mar Azul Hotel', location: 'Zambujeira', phone: '+351283990123', address: 'Rua do Mar 50', mapShortcode: '', status: 'active' },
+            { id: 4, name: 'Odeceixe House', location: 'Odeceixe', phone: '+351282990456', address: 'Rua da Duna 15', mapShortcode: '', status: 'inactive' },
+        ];
+
+        const mockCustomers = [
+            { id: 1, firstName: 'John', lastName: 'Smith', email: 'john@example.com', phone: '+447123456789', country: 'GB', totalBookings: 5, notes: '' },
+            { id: 2, firstName: 'Sarah', lastName: 'Johnson', email: 'sarah@example.com', phone: '+33612345678', country: 'FR', totalBookings: 3, notes: '' },
+            { id: 3, firstName: 'Michael', lastName: 'Brown', email: 'michael@example.com', phone: '+4915123456789', country: 'DE', totalBookings: 2, notes: '' },
+            { id: 4, firstName: 'Emma', lastName: 'Wilson', email: 'emma@example.com', phone: '+447987654321', country: 'GB', totalBookings: 8, notes: '' },
+            { id: 5, firstName: 'James', lastName: 'Davis', email: 'james@example.com', phone: '+14085551234', country: 'US', totalBookings: 1, notes: '' },
+        ];
+
+        // State management
+        let currentSection = 'overview';
+        let salesPage = 1;
+        let teamPage = 1;
+        let accommodationsPage = 1;
+        let customersPage = 1;
+        const itemsPerPage = 10;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initAdminSidebar();
+            renderSalesTable();
+            renderTeamTable();
+            renderAccommodationsTable();
+            renderCustomersTable();
+            initChart();
+            initCalendar();
+            setupSearchListeners();
+        });
+
+        // Navigation
+        function initAdminSidebar() {
+            // Sidebar is static in HTML for admin
+            setupLanguageToggle();
+            setupMobileMenu();
+        }
+
+        function showSection(section) {
+            currentSection = section;
+            
+            // Hide all sections
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(`${section}-section`).classList.add('active');
+            
+            // Update nav active state
+            document.querySelectorAll('.admin-nav-link').forEach(link => link.classList.remove('active'));
+            document.getElementById(`nav-${section}`).classList.add('active');
+            
+            // Update page title
+            const titles = {
+                overview: { en: 'Overview', pt: 'Visão Geral' },
+                sales: { en: 'Sales', pt: 'Vendas' },
+                schedule: { en: 'Schedule', pt: 'Agenda' },
+                team: { en: 'Team', pt: 'Equipa' },
+                accommodations: { en: 'Accommodations', pt: 'Alojamentos' },
+                customers: { en: 'Customers', pt: 'Clientes' }
+            };
+            
+            const title = titles[section][currentLang] || titles[section].en;
+            document.getElementById('pageTitle').textContent = title;
+            document.getElementById('pageTitle').setAttribute('data-en', titles[section].en);
+            document.getElementById('pageTitle').setAttribute('data-pt', titles[section].pt);
+            
+            // Refresh calendar if schedule section
+            if (section === 'schedule' && window.calendar) {
+                window.calendar.render();
+            }
+        }
+
+        // Chart.js initialization
+        function initChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            
+            // Generate last 30 days of data
+            const labels = [];
+            const data = [];
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }));
+                data.push(Math.floor(Math.random() * 800) + 200);
+            }
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue (€)',
+                        data: data,
+                        borderColor: '#c4a77d',
+                        backgroundColor: 'rgba(196, 167, 125, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#c4a77d',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#1a1a1a',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return '€' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '€' + value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // FullCalendar initialization
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            
+            window.calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+                events: [
+                    { title: '3 transfers', date: '2025-02-28', color: '#c4a77d' },
+                    { title: '5 transfers', date: '2025-02-27', color: '#c4a77d' },
+                    { title: '2 transfers', date: '2025-02-26', color: '#c4a77d' },
+                    { title: '4 transfers', date: '2025-02-25', color: '#c4a77d' },
+                    { title: '1 transfer', date: '2025-02-24', color: '#c4a77d' },
+                ],
+                eventClick: function(info) {
+                    showNotification(`${info.event.title} on ${info.event.start.toLocaleDateString()}`, 'success');
+                }
+            });
+            
+            window.calendar.render();
+        }
+
+        // Sales Table
+        function renderSalesTable() {
+            const tbody = document.getElementById('salesTableBody');
+            const start = (salesPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = mockSales.slice(start, end);
+            
+            tbody.innerHTML = pageData.map(sale => `
+                <tr>
+                    <td>${sale.id}</td>
+                    <td>${formatDate(sale.date)}</td>
+                    <td>${sale.customer}</td>
+                    <td>${sale.route}</td>
+                    <td>€${sale.amount.toFixed(2)}</td>
+                    <td><span class="status-badge ${sale.status}">${sale.status}</span></td>
+                    <td>
+                        <div class="action-icons">
+                            <button class="action-btn view" onclick="viewSale('${sale.id}')" title="View">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button class="action-btn edit" onclick="editSale('${sale.id}')" title="Edit">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updatePagination('sales', mockSales.length);
+        }
+
+        // Team Table
+        function renderTeamTable() {
+            const tbody = document.getElementById('teamTableBody');
+            const start = (teamPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = mockTeam.slice(start, end);
+            
+            tbody.innerHTML = pageData.map(member => `
+                <tr>
+                    <td>${member.firstName}</td>
+                    <td>${member.lastName}</td>
+                    <td>${member.email}</td>
+                    <td><span class="status-badge ${member.role}">${member.role}</span></td>
+                    <td>
+                        <div class="action-icons">
+                            <button class="action-btn view" onclick="viewTeamMember(${member.id})" title="View">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button class="action-btn edit" onclick="editTeamMember(${member.id})" title="Edit">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="action-btn delete" onclick="deleteTeamMember(${member.id})" title="Delete">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updatePagination('team', mockTeam.length);
+        }
+
+        // Accommodations Table
+        function renderAccommodationsTable() {
+            const tbody = document.getElementById('accommodationsTableBody');
+            const start = (accommodationsPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = mockAccommodations.slice(start, end);
+            
+            tbody.innerHTML = pageData.map(acc => `
+                <tr>
+                    <td>${acc.name}</td>
+                    <td>${acc.location}</td>
+                    <td>${acc.phone}</td>
+                    <td><span class="status-badge ${acc.status}">${acc.status}</span></td>
+                    <td>
+                        <div class="action-icons">
+                            <button class="action-btn view" onclick="viewAccommodation(${acc.id})" title="View">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button class="action-btn edit" onclick="editAccommodation(${acc.id})" title="Edit">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="action-btn delete" onclick="deleteAccommodation(${acc.id})" title="Delete">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updatePagination('accommodations', mockAccommodations.length);
+        }
+
+        // Customers Table
+        function renderCustomersTable() {
+            const tbody = document.getElementById('customersTableBody');
+            const start = (customersPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = mockCustomers.slice(start, end);
+            
+            tbody.innerHTML = pageData.map(cust => `
+                <tr>
+                    <td>${cust.firstName}</td>
+                    <td>${cust.lastName}</td>
+                    <td>${cust.email}</td>
+                    <td>${cust.totalBookings}</td>
+                    <td>${cust.country}</td>
+                    <td>
+                        <div class="action-icons">
+                            <button class="action-btn view" onclick="viewCustomer(${cust.id})" title="View">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button class="action-btn edit" onclick="editCustomer(${cust.id})" title="Edit">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <button class="action-btn delete" onclick="deleteCustomer(${cust.id})" title="Delete">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            updatePagination('customers', mockCustomers.length);
+        }
+
+        // Pagination
+        function updatePagination(type, totalItems) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const currentPage = type === 'sales' ? salesPage : type === 'team' ? teamPage : type === 'accommodations' ? accommodationsPage : customersPage;
+            
+            const info = document.getElementById(`${type}PaginationInfo`);
+            const start = (currentPage - 1) * itemsPerPage + 1;
+            const end = Math.min(currentPage * itemsPerPage, totalItems);
+            info.textContent = `Showing ${start}-${end} of ${totalItems}`;
+            
+            const buttons = document.getElementById(`${type}Pagination`);
+            let html = `
+                <button class="page-btn" onclick="changePage('${type}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>←</button>
+            `;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage('${type}', ${i})">${i}</button>`;
+            }
+            
+            html += `
+                <button class="page-btn" onclick="changePage('${type}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>→</button>
+            `;
+            
+            buttons.innerHTML = html;
+        }
+
+        function changePage(type, page) {
+            if (type === 'sales') {
+                salesPage = page;
+                renderSalesTable();
+            } else if (type === 'team') {
+                teamPage = page;
+                renderTeamTable();
+            } else if (type === 'accommodations') {
+                accommodationsPage = page;
+                renderAccommodationsTable();
+            } else if (type === 'customers') {
+                customersPage = page;
+                renderCustomersTable();
+            }
+        }
+
+        // Search functionality
+        function setupSearchListeners() {
+            document.getElementById('salesSearch')?.addEventListener('input', debounce((e) => {
+                // Filter logic would go here
+                console.log('Search sales:', e.target.value);
+            }, 300));
+            
+            document.getElementById('teamSearch')?.addEventListener('input', debounce((e) => {
+                console.log('Search team:', e.target.value);
+            }, 300));
+            
+            document.getElementById('accommodationsSearch')?.addEventListener('input', debounce((e) => {
+                console.log('Search accommodations:', e.target.value);
+            }, 300));
+            
+            document.getElementById('customersSearch')?.addEventListener('input', debounce((e) => {
+                console.log('Search customers:', e.target.value);
+            }, 300));
+        }
+
+        // Modal functions
+        let editingId = null;
+
+        function openTeamModal(mode, id = null) {
+            editingId = id;
+            const modal = document.getElementById('teamModal');
+            const title = document.getElementById('teamModalTitle');
+            
+            if (mode === 'edit' && id) {
+                const member = mockTeam.find(m => m.id === id);
+                document.getElementById('teamFirstName').value = member.firstName;
+                document.getElementById('teamLastName').value = member.lastName;
+                document.getElementById('teamEmail').value = member.email;
+                document.getElementById('teamRole').value = member.role;
+                document.getElementById('teamLicense').value = member.licenseNumber;
+                document.getElementById('teamPassword').required = false;
+                title.textContent = currentLang === 'pt' ? 'Editar Membro' : 'Edit Team Member';
+            } else {
+                document.getElementById('teamForm').reset();
+                document.getElementById('teamPassword').required = true;
+                title.textContent = currentLang === 'pt' ? 'Adicionar Membro' : 'Add Team Member';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function openAccommodationModal(mode, id = null) {
+            editingId = id;
+            const modal = document.getElementById('accommodationModal');
+            const title = document.getElementById('accommodationModalTitle');
+            
+            if (mode === 'edit' && id) {
+                const acc = mockAccommodations.find(a => a.id === id);
+                document.getElementById('accName').value = acc.name;
+                document.getElementById('accLocation').value = acc.location;
+                document.getElementById('accPhone').value = acc.phone;
+                document.getElementById('accAddress').value = acc.address;
+                document.getElementById('accMapShortcode').value = acc.mapShortcode;
+                document.getElementById('accStatus').checked = acc.status === 'active';
+                title.textContent = currentLang === 'pt' ? 'Editar Hotel' : 'Edit Hotel';
+            } else {
+                document.getElementById('accommodationForm').reset();
+                title.textContent = currentLang === 'pt' ? 'Adicionar Hotel' : 'Add Hotel';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function openCustomerModal(mode, id = null) {
+            editingId = id;
+            const modal = document.getElementById('customerModal');
+            const title = document.getElementById('customerModalTitle');
+            
+            if (mode === 'edit' && id) {
+                const cust = mockCustomers.find(c => c.id === id);
+                document.getElementById('custFirstName').value = cust.firstName;
+                document.getElementById('custLastName').value = cust.lastName;
+                document.getElementById('custEmail').value = cust.email;
+                document.getElementById('custPhone').value = cust.phone;
+                document.getElementById('custCountry').value = cust.country;
+                document.getElementById('custNotes').value = cust.notes;
+                title.textContent = currentLang === 'pt' ? 'Editar Cliente' : 'Edit Customer';
+            } else {
+                document.getElementById('customerForm').reset();
+                title.textContent = currentLang === 'pt' ? 'Adicionar Cliente' : 'Add Customer';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            editingId = null;
+        }
+
+        // Save functions
+        function saveTeamMember() {
+            const form = document.getElementById('teamForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            showNotification(currentLang === 'pt' ? 'Membro guardado!' : 'Team member saved!', 'success');
+            closeModal('teamModal');
+            renderTeamTable();
+        }
+
+        function saveAccommodation() {
+            const form = document.getElementById('accommodationForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            showNotification(currentLang === 'pt' ? 'Hotel guardado!' : 'Hotel saved!', 'success');
+            closeModal('accommodationModal');
+            renderAccommodationsTable();
+        }
+
+        function saveCustomer() {
+            const form = document.getElementById('customerForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            showNotification(currentLang === 'pt' ? 'Cliente guardado!' : 'Customer saved!', 'success');
+            closeModal('customerModal');
+            renderCustomersTable();
+        }
+
+        // Action handlers
+        function viewSale(id) { showNotification(`View sale ${id}`, 'success'); }
+        function editSale(id) { showNotification(`Edit sale ${id}`, 'warning'); }
+        function exportSales() { showNotification(currentLang === 'pt' ? 'Exportando CSV...' : 'Exporting CSV...', 'success'); }
+        
+        function viewTeamMember(id) { showNotification(`View team member ${id}`, 'success'); }
+        function editTeamMember(id) { openTeamModal('edit', id); }
+        function deleteTeamMember(id) {
+            if (confirm(currentLang === 'pt' ? 'Tem certeza?' : 'Are you sure?')) {
+                showNotification(currentLang === 'pt' ? 'Membro eliminado' : 'Team member deleted', 'success');
+            }
+        }
+        
+        function viewAccommodation(id) { showNotification(`View accommodation ${id}`, 'success'); }
+        function editAccommodation(id) { openAccommodationModal('edit', id); }
+        function deleteAccommodation(id) {
+            if (confirm(currentLang === 'pt' ? 'Tem certeza?' : 'Are you sure?')) {
+                showNotification(currentLang === 'pt' ? 'Hotel eliminado' : 'Hotel deleted', 'success');
+            }
+        }
+        
+        function viewCustomer(id) { showNotification(`View customer ${id}`, 'success'); }
+        function editCustomer(id) { openCustomerModal('edit', id); }
+        function deleteCustomer(id) {
+            if (confirm(currentLang === 'pt' ? 'Tem certeza?' : 'Are you sure?')) {
+                showNotification(currentLang === 'pt' ? 'Cliente eliminado' : 'Customer deleted', 'success');
+            }
+        }
+
+        function sortTable(type, column) {
+            showNotification(`Sorting ${type} by ${column}`, 'success');
+        }
+
+        // Helper functions
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString(currentLang === 'pt' ? 'pt-PT' : 'en-GB');
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        // Close modals on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
