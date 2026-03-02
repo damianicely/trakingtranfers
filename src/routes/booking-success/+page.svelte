@@ -36,47 +36,31 @@
 </svelte:head>
 
 <div class="success-page">
-	<!-- Hero Section -->
-	<section class="hero">
-		<div class="hero-bg">
-			<img src="/images/optimized_pier.jpg" alt="Coastal pier at sunset" class="hero-image-left" />
-			<img
-				src="/images/optimized_cistus.jpg"
-				alt="Wild cistus flowers on the trail"
-				class="hero-image-right"
-			/>
-			<div class="hero-overlay"></div>
+	<!-- Success Banner Section -->
+	<section class="success-banner">
+		<div class="success-image">
+			<img src="/images/optimized_pier.jpg" alt="Coastal pier at sunset" />
 		</div>
-		<div class="hero-content">
-			<div class="success-badge">
-				<svg
-					class="check-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="3"
-				>
-					<path d="M20 6L9 17l-5-5" />
-				</svg>
-			</div>
-			<p class="hero-subtitle">Booking Confirmed</p>
+		<div class="success-content">
+			{#if passwordResetUrl}
+				<div class="success-badge">
+					<svg
+						class="check-icon"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="3"
+					>
+						<path d="M20 6L9 17l-5-5" />
+					</svg>
+				</div>
+			{/if}
+			<p class="section-label">Booking Confirmed</p>
 			<h1 class="hero-title">Thank You</h1>
 			<p class="hero-description">
 				Your luggage transport has been successfully booked. We've sent a confirmation email with
 				all the details.
 			</p>
-		</div>
-		<div class="scroll-indicator">
-			<svg
-				width="24"
-				height="24"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<polyline points="6 9 12 15 18 9"></polyline>
-			</svg>
 		</div>
 	</section>
 
@@ -283,15 +267,72 @@
 		overflow-x: hidden;
 	}
 
-	/* Hero Section */
-	.hero {
+	/* Success Banner Section */
+	.success-banner {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		min-height: 500px;
+		background: #1a1a1a;
+	}
+
+	.success-image {
 		position: relative;
-		height: 100vh;
-		min-height: 700px;
+		overflow: hidden;
+	}
+
+	.success-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.success-content {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		padding: 4rem;
+		color: #ffffff;
+	}
+
+	.success-badge {
+		width: 80px;
+		height: 80px;
+		border-radius: 50%;
+		background: #c4a77d;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		overflow: hidden;
+		margin-bottom: 1.5rem;
+		box-shadow: 0 10px 40px rgba(196, 167, 125, 0.4);
+	}
+
+	.check-icon {
+		width: 40px;
+		height: 40px;
+		color: #ffffff;
+	}
+
+	.success-content .section-label {
+		color: #c4a77d;
+		margin-bottom: 1rem;
+	}
+
+	.success-content .hero-title {
+		font-family: 'Playfair Display', serif;
+		font-size: clamp(2.5rem, 5vw, 4rem);
+		font-weight: 400;
+		line-height: 1.1;
+		margin-bottom: 1.5rem;
+		letter-spacing: -0.02em;
+		color: #ffffff;
+	}
+
+	.success-content .hero-description {
+		font-size: 1.125rem;
+		font-weight: 300;
+		line-height: 1.8;
+		opacity: 0.9;
 	}
 
 	.hero-bg {
@@ -300,24 +341,10 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0;
+		background:
+			linear-gradient(135deg, rgba(26, 26, 26, 0.5) 0%, rgba(26, 26, 26, 0.7) 100%),
+			url('/images/optimized_pier.jpg') center/cover;
 		z-index: -1;
-	}
-
-	.hero-image-left,
-	.hero-image-right {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		filter: brightness(0.7);
-	}
-
-	.hero-overlay {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(135deg, rgba(26, 26, 26, 0.4) 0%, rgba(26, 26, 26, 0.6) 100%);
 	}
 
 	.hero-content {
@@ -747,15 +774,21 @@
 
 	/* Responsive */
 	@media (max-width: 768px) {
-		.hero-bg {
+		.success-banner {
 			grid-template-columns: 1fr;
 		}
 
-		.hero-image-right {
-			display: none;
+		.success-image {
+			height: 250px;
 		}
 
-		.hero-title {
+		.success-content {
+			padding: 3rem 2rem;
+			align-items: center;
+			text-align: center;
+		}
+
+		.success-content .hero-title {
 			font-size: 2.5rem;
 		}
 
