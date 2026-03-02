@@ -49,7 +49,8 @@
 	}
 
 	function driverLabel(d: Driver): string {
-		if (d.firstName || d.lastName) return [d.firstName, d.lastName].filter(Boolean).join(' ').trim();
+		if (d.firstName || d.lastName)
+			return [d.firstName, d.lastName].filter(Boolean).join(' ').trim();
 		return d.username;
 	}
 
@@ -123,7 +124,7 @@
 	}
 
 	const selectedBooking = $derived(
-		viewingBookingId ? (bookingDetailsById ?? {})[viewingBookingId] ?? null : null
+		viewingBookingId ? ((bookingDetailsById ?? {})[viewingBookingId] ?? null) : null
 	);
 
 	const stageNames = $derived(Object.fromEntries(STAGES.map((s) => [s.id, s.name])));
@@ -139,128 +140,175 @@
 </script>
 
 <section class="transfers-section">
-	<h2 class="section-title">
-		{t.transfers_section_title}{#if selectedDate} – {formatDate(selectedDate)}{/if}
-	</h2>
+	<div class="section-header">
+		<h2 class="section-title">
+			{t.transfers_section_title}{#if selectedDate}
+				– {formatDate(selectedDate)}{/if}
+		</h2>
+	</div>
 
 	{#if !legSummaries || legSummaries.length === 0}
-		<p class="empty-state">{t.transfers_empty}</p>
+		<div class="empty-state">{t.transfers_empty}</div>
 	{:else}
 		{#if Object.keys(groupedByDirection.northbound).length > 0}
 			<div class="direction-group">
-				<h3 class="direction-title">{t.transfers_northbound}</h3>
-				<table class="transfers-table">
-					<thead>
-						<tr>
-							<th class="col-route">{t.transfers_route_bookings}</th>
-							{#each drivers as driver}
-								<th class="col-driver">{driverLabel(driver)}</th>
-							{/each}
-						</tr>
-					</thead>
-					<tbody>
-						{#each Object.entries(groupedByDirection.northbound) as [key, summaries]}
-							{@const [fromId, toId] = key.split('-')}
+				<h3 class="direction-title">
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<polyline points="18 15 12 9 6 15"></polyline>
+					</svg>
+					{t.transfers_northbound}
+				</h3>
+				<div class="table-container">
+					<table class="data-table">
+						<thead>
 							<tr>
-								<td class="col-route">
-									<div class="leg-title">{getStepLabel(fromId, toId)}</div>
-									<ul class="booking-list">
-										{#each summaries as s}
-											<li class="booking-line">
-												<span class="bags">{s.numBags} {s.numBags === 1 ? t.transfers_bag : t.transfers_bags}</span>
-												<button
-													type="button"
-													class="ref ref-link"
-													onclick={() => openBooking(s.bookingId)}
-												>
-													– #{s.bookingShortRef}
-												</button>
-												<span class="hotels">
-													{#if s.startHotelName}{s.startHotelName}{:else}{t.transfers_start_hotel}{/if}
-													→
-													{#if s.endHotelName}{s.endHotelName}{:else}{t.transfers_destination_hotel}{/if}
-												</span>
-											</li>
-										{/each}
-									</ul>
-								</td>
+								<th class="col-route">{t.transfers_route_bookings}</th>
 								{#each drivers as driver}
-									{@const busy = toggling === `${key}-${driver.id}`}
-									<td class="col-driver">
-										<label class="checkbox-cell">
-											<input
-												type="checkbox"
-												checked={isAssigned(key, driver.id)}
-												disabled={busy}
-												onchange={(e) => toggleDriver(key, driver.id, (e.currentTarget as HTMLInputElement).checked)}
-											/>
-											<span class="check-label">{t.transfers_assign}</span>
-										</label>
-									</td>
+									<th class="col-driver">{driverLabel(driver)}</th>
 								{/each}
 							</tr>
-						{/each}
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							{#each Object.entries(groupedByDirection.northbound) as [key, summaries]}
+								{@const [fromId, toId] = key.split('-')}
+								<tr>
+									<td class="col-route">
+										<div class="leg-title">{getStepLabel(fromId, toId)}</div>
+										<ul class="booking-list">
+											{#each summaries as s}
+												<li class="booking-line">
+													<span class="bags"
+														>{s.numBags}
+														{s.numBags === 1 ? t.transfers_bag : t.transfers_bags}</span
+													>
+													<button
+														type="button"
+														class="ref ref-link"
+														onclick={() => openBooking(s.bookingId)}
+													>
+														– #{s.bookingShortRef}
+													</button>
+													<span class="hotels">
+														{#if s.startHotelName}{s.startHotelName}{:else}{t.transfers_start_hotel}{/if}
+														→
+														{#if s.endHotelName}{s.endHotelName}{:else}{t.transfers_destination_hotel}{/if}
+													</span>
+												</li>
+											{/each}
+										</ul>
+									</td>
+									{#each drivers as driver}
+										{@const busy = toggling === `${key}-${driver.id}`}
+										<td class="col-driver">
+											<label class="checkbox-cell">
+												<input
+													type="checkbox"
+													checked={isAssigned(key, driver.id)}
+													disabled={busy}
+													onchange={(e) =>
+														toggleDriver(
+															key,
+															driver.id,
+															(e.currentTarget as HTMLInputElement).checked
+														)}
+												/>
+												<span class="check-label">{t.transfers_assign}</span>
+											</label>
+										</td>
+									{/each}
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
 			</div>
 		{/if}
 
 		{#if Object.keys(groupedByDirection.southbound).length > 0}
 			<div class="direction-group">
-				<h3 class="direction-title">{t.transfers_southbound}</h3>
-				<table class="transfers-table">
-					<thead>
-						<tr>
-							<th class="col-route">{t.transfers_route_bookings}</th>
-							{#each drivers as driver}
-								<th class="col-driver">{driverLabel(driver)}</th>
-							{/each}
-						</tr>
-					</thead>
-					<tbody>
-						{#each Object.entries(groupedByDirection.southbound) as [key, summaries]}
-							{@const [fromId, toId] = key.split('-')}
+				<h3 class="direction-title">
+					<svg
+						width="16"
+						height="16"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<polyline points="6 9 12 15 18 9"></polyline>
+					</svg>
+					{t.transfers_southbound}
+				</h3>
+				<div class="table-container">
+					<table class="data-table">
+						<thead>
 							<tr>
-								<td class="col-route">
-									<div class="leg-title">{getStepLabel(fromId, toId)}</div>
-									<ul class="booking-list">
-										{#each summaries as s}
-											<li class="booking-line">
-												<span class="bags">{s.numBags} {s.numBags === 1 ? t.transfers_bag : t.transfers_bags}</span>
-												<button
-													type="button"
-													class="ref ref-link"
-													onclick={() => openBooking(s.bookingId)}
-												>
-													– #{s.bookingShortRef}
-												</button>
-												<span class="hotels">
-													{#if s.startHotelName}{s.startHotelName}{:else}{t.transfers_start_hotel}{/if}
-													→
-													{#if s.endHotelName}{s.endHotelName}{:else}{t.transfers_destination_hotel}{/if}
-												</span>
-											</li>
-										{/each}
-									</ul>
-								</td>
+								<th class="col-route">{t.transfers_route_bookings}</th>
 								{#each drivers as driver}
-									{@const busy = toggling === `${key}-${driver.id}`}
-									<td class="col-driver">
-										<label class="checkbox-cell">
-											<input
-												type="checkbox"
-												checked={isAssigned(key, driver.id)}
-												disabled={busy}
-												onchange={(e) => toggleDriver(key, driver.id, (e.currentTarget as HTMLInputElement).checked)}
-											/>
-											<span class="check-label">{t.transfers_assign}</span>
-										</label>
-									</td>
+									<th class="col-driver">{driverLabel(driver)}</th>
 								{/each}
 							</tr>
-						{/each}
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							{#each Object.entries(groupedByDirection.southbound) as [key, summaries]}
+								{@const [fromId, toId] = key.split('-')}
+								<tr>
+									<td class="col-route">
+										<div class="leg-title">{getStepLabel(fromId, toId)}</div>
+										<ul class="booking-list">
+											{#each summaries as s}
+												<li class="booking-line">
+													<span class="bags"
+														>{s.numBags}
+														{s.numBags === 1 ? t.transfers_bag : t.transfers_bags}</span
+													>
+													<button
+														type="button"
+														class="ref ref-link"
+														onclick={() => openBooking(s.bookingId)}
+													>
+														– #{s.bookingShortRef}
+													</button>
+													<span class="hotels">
+														{#if s.startHotelName}{s.startHotelName}{:else}{t.transfers_start_hotel}{/if}
+														→
+														{#if s.endHotelName}{s.endHotelName}{:else}{t.transfers_destination_hotel}{/if}
+													</span>
+												</li>
+											{/each}
+										</ul>
+									</td>
+									{#each drivers as driver}
+										{@const busy = toggling === `${key}-${driver.id}`}
+										<td class="col-driver">
+											<label class="checkbox-cell">
+												<input
+													type="checkbox"
+													checked={isAssigned(key, driver.id)}
+													disabled={busy}
+													onchange={(e) =>
+														toggleDriver(
+															key,
+															driver.id,
+															(e.currentTarget as HTMLInputElement).checked
+														)}
+												/>
+												<span class="check-label">{t.transfers_assign}</span>
+											</label>
+										</td>
+									{/each}
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
 			</div>
 		{/if}
 	{/if}
@@ -281,8 +329,7 @@
 					<span>
 						{(selectedBooking.userFirstName ?? selectedBooking.firstName) || ''}
 						{(selectedBooking.userLastName ?? selectedBooking.lastName) || ''}
-						{#if !(selectedBooking.userFirstName ?? selectedBooking.firstName) &&
-							!(selectedBooking.userLastName ?? selectedBooking.lastName)}
+						{#if !(selectedBooking.userFirstName ?? selectedBooking.firstName) && !(selectedBooking.userLastName ?? selectedBooking.lastName)}
 							<span class="muted">—</span>
 						{/if}
 					</span>
@@ -298,9 +345,13 @@
 				<div class="detail-row">
 					<strong>{t.bookings_table_route}:</strong>
 					<span>
-						{stageNames[selectedBooking.departureStageId ?? ''] ?? selectedBooking.departureStageId ?? '—'}
+						{stageNames[selectedBooking.departureStageId ?? ''] ??
+							selectedBooking.departureStageId ??
+							'—'}
 						→
-						{stageNames[selectedBooking.destinationStageId ?? ''] ?? selectedBooking.destinationStageId ?? '—'}
+						{stageNames[selectedBooking.destinationStageId ?? ''] ??
+							selectedBooking.destinationStageId ??
+							'—'}
 					</span>
 				</div>
 				<div class="detail-row">
@@ -326,11 +377,7 @@
 			</div>
 		</ViewModal>
 	{:else if viewingBookingId && !bookingDetailsById[viewingBookingId]}
-		<ViewModal
-			title={t.bookings_modal_title}
-			isOpen={true}
-			onClose={closeModal}
-		>
+		<ViewModal title={t.bookings_modal_title} isOpen={true} onClose={closeModal}>
 			<p class="muted">{t.transfers_booking_unavailable}</p>
 		</ViewModal>
 	{/if}
@@ -339,56 +386,94 @@
 <style>
 	.transfers-section {
 		width: 100%;
+		padding: 1.5rem;
+	}
+
+	.section-header {
+		margin-bottom: 1.5rem;
 	}
 
 	.section-title {
 		font-size: 1.125rem;
 		font-weight: 600;
-		color: #1a1d21;
-		margin: 0 0 0.75rem 0;
+		color: var(--color-primary, #1a1a1a);
+		margin: 0;
 	}
 
 	.direction-group {
-		margin-top: 1.25rem;
+		margin-bottom: 2rem;
+	}
+
+	.direction-group:last-child {
+		margin-bottom: 0;
 	}
 
 	.direction-title {
-		margin: 0 0 0.5rem 0;
-		font-size: 0.95rem;
+		margin: 0 0 1rem 0;
+		font-size: 1rem;
 		font-weight: 600;
-		color: #374151;
+		color: var(--color-primary, #1a1a1a);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 1rem;
+		background: var(--color-secondary, #f5f5f0);
+		border-radius: 8px;
 	}
 
 	.empty-state {
-		padding: 1.5rem 0;
+		padding: 3rem 2rem;
 		text-align: center;
-		color: #5f6368;
-		font-size: 0.9rem;
+		color: var(--color-text-light, #666666);
+		font-size: 1rem;
 		font-style: italic;
 	}
 
-	.transfers-table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.9rem;
+	.table-container {
+		overflow-x: auto;
 	}
 
-	.transfers-table th,
-	.transfers-table td {
-		padding: 0.5rem 0.75rem;
+	/* Table styling */
+	.data-table {
+		width: 100%;
+		border-collapse: collapse;
+		background: white;
+	}
+
+	.data-table thead {
+		background: var(--color-secondary, #f5f5f0);
+	}
+
+	.data-table th {
+		padding: 0.75rem 1rem;
 		text-align: left;
-		border-bottom: 1px solid #e5e7eb;
+		font-weight: 600;
+		font-size: 0.8125rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-text-light, #666666);
+		border-bottom: 1px solid var(--color-border, #e0e0e0);
+		white-space: nowrap;
+	}
+
+	.data-table td {
+		padding: 0.75rem 1rem;
+		border-bottom: 1px solid var(--color-border, #e0e0e0);
+		font-size: 0.9375rem;
+		color: var(--color-text, #333333);
 		vertical-align: top;
 	}
 
-	.transfers-table thead th {
-		font-weight: 600;
-		color: #374151;
-		background: #f9fafb;
+	.data-table tbody tr:hover {
+		background: rgba(245, 245, 240, 0.5);
+	}
+
+	.data-table tbody tr:last-child td {
+		border-bottom: none;
 	}
 
 	.col-route {
-		min-width: 200px;
+		min-width: 300px;
 	}
 
 	.col-driver {
@@ -406,6 +491,9 @@
 
 	.checkbox-cell input[type='checkbox'] {
 		cursor: pointer;
+		width: 18px;
+		height: 18px;
+		accent-color: var(--color-accent, #c4a77d);
 	}
 
 	.checkbox-cell input:disabled {
@@ -414,15 +502,15 @@
 	}
 
 	.check-label {
-		color: #6b7280;
+		color: var(--color-text-light, #666666);
 		font-size: 0.85rem;
 	}
 
 	.leg-title {
 		font-size: 0.9rem;
 		font-weight: 600;
-		color: #111827;
-		margin-bottom: 0.25rem;
+		color: var(--color-primary, #1a1a1a);
+		margin-bottom: 0.5rem;
 	}
 
 	.booking-list {
@@ -432,23 +520,26 @@
 	}
 
 	.booking-line {
-		font-size: 0.9rem;
-		color: #374151;
-		padding: 0.15rem 0;
+		font-size: 0.875rem;
+		color: var(--color-text, #333333);
+		padding: 0.35rem 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
 	}
 
 	.booking-line .bags {
 		font-weight: 600;
-		margin-right: 0.25rem;
+		color: var(--color-accent-dark, #a08960);
 	}
 
 	.booking-line .ref {
-		margin-right: 0.35rem;
-		color: #4b5563;
+		color: var(--color-text-light, #666666);
 	}
 
 	.booking-line .hotels {
-		color: #111827;
+		color: var(--color-primary, #1a1a1a);
 	}
 
 	.ref-link {
@@ -456,15 +547,17 @@
 		border: none;
 		padding: 0;
 		font: inherit;
-		color: #4b5563;
+		color: var(--color-accent, #c4a77d);
 		cursor: pointer;
 		text-decoration: underline;
+		font-weight: 500;
 	}
 
 	.ref-link:hover {
-		color: #111827;
+		color: var(--color-accent-dark, #a08960);
 	}
 
+	/* View Modal Details */
 	.view-details {
 		display: flex;
 		flex-direction: column;
@@ -475,7 +568,7 @@
 		display: flex;
 		gap: 1rem;
 		padding: 0.75rem 0;
-		border-bottom: 1px solid #e9ecef;
+		border-bottom: 1px solid var(--color-border, #e0e0e0);
 	}
 
 	.detail-row:last-child {
@@ -484,37 +577,41 @@
 
 	.detail-row strong {
 		min-width: 150px;
-		color: #333;
+		color: var(--color-primary, #1a1a1a);
+		font-weight: 600;
 	}
 
 	.detail-row span {
-		color: #666;
+		color: var(--color-text, #333333);
 	}
 
 	.muted {
-		color: #999;
+		color: var(--color-text-light, #666666);
 	}
 
 	.status-badge {
-		display: inline-block;
-		padding: 0.2rem 0.5rem;
-		border-radius: 4px;
-		font-size: 0.85rem;
+		display: inline-flex;
+		align-items: center;
+		padding: 0.375rem 0.875rem;
+		border-radius: 20px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
 
 	.status-pending {
-		background: #fff3cd;
-		color: #856404;
+		background: rgba(245, 158, 11, 0.12);
+		color: #f59e0b;
 	}
 
 	.status-paid {
-		background: #d4edda;
-		color: #155724;
+		background: rgba(34, 197, 94, 0.12);
+		color: #22c55e;
 	}
 
 	.status-cancelled {
-		background: #f8d7da;
-		color: #721c24;
+		background: rgba(220, 38, 38, 0.12);
+		color: #dc2626;
 	}
 </style>
-

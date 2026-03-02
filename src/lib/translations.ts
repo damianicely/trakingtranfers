@@ -3,9 +3,11 @@ export const translations = {
 		hero_title: 'Welcome to TrakingTransfers',
 		book_now: 'Book Now',
 		about_us_title: 'About Us',
-		about_us_subtitle: 'Your Trusted Partner for Fisherman\'s Trail Transfers',
-		about_us_text: 'We specialize in providing reliable and convenient luggage transfer services along the stunning Fisherman\'s Trail in Portugal. Our mission is to make your hiking experience as enjoyable as possible by taking care of your bags, allowing you to focus on the breathtaking coastal views and unforgettable moments.',
-		about_us_text_2: 'With years of experience serving hikers and travelers, we understand the unique needs of those exploring this beautiful trail. Our team is dedicated to ensuring your luggage arrives safely at each destination, giving you the freedom to walk unencumbered and fully immerse yourself in the natural beauty of the Portuguese coast.',
+		about_us_subtitle: "Your Trusted Partner for Fisherman's Trail Transfers",
+		about_us_text:
+			"We specialize in providing reliable and convenient luggage transfer services along the stunning Fisherman's Trail in Portugal. Our mission is to make your hiking experience as enjoyable as possible by taking care of your bags, allowing you to focus on the breathtaking coastal views and unforgettable moments.",
+		about_us_text_2:
+			'With years of experience serving hikers and travelers, we understand the unique needs of those exploring this beautiful trail. Our team is dedicated to ensuring your luggage arrives safely at each destination, giving you the freedom to walk unencumbered and fully immerse yourself in the natural beauty of the Portuguese coast.',
 		gallery_title: 'Gallery',
 		booking_section: 'Booking',
 		booking_section_two_steps: 'Reserve in two steps',
@@ -27,7 +29,8 @@ export const translations = {
 		booking_last_name_error: 'Last name is required',
 		booking_names_label: 'Booking Names',
 		booking_names_placeholder: 'Enter any other names used in hotel reservations',
-		booking_names_help_text: 'Please provide any other names that may be used in your hotel reservations. This helps us ensure your bags can be properly tracked and delivered to the correct accommodation.',
+		booking_names_help_text:
+			'Please provide any other names that may be used in your hotel reservations. This helps us ensure your bags can be properly tracked and delivered to the correct accommodation.',
 		booking_email_label: 'Email',
 		booking_email_placeholder: 'Enter your email address',
 		booking_email_error: 'Valid email is required',
@@ -70,7 +73,8 @@ export const translations = {
 		booking_itinerary_day: 'Day',
 		booking_itinerary_to: '→',
 		booking_price_title: 'Price Breakdown',
-		booking_price_explanation: 'Pricing is based on the number of transfers. Two items of luggage are included, with additional items billed at 5€ per transfer.',
+		booking_price_explanation:
+			'Pricing is based on the number of transfers. Two items of luggage are included, with additional items billed at 5€ per transfer.',
 		booking_price_rule_1: '4 or more transfers: 15€ per transfer',
 		booking_price_rule_2: 'Up to 3 transfers: 20€ per transfer',
 		booking_price_rule_3: 'Rate includes up to 2 luggage pieces per transfer',
@@ -79,7 +83,8 @@ export const translations = {
 		booking_price_additional_bags: 'additional bags',
 		booking_price_total: 'Total:',
 		booking_accommodation_later_label: "I'll provide accommodation details later",
-		booking_accommodation_warning: 'We will need this information well in advance of your journey to plan the logistics',
+		booking_accommodation_warning:
+			'We will need this information well in advance of your journey to plan the logistics',
 		booking_hotel_label: 'Hotel',
 		booking_hotel_name_label: 'Hotel Name',
 		booking_hotel_name_placeholder: 'Enter hotel name',
@@ -133,7 +138,8 @@ export const translations = {
 		dashboard_section_owner_overview_description: 'Manage your transfer business operations.',
 		dashboard_section_owner_overview_placeholder: 'Business dashboard coming soon',
 		dashboard_section_owner_bookings_title: 'Bookings Management',
-		dashboard_section_owner_bookings_description: 'View and manage all bookings across your business.',
+		dashboard_section_owner_bookings_description:
+			'View and manage all bookings across your business.',
 		dashboard_section_owner_bookings_placeholder: 'Bookings management coming soon',
 		dashboard_owner_total_revenue: 'Total Revenue (30 days)',
 		dashboard_owner_total_bookings: 'Total Bookings (30 days)',
@@ -141,15 +147,30 @@ export const translations = {
 		dashboard_owner_today_sales: "Today's Sales",
 		dashboard_owner_bookings_today: 'bookings',
 		dashboard_owner_daily_sales_title: 'Daily Sales (Last 30 Days)',
-		dashboard_owner_daily_sales_description: 'Revenue and booking count per day over the last 30 days.',
+		dashboard_owner_daily_sales_description:
+			'Revenue and booking count per day over the last 30 days.',
 		dashboard_owner_no_sales_data: 'No sales data available for the last 30 days.',
 		dashboard_owner_no_bookings: 'No bookings found.',
 		dashboard_section_driver_today_title: "Today's Routes",
 		dashboard_section_driver_today_description: 'View your assigned transfer routes for today.',
 		dashboard_section_driver_today_placeholder: 'No routes assigned today',
 		dashboard_section_driver_upcoming_title: 'Upcoming Transfers',
-		dashboard_section_driver_upcoming_description: 'See your scheduled transfers for the coming days.',
+		dashboard_section_driver_upcoming_description:
+			'See your scheduled transfers for the coming days.',
 		dashboard_section_driver_upcoming_placeholder: 'No upcoming transfers',
+		driver_stat_routes_today: 'Routes Today',
+		driver_stat_bags_to_deliver: 'Bags to Deliver',
+		driver_stat_completed: 'Completed',
+		driver_no_work: 'Hooray, no work today!',
+		driver_view_details: 'View Details',
+		driver_hide_details: 'Hide Details',
+		driver_pickup_location: 'Pickup Location',
+		driver_bags_count: 'Bags',
+		driver_status: 'Status',
+		driver_route: 'Route',
+		driver_status_pending: 'To pick up',
+		driver_status_picked_up: 'Picked up',
+		driver_status_delivered: 'Delivered',
 		dashboard_section_admin_overview_title: 'System Overview',
 		dashboard_section_admin_overview_description: 'Monitor and manage the entire platform.',
 		dashboard_section_admin_overview_placeholder: 'System statistics coming soon',
@@ -157,7 +178,8 @@ export const translations = {
 		dashboard_section_admin_users_description: 'Manage users, roles, and permissions.',
 		dashboard_section_admin_users_placeholder: 'User management coming soon',
 		dashboard_section_admin_bookings_title: 'All Bookings',
-		dashboard_section_admin_bookings_description: 'View and manage all bookings across the platform.',
+		dashboard_section_admin_bookings_description:
+			'View and manage all bookings across the platform.',
 		dashboard_section_admin_bookings_placeholder: 'Bookings overview coming soon',
 
 		// Admin sidebar
@@ -170,6 +192,18 @@ export const translations = {
 		admin_nav_activity: 'Activity',
 		admin_nav_settings: 'Settings',
 		admin_nav_back_dashboard: '← Back to Dashboard',
+
+		// Customer sidebar
+		dashboard_nav_bookings: 'Bookings',
+		dashboard_nav_track: 'Track Luggage',
+		dashboard_nav_contact: 'Contact Us',
+		dashboard_stat_total_bookings: 'Total Bookings',
+		dashboard_stat_upcoming: 'Upcoming Trips',
+		dashboard_stat_total_spent: 'Total Spent',
+		dashboard_create_booking: 'Create Booking',
+		dashboard_expand_booking: 'Expand',
+		dashboard_collapse_booking: 'Collapse',
+		dashboard_hotels_missing: 'Hotels not selected',
 
 		team_search_placeholder: 'Search team…',
 
@@ -270,7 +304,8 @@ export const translations = {
 
 		// Booking Success Page
 		booking_success_title: 'Booking Confirmed!',
-		booking_success_message: 'Thank you for your booking. Your payment has been processed successfully.',
+		booking_success_message:
+			'Thank you for your booking. Your payment has been processed successfully.',
 		booking_success_details_title: 'Booking Details',
 		booking_success_customer_title: 'Customer Information',
 		booking_success_trip_title: 'Trip Information',
@@ -285,21 +320,120 @@ export const translations = {
 		booking_success_total_price: 'Total Price',
 		booking_success_itinerary_title: 'Your Itinerary',
 		booking_success_next_steps_title: 'What Happens Next?',
-		booking_success_next_steps_message: 'You will receive a confirmation email shortly with all the details of your booking. If you have an account, you can also view your booking in your dashboard.',
+		booking_success_next_steps_message:
+			'You will receive a confirmation email shortly with all the details of your booking. If you have an account, you can also view your booking in your dashboard.',
 		booking_success_back_home: 'Back to Home',
 		booking_success_view_dashboard: 'View Dashboard',
 
+		// Content Pages
+		page_about_title: 'About Us',
+		page_about_subtitle: 'Total Specialisation in the Rota Vicentina',
+		page_about_intro: 'We are not "just another transfer operator".',
+		page_about_specialization_title: 'Our Difference',
+		page_about_specialization_point1: 'Exclusive focus on the Rota Vicentina',
+		page_about_specialization_point2: 'Real knowledge of stages, timings, access and accommodation',
+		page_about_specialization_point3: 'Fewer errors, fewer exceptions, less stress for the client',
+		page_about_specialization_point4: 'We specialise exclusively in the Rota Vicentina.',
+		page_about_service_title: 'Daily Service',
+		page_about_service_point1: 'Daily collection at origin accommodation',
+		page_about_service_point2: 'Direct delivery to next accommodation',
+		page_about_service_point3: 'Service aligned with Rota Vicentina stages',
+		page_about_service_point4: 'Ideal for self-guided and guided walks',
+		page_about_flexible_title: 'Flexible and Adaptable Service',
+		page_about_flexible_point1: 'No rigid schedules',
+		page_about_flexible_point2: 'Last-minute adjustments possible',
+		page_about_flexible_point3: 'Personalised support',
+		page_about_flexible_point4: 'Service available all year round',
+
+		page_group_title: 'Group Bookings',
+		page_group_subtitle: 'Complete Solutions for Groups on the Rota Vicentina',
+		page_group_intro: 'Organising a group walk on the Rota Vicentina? We take care of everything.',
+		page_group_logistics_title: 'Group Logistics',
+		page_group_logistics_text:
+			'We coordinate luggage transport for groups of any size, ensuring all bags arrive at the correct destination at the right time.',
+		page_group_accommodation_title: 'Accommodation & Meals',
+		page_group_accommodation_text:
+			'We have partnerships with accommodation and restaurants along the route. We can help coordinate group bookings for stays and meals at each stage.',
+		page_group_flexible_title: 'Flexible Schedules',
+		page_group_flexible_text:
+			"We understand that groups have different needs. We adapt our service to your group's schedule and pace.",
+		page_group_support_title: 'Dedicated Support',
+		page_group_support_text:
+			"We provide a dedicated contact point to coordinate all your group's needs throughout the entire walk.",
+		page_group_cta_title: 'Request a Quote for Your Group',
+		page_group_form_name: 'Name',
+		page_group_form_email: 'Email',
+		page_group_form_phone: 'Phone',
+		page_group_form_group_size: 'Group Size',
+		page_group_form_dates: 'Expected Dates',
+		page_group_form_message: 'Message',
+		page_group_form_submit: 'Send Request',
+
+		page_faq_title: 'FAQ',
+		page_faq_subtitle: 'Everything you need to know about our service',
+		page_faq_q1_question: 'How does the luggage transfer service work?',
+		page_faq_q1_answer:
+			'We collect your luggage at the accommodation in the morning and deliver it to the next accommodation by the end of the day. You can walk freely knowing your bags are safe with us.',
+		page_faq_q2_question: 'How much does the service cost?',
+		page_faq_q2_answer:
+			'The price depends on the number of transfers and bags. We offer special rates for groups and multi-day walks. Contact us for a personalised quote.',
+		page_faq_q3_question: 'Can I make changes to my booking?',
+		page_faq_q3_answer:
+			'Yes, we accept changes with at least 48 hours notice. We understand that travel plans can change.',
+		page_faq_q4_question: 'Are my bags insured?',
+		page_faq_q4_answer:
+			'Yes, all luggage transported is covered by our transport insurance (up to €500 per bag). We also recommend checking your personal travel insurance policy.',
+		page_faq_q5_question: 'What size bags do you accept?',
+		page_faq_q5_answer:
+			'We accept normal travel suitcases, backpacks and sports bags. For special items or bulky sports equipment, please contact us in advance.',
+		page_faq_q6_question: 'What if I arrive late at the accommodation?',
+		page_faq_q6_answer:
+			'We deliver bags until the end of the day, usually by 6:00 PM. If you expect to arrive later, please let us know so we can coordinate with the accommodation.',
+
+		page_terms_title: 'Terms & Conditions',
+		page_terms_subtitle: 'Service Usage Conditions',
+		page_terms_section1_title: '1. Acceptance of Terms',
+		page_terms_section1_text:
+			'By using the TrakingTransfers service, you accept these terms and conditions in full. We recommend reading carefully before making a booking.',
+		page_terms_section2_title: '2. Transport Service',
+		page_terms_section2_text:
+			'The service includes luggage collection and delivery between accommodation on the Rota Vicentina. Collection is in the morning (8:00-10:00 AM) and delivery by end of day (by 6:00 PM).',
+		page_terms_section3_title: '3. Bookings and Cancellations',
+		page_terms_section3_text:
+			'Bookings must be made at least 48 hours in advance. Free cancellations up to 48 hours before. Between 48-24 hours: 50% fee. Less than 24 hours: non-refundable.',
+		page_terms_section4_title: '4. Liability',
+		page_terms_section4_text:
+			'The company is responsible for luggage during transport, limited to the contracted insurance value (up to €500 per bag). We are not responsible for exceptional value items, documents or fragile objects.',
+		page_terms_section5_title: '5. Prohibited Items',
+		page_terms_section5_text:
+			'We do not transport: perishable products, dangerous substances, weapons, drugs, significant amounts of cash, high-value jewellery or important documents (passports, etc.).',
+		page_terms_section6_title: '6. Service Changes',
+		page_terms_section6_text:
+			'We reserve the right to change schedules in case of exceptional circumstances (adverse weather, strikes, etc.). Whenever possible, we will give advance notice.',
+		page_terms_section7_title: '7. Data Protection',
+		page_terms_section7_text:
+			'Personal data collected is used exclusively for service provision. We do not share data with third parties except when necessary to carry out the transport.',
+		page_terms_section8_title: '8. Contact',
+		page_terms_section8_text:
+			'For questions about these terms, contact us at info@trakingtransfers.com or phone +351 966 611 837.',
+
 		// Footer
 		footer_all_rights_reserved: 'All rights reserved.',
-		footer_complaints_book: 'Livro de Reclamações'
+		footer_complaints_book: 'Complaints Book',
+		footer_contact_address: 'Monte Salema, 8650-435, Vila do Bispo',
+		footer_contact_phone: '+351 966 611 837',
+		footer_contact_email: 'info@trakingtransfers.com',
+		footer_rnavt: 'RNAVT | 13137'
 	},
 	pt: {
 		hero_title: 'Bem-vindo ao TrakingTransfers',
 		book_now: 'Reservar Agora',
 		about_us_title: 'Sobre Nós',
 		about_us_subtitle: 'O Seu Parceiro de Confiança para Transferências na Rota Vicentina',
-		about_us_text: 'Especializamo-nos em fornecer serviços de transferência de bagagem confiáveis e convenientes ao longo da deslumbrante Rota Vicentina em Portugal. A nossa missão é tornar a sua experiência de caminhada o mais agradável possível, cuidando das suas malas, permitindo-lhe focar nas vistas costeiras deslumbrantes e nos momentos inesquecíveis.',
-		about_us_text_2: 'Com anos de experiência a servir caminhantes e viajantes, compreendemos as necessidades únicas daqueles que exploram este belo trilho. A nossa equipa está dedicada a garantir que a sua bagagem chegue em segurança a cada destino, dando-lhe a liberdade de caminhar sem peso e mergulhar completamente na beleza natural da costa portuguesa.',
+		about_us_text:
+			'Especializamo-nos em fornecer serviços de transferência de bagagem confiáveis e convenientes ao longo da deslumbrante Rota Vicentina em Portugal. A nossa missão é tornar a sua experiência de caminhada o mais agradável possível, cuidando das suas malas, permitindo-lhe focar nas vistas costeiras deslumbrantes e nos momentos inesquecíveis.',
+		about_us_text_2:
+			'Com anos de experiência a servir caminhantes e viajantes, compreendemos as necessidades únicas daqueles que exploram este belo trilho. A nossa equipa está dedicada a garantir que a sua bagagem chegue em segurança a cada destino, dando-lhe a liberdade de caminhar sem peso e mergulhar completamente na beleza natural da costa portuguesa.',
 		gallery_title: 'Galeria',
 		booking_section: 'Reserva',
 		booking_section_two_steps: 'Reserve em dois passos',
@@ -321,7 +455,8 @@ export const translations = {
 		booking_last_name_error: 'O apelido é obrigatório',
 		booking_names_label: 'Nomes de Reserva',
 		booking_names_placeholder: 'Digite outros nomes usados nas reservas de hotel',
-		booking_names_help_text: 'Por favor, forneça quaisquer outros nomes que possam ser usados nas suas reservas de hotel. Isto ajuda-nos a garantir que as suas malas podem ser rastreadas e entregues no alojamento correto.',
+		booking_names_help_text:
+			'Por favor, forneça quaisquer outros nomes que possam ser usados nas suas reservas de hotel. Isto ajuda-nos a garantir que as suas malas podem ser rastreadas e entregues no alojamento correto.',
 		booking_email_label: 'Email',
 		booking_email_placeholder: 'Digite o seu endereço de email',
 		booking_email_error: 'Email válido é obrigatório',
@@ -345,7 +480,8 @@ export const translations = {
 		booking_departure_date_placeholder: 'Selecione a sua data de partida',
 		booking_departure_date_error: 'Data de partida é obrigatória',
 		booking_departure_date_blocked: 'Esta data não está disponível',
-		booking_departure_date_min_error: 'A data de partida deve ser pelo menos 1 dia a partir de hoje',
+		booking_departure_date_min_error:
+			'A data de partida deve ser pelo menos 1 dia a partir de hoje',
 		booking_departure_porto_covo: 'Porto Covo',
 		booking_departure_vila_nova: 'Vila Nova de Milfontes',
 		booking_departure_almograve: 'Almograve',
@@ -364,7 +500,8 @@ export const translations = {
 		booking_itinerary_day: 'Dia',
 		booking_itinerary_to: '→',
 		booking_price_title: 'Análise de Preços',
-		booking_price_explanation: 'Os preços baseiam-se no número de transferências. Duas peças de bagagem estão incluídas; peças adicionais são faturadas a 5€ por transferência.',
+		booking_price_explanation:
+			'Os preços baseiam-se no número de transferências. Duas peças de bagagem estão incluídas; peças adicionais são faturadas a 5€ por transferência.',
 		booking_price_rule_1: '4 ou mais transferências: 15€ por transferência',
 		booking_price_rule_2: 'Até 3 transferências: 20€ por transferência',
 		booking_price_rule_3: 'A tarifa inclui até 2 peças de bagagem por transferência',
@@ -373,7 +510,8 @@ export const translations = {
 		booking_price_additional_bags: 'peças adicionais',
 		booking_price_total: 'Total:',
 		booking_accommodation_later_label: 'Fornecerei os detalhes do alojamento mais tarde',
-		booking_accommodation_warning: 'Precisaremos desta informação com bastante antecedência da sua viagem para planear a logística',
+		booking_accommodation_warning:
+			'Precisaremos desta informação com bastante antecedência da sua viagem para planear a logística',
 		booking_hotel_label: 'Hotel',
 		booking_hotel_name_label: 'Nome do Hotel',
 		booking_hotel_name_placeholder: 'Digite o nome do hotel',
@@ -412,7 +550,8 @@ export const translations = {
 		dashboard_welcome: 'Bem-vindo de volta, {username}!',
 		dashboard_logout: 'Terminar sessão',
 		dashboard_section_bookings_title: 'As Suas Reservas',
-		dashboard_section_bookings_description: 'Veja e gere as suas reservas de transferência de bagagem.',
+		dashboard_section_bookings_description:
+			'Veja e gere as suas reservas de transferência de bagagem.',
 		dashboard_section_bookings_empty: 'Ainda não tem reservas.',
 		dashboard_section_bookings_create_link: 'Criar uma reserva',
 		dashboard_section_account_title: 'Informações da Conta',
@@ -424,7 +563,8 @@ export const translations = {
 		dashboard_role_driver: 'Motorista',
 		dashboard_role_admin: 'Administrador',
 		dashboard_section_owner_overview_title: 'Visão Geral do Negócio',
-		dashboard_section_owner_overview_description: 'Gira as operações do seu negócio de transferências.',
+		dashboard_section_owner_overview_description:
+			'Gira as operações do seu negócio de transferências.',
 		dashboard_section_owner_overview_placeholder: 'Painel de negócio em breve',
 		dashboard_section_owner_bookings_title: 'Gestão de Reservas',
 		dashboard_section_owner_bookings_description: 'Veja e gere todas as reservas do seu negócio.',
@@ -435,15 +575,31 @@ export const translations = {
 		dashboard_owner_today_sales: 'Vendas de Hoje',
 		dashboard_owner_bookings_today: 'reservas',
 		dashboard_owner_daily_sales_title: 'Vendas Diárias (Últimos 30 Dias)',
-		dashboard_owner_daily_sales_description: 'Receita e número de reservas por dia nos últimos 30 dias.',
+		dashboard_owner_daily_sales_description:
+			'Receita e número de reservas por dia nos últimos 30 dias.',
 		dashboard_owner_no_sales_data: 'Não há dados de vendas disponíveis para os últimos 30 dias.',
 		dashboard_owner_no_bookings: 'Nenhuma reserva encontrada.',
 		dashboard_section_driver_today_title: 'Rotas de Hoje',
-		dashboard_section_driver_today_description: 'Veja as rotas de transferência atribuídas para hoje.',
+		dashboard_section_driver_today_description:
+			'Veja as rotas de transferência atribuídas para hoje.',
 		dashboard_section_driver_today_placeholder: 'Nenhuma rota atribuída hoje',
 		dashboard_section_driver_upcoming_title: 'Transferências Futuras',
-		dashboard_section_driver_upcoming_description: 'Veja as transferências agendadas para os próximos dias.',
+		dashboard_section_driver_upcoming_description:
+			'Veja as transferências agendadas para os próximos dias.',
 		dashboard_section_driver_upcoming_placeholder: 'Nenhuma transferência futura',
+		driver_stat_routes_today: 'Rotas Hoje',
+		driver_stat_bags_to_deliver: 'Malas para Entregar',
+		driver_stat_completed: 'Concluídas',
+		driver_no_work: 'Hoje não há trabalho!',
+		driver_view_details: 'Ver Detalhes',
+		driver_hide_details: 'Ocultar Detalhes',
+		driver_pickup_location: 'Local de Recolha',
+		driver_bags_count: 'Malas',
+		driver_status: 'Estado',
+		driver_route: 'Rota',
+		driver_status_pending: 'Para recolher',
+		driver_status_picked_up: 'Recolhida',
+		driver_status_delivered: 'Entregue',
 		dashboard_section_admin_overview_title: 'Visão Geral do Sistema',
 		dashboard_section_admin_overview_description: 'Monitore e gere toda a plataforma.',
 		dashboard_section_admin_overview_placeholder: 'Estatísticas do sistema em breve',
@@ -464,6 +620,18 @@ export const translations = {
 		admin_nav_activity: 'Atividade',
 		admin_nav_settings: 'Definições',
 		admin_nav_back_dashboard: '← Voltar ao Painel',
+
+		// Customer sidebar
+		dashboard_nav_bookings: 'Reservas',
+		dashboard_nav_track: 'Rastrear Bagagem',
+		dashboard_nav_contact: 'Contacte-nos',
+		dashboard_stat_total_bookings: 'Total de Reservas',
+		dashboard_stat_upcoming: 'Viagens Futuras',
+		dashboard_stat_total_spent: 'Total Gasto',
+		dashboard_create_booking: 'Criar Reserva',
+		dashboard_expand_booking: 'Expandir',
+		dashboard_collapse_booking: 'Colapsar',
+		dashboard_hotels_missing: 'Hotéis não selecionados',
 
 		team_search_placeholder: 'Pesquisar na equipa…',
 
@@ -564,7 +732,8 @@ export const translations = {
 
 		// Booking Success Page
 		booking_success_title: 'Reserva Confirmada!',
-		booking_success_message: 'Obrigado pela sua reserva. O seu pagamento foi processado com sucesso.',
+		booking_success_message:
+			'Obrigado pela sua reserva. O seu pagamento foi processado com sucesso.',
 		booking_success_details_title: 'Detalhes da Reserva',
 		booking_success_customer_title: 'Informações do Cliente',
 		booking_success_trip_title: 'Informações da Viagem',
@@ -579,13 +748,110 @@ export const translations = {
 		booking_success_total_price: 'Preço Total',
 		booking_success_itinerary_title: 'O Seu Itinerário',
 		booking_success_next_steps_title: 'O Que Acontece a Seguir?',
-		booking_success_next_steps_message: 'Receberá um email de confirmação em breve com todos os detalhes da sua reserva. Se tiver uma conta, também pode ver a sua reserva no seu painel.',
+		booking_success_next_steps_message:
+			'Receberá um email de confirmação em breve com todos os detalhes da sua reserva. Se tiver uma conta, também pode ver a sua reserva no seu painel.',
 		booking_success_back_home: 'Voltar ao Início',
 		booking_success_view_dashboard: 'Ver Painel',
 
+		// Content Pages
+		page_about_title: 'Sobre Nós',
+		page_about_subtitle: 'Especialização Total na Rota Vicentina',
+		page_about_intro: 'Não somos "mais um operador de transfers".',
+		page_about_specialization_title: 'O Nosso Diferencial',
+		page_about_specialization_point1: 'Foco exclusivo na Rota Vicentina',
+		page_about_specialization_point2: 'Conhecimento real de etapas, tempos, acessos e alojamentos',
+		page_about_specialization_point3: 'Menos erros, menos exceções, menos stress para o cliente',
+		page_about_specialization_point4: 'We specialise exclusively in the Rota Vicentina.',
+		page_about_service_title: 'Serviço Diário',
+		page_about_service_point1: 'Recolha diária no alojamento de origem',
+		page_about_service_point2: 'Entrega direta no alojamento seguinte',
+		page_about_service_point3: 'Serviço alinhado com as etapas da Rota Vicentina',
+		page_about_service_point4: 'Ideal para caminhadas self-guided e guiadas',
+		page_about_flexible_title: 'Serviço Flexível e Adaptável',
+		page_about_flexible_point1: 'Sem horários rígidos',
+		page_about_flexible_point2: 'Ajustes de última hora possíveis',
+		page_about_flexible_point3: 'Apoio personalizado',
+		page_about_flexible_point4: 'Serviço disponível todo o ano',
+
+		page_group_title: 'Reservas de Grupo',
+		page_group_subtitle: 'Soluções Completas para Grupos na Rota Vicentina',
+		page_group_intro: 'Organizar uma caminhada em grupo na Rota Vicentina? Nós tratamos de tudo.',
+		page_group_logistics_title: 'Logística de Grupo',
+		page_group_logistics_text:
+			'Coordenamos o transporte de bagagem para grupos de qualquer dimensão, garantindo que todas as malas chegam ao destino correto no momento certo.',
+		page_group_accommodation_title: 'Alojamento e Refeições',
+		page_group_accommodation_text:
+			'Temos parcerias com alojamentos e restaurantes ao longo da rota. Podemos ajudar a coordenar reservas de grupo para estadias e refeições em cada etapa.',
+		page_group_flexible_title: 'Horários Flexíveis',
+		page_group_flexible_text:
+			'Compreendemos que grupos têm necessidades diferentes. Adaptamos o nosso serviço aos horários e ritmo do seu grupo.',
+		page_group_support_title: 'Apoio Dedicado',
+		page_group_support_text:
+			'Fornecemos um ponto de contacto dedicado para coordenar todas as necessidades do seu grupo durante toda a caminhada.',
+		page_group_cta_title: 'Peça um Orçamento para o Seu Grupo',
+		page_group_form_name: 'Nome',
+		page_group_form_email: 'Email',
+		page_group_form_phone: 'Telefone',
+		page_group_form_group_size: 'Tamanho do Grupo',
+		page_group_form_dates: 'Datas Previstas',
+		page_group_form_message: 'Mensagem',
+		page_group_form_submit: 'Enviar Pedido',
+
+		page_faq_title: 'Perguntas Frequentes',
+		page_faq_subtitle: 'Tudo o que precisa de saber sobre o nosso serviço',
+		page_faq_q1_question: 'Como funciona o serviço de transferência de bagagem?',
+		page_faq_q1_answer:
+			'Recolhemos a sua bagagem no alojamento pela manhã e entregamos no próximo alojamento ao final do dia. Pode caminhar livremente sabendo que as suas malas estão seguras connosco.',
+		page_faq_q2_question: 'Quanto custa o serviço?',
+		page_faq_q2_answer:
+			'O preço depende do número de transferências e malas. Oferecemos tarifas especiais para grupos e caminhadas de vários dias. Contacte-nos para um orçamento personalizado.',
+		page_faq_q3_question: 'Posso fazer alterações à minha reserva?',
+		page_faq_q3_answer:
+			'Sim, aceitamos alterações com pelo menos 48 horas de antecedência. Compreendemos que os planos de viagem podem mudar.',
+		page_faq_q4_question: 'As minhas malas estão seguradas?',
+		page_faq_q4_answer:
+			'Sim, todas as bagagens transportadas estão cobertas pelo nosso seguro de transporte. Também recomendamos que verifique a sua apólice de seguro de viagem pessoal.',
+		page_faq_q5_question: 'Que tamanho de malas aceitam?',
+		page_faq_q5_answer:
+			'Aceitamos malas de viagem normais, mochilas e sacos de desporto. Para itens especiais ou equipamento desporto volumoso, contacte-nos previamente.',
+		page_faq_q6_question: 'E se chegar tarde ao alojamento?',
+		page_faq_q6_answer:
+			'Entregamos as malas até ao final do dia, normalmente até às 18:00. Se previr chegar mais tarde, por favor informe-nos para podermos coordenar com o alojamento.',
+
+		page_terms_title: 'Termos e Condições',
+		page_terms_subtitle: 'Condições de Utilização do Serviço',
+		page_terms_section1_title: '1. Aceitação dos Termos',
+		page_terms_section1_text:
+			'Ao utilizar o serviço TrakingTransfers, aceita estes termos e condições na sua totalidade. Recomendamos que leia atentamente antes de efetuar uma reserva.',
+		page_terms_section2_title: '2. Serviço de Transporte',
+		page_terms_section2_text:
+			'O serviço inclui a recolha e entrega de bagagem entre alojamentos na Rota Vicentina. A recolha é feita pela manhã (8:00-10:00) e a entrega até ao final do dia (até 18:00).',
+		page_terms_section3_title: '3. Reservas e Cancelamentos',
+		page_terms_section3_text:
+			'As reservas devem ser feitas com pelo menos 48 horas de antecedência. Cancelamentos gratuitos até 48 horas antes. Entre 48-24 horas: 50% de taxa. Menos de 24 horas: não reembolsável.',
+		page_terms_section4_title: '4. Responsabilidade',
+		page_terms_section4_text:
+			'A empresa é responsável pela bagagem durante o transporte, limitado ao valor do seguro contratado (até 500€ por mala). Não nos responsabilizamos por itens de valor excecional, documentos ou objetos frágeis.',
+		page_terms_section5_title: '5. Itens Proibidos',
+		page_terms_section5_text:
+			'Não transportamos: produtos perecíveis, substâncias perigosas, armas, drogas, dinheiro em quantidades significativas, joias de alto valor ou documentos importantes (passaportes, etc.).',
+		page_terms_section6_title: '6. Alterações de Serviço',
+		page_terms_section6_text:
+			'Reservamo-nos o direito de alterar horários em caso de circunstâncias excecionais (condições meteorológicas adversas, greves, etc.). Sempre que possível, daremos aviso prévio.',
+		page_terms_section7_title: '7. Proteção de Dados',
+		page_terms_section7_text:
+			'Os dados pessoais recolhidos são utilizados exclusivamente para a prestação do serviço. Não partilhamos dados com terceiros exceto quando necessário para a realização do transporte.',
+		page_terms_section8_title: '8. Contacto',
+		page_terms_section8_text:
+			'Para questões sobre estes termos, contacte-nos através do email info@trakingtransfers.com ou telefone +351 966 611 837.',
+
 		// Footer
 		footer_all_rights_reserved: 'Todos os direitos reservados.',
-		footer_complaints_book: 'Livro de Reclamações'
+		footer_complaints_book: 'Livro de Reclamações',
+		footer_contact_address: 'Monte Salema, 8650-435, Vila do Bispo',
+		footer_contact_phone: '+351 966 611 837',
+		footer_contact_email: 'info@trakingtransfers.com',
+		footer_rnavt: 'RNAVT | 13137'
 	}
 };
 

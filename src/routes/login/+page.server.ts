@@ -13,7 +13,10 @@ export const actions = {
 		const password = formData.get('password') as string;
 		const redirectTo = (formData.get('redirectTo') as string)?.trim() || '';
 
-		const [user] = await db.select().from(userTable).where(eq(userTable.username, username.toLowerCase()));
+		const [user] = await db
+			.select()
+			.from(userTable)
+			.where(eq(userTable.username, username.toLowerCase()));
 
 		if (!user || !(await verify(user.passwordHash, password))) {
 			return fail(400, { message: 'Incorrect username or password' });
@@ -34,12 +37,7 @@ export const actions = {
 		});
 
 		// Default redirect by role when no valid redirectTo is provided
-		const defaultByRole =
-			user.role === 'admin' || user.role === 'owner'
-				? '/admin'
-				: user.role === 'driver'
-					? '/driver'
-					: '/account';
+		const defaultByRole = user.role === 'admin' || user.role === 'owner' ? '/admin' : '/dashboard';
 		// Same-origin path only: must start with / and contain no protocol-relative or double slash
 		const target =
 			redirectTo && redirectTo.startsWith('/') && !redirectTo.includes('//')
@@ -48,7 +46,14 @@ export const actions = {
 
 		// Modal sends Accept: application/json; we return JSON + Set-Cookie so the client can reload to that URL.
 		const wantsJson = request.headers.get('Accept')?.includes('application/json');
-		console.log('[login action] wantsJson=', wantsJson, 'target=', target, 'Accept=', request.headers.get('Accept'));
+		console.log(
+			'[login action] wantsJson=',
+			wantsJson,
+			'target=',
+			target,
+			'Accept=',
+			request.headers.get('Accept')
+		);
 		if (wantsJson) {
 			console.log('[login action] returning { success: true, redirectTo:', target, '}');
 			return { success: true, redirectTo: target };
@@ -85,7 +90,8 @@ export const actions = {
 		// Always return success message (security: don't reveal if email exists)
 		return {
 			success: true,
-			message: 'If that email exists, a password reset link has been sent. Check your console for the link (email integration pending).'
+			message:
+				'If that email exists, a password reset link has been sent. Check your console for the link (email integration pending).'
 		};
 	}
 };

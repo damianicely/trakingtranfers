@@ -27,7 +27,7 @@
 	// Generate line path
 	const linePath = $derived.by(() => {
 		if (dailySales.length === 0) return '';
-		
+
 		const points = dailySales.map((day, index) => {
 			const x = padding.left + xScale(index);
 			const y = padding.top + yScale(day.amount);
@@ -40,7 +40,7 @@
 	// Generate area path (for fill under line)
 	const areaPath = $derived.by(() => {
 		if (dailySales.length === 0) return '';
-		
+
 		const linePoints = dailySales.map((day, index) => {
 			const x = padding.left + xScale(index);
 			const y = padding.top + yScale(day.amount);
@@ -88,8 +88,8 @@
 			<path d={areaPath} fill="url(#gradient)" opacity="0.3" />
 			<defs>
 				<linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-					<stop offset="0%" style="stop-color:#007bff;stop-opacity:0.3" />
-					<stop offset="100%" style="stop-color:#007bff;stop-opacity:0.1" />
+					<stop offset="0%" style="stop-color:#c4a77d;stop-opacity:0.4" />
+					<stop offset="100%" style="stop-color:#c4a77d;stop-opacity:0.05" />
 				</linearGradient>
 			</defs>
 		{/if}
@@ -99,7 +99,7 @@
 			<path
 				d={linePath}
 				fill="none"
-				stroke="#007bff"
+				stroke="#c4a77d"
 				stroke-width="3"
 				stroke-linecap="round"
 				stroke-linejoin="round"
@@ -112,23 +112,24 @@
 			{@const x = padding.left + xScale(index)}
 			{@const y = padding.top + yScale(day.amount)}
 			<g class="data-point">
-				<circle cx={x} cy={y} r="4" fill="#007bff" class="point" />
+				<circle cx={x} cy={y} r="4" fill="#c4a77d" class="point" />
 				{#if day.amount > 0}
 					<g class="tooltip-group">
 						<rect
-							x={x - 30}
-							y={y - 45}
-							width="60"
-							height="35"
-							rx="4"
-							fill="rgba(0, 0, 0, 0.8)"
+							x={x - 35}
+							y={y - 50}
+							width="70"
+							height="40"
+							rx="8"
+							fill="var(--color-primary, #1a1a1a)"
 							class="tooltip-bg"
 						/>
-						<text x={x} y={y - 30} text-anchor="middle" class="tooltip-value">
+						<text {x} y={y - 32} text-anchor="middle" class="tooltip-value">
 							{formatCurrency(day.amount)}
 						</text>
-						<text x={x} y={y - 15} text-anchor="middle" class="tooltip-count">
-							{day.count} {day.count === 1 ? 'booking' : 'bookings'}
+						<text {x} y={y - 16} text-anchor="middle" class="tooltip-count">
+							{day.count}
+							{day.count === 1 ? 'booking' : 'bookings'}
 						</text>
 					</g>
 				{/if}
@@ -139,12 +140,7 @@
 		{#each dailySales as day, index}
 			{@const x = padding.left + xScale(index)}
 			{#if index % 5 === 0 || index === dailySales.length - 1}
-				<text
-					x={x}
-					y={chartHeight - padding.bottom + 20}
-					text-anchor="middle"
-					class="axis-label"
-				>
+				<text {x} y={chartHeight - padding.bottom + 20} text-anchor="middle" class="axis-label">
 					{formatDate(day.date)}
 				</text>
 			{/if}
@@ -174,9 +170,6 @@
 	.chart-container {
 		width: 100%;
 		overflow-x: auto;
-		background: white;
-		padding: 1.5rem;
-		border-radius: 8px;
 	}
 
 	.chart {
@@ -199,7 +192,7 @@
 
 	.data-point:hover .point {
 		r: 6;
-		fill: #0056b3;
+		fill: #a08960;
 	}
 
 	.tooltip-group {
@@ -213,17 +206,17 @@
 	}
 
 	.tooltip-bg {
-		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+		filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
 	}
 
 	.tooltip-value {
-		font-size: 12px;
+		font-size: 13px;
 		font-weight: 600;
 		fill: white;
 	}
 
 	.tooltip-count {
-		font-size: 10px;
+		font-size: 11px;
 		fill: #ccc;
 	}
 

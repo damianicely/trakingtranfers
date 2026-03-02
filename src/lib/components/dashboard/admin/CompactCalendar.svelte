@@ -1,11 +1,5 @@
 <script lang="ts">
-	let {
-		calendarMonth,
-		selectedDate,
-		highlightedDates,
-		basePath,
-		hint
-	} = $props<{
+	let { calendarMonth, selectedDate, highlightedDates, basePath, hint } = $props<{
 		calendarMonth: string;
 		selectedDate: string;
 		highlightedDates?: Array<string> | Set<string>;
@@ -63,17 +57,45 @@
 <div class="compact-calendar">
 	{#if monthTitle}
 		<div class="calendar-header">
-			<a class="nav-link" href={`${effectiveBasePath}?calendarMonth=${prevMonth}&selectedDate=${selectedDate}`}>
-				← Previous
+			<a
+				class="nav-link"
+				href={`${effectiveBasePath}?calendarMonth=${prevMonth}&selectedDate=${selectedDate}`}
+			>
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<polyline points="15 18 9 12 15 6"></polyline>
+				</svg>
+				Previous
 			</a>
 			<h3 class="month-title">{monthTitle}</h3>
-			<a class="nav-link" href={`${effectiveBasePath}?calendarMonth=${nextMonth}&selectedDate=${selectedDate}`}>
-				Next →
+			<a
+				class="nav-link"
+				href={`${effectiveBasePath}?calendarMonth=${nextMonth}&selectedDate=${selectedDate}`}
+			>
+				Next
+				<svg
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<polyline points="9 18 15 12 9 6"></polyline>
+				</svg>
 			</a>
 		</div>
 		<div class="calendar-grid">
 			<div class="weekday-headers">
-				<span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+				<span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span
+					>Fri</span
+				><span>Sat</span>
 			</div>
 			<div class="days-grid">
 				{#each Array(startWeekday) as _}
@@ -104,49 +126,61 @@
 <style>
 	.compact-calendar {
 		width: 100%;
+		padding: 1.5rem;
 	}
 
 	.calendar-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		margin-bottom: 0.75rem;
+		margin-bottom: 1rem;
 	}
 
 	.month-title {
 		margin: 0;
-		font-size: 1.1rem;
+		font-size: 1.25rem;
 		font-weight: 600;
-		color: #1a1a1a;
+		color: var(--color-primary, #1a1a1a);
+		font-family: var(--font-heading, 'Playfair Display', serif);
 	}
 
 	.nav-link {
-		font-size: 0.85rem;
-		color: #1a73e8;
+		font-size: 0.9rem;
+		color: var(--color-text, #333333);
 		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 6px;
+		transition: all 0.2s ease;
 	}
 
 	.nav-link:hover {
-		text-decoration: underline;
+		background: var(--color-secondary, #f5f5f0);
+		color: var(--color-primary, #1a1a1a);
 	}
 
 	.calendar-grid {
-		background: #ffffff;
-		border-radius: 8px;
-		border: 1px solid rgba(0, 0, 0, 0.06);
-		padding: 0.75rem 0.75rem 0.5rem;
+		background: var(--color-secondary, #f5f5f0);
+		border-radius: 12px;
+		padding: 1rem;
 	}
 
 	.weekday-headers {
 		display: grid;
 		grid-template-columns: repeat(7, 1fr);
 		font-size: 0.75rem;
-		color: #666;
+		color: var(--color-text-light, #666666);
 		margin-bottom: 0.5rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
 
 	.weekday-headers span {
 		text-align: center;
+		padding: 0.5rem 0;
 	}
 
 	.days-grid {
@@ -156,45 +190,61 @@
 	}
 
 	.day-cell {
-		height: 2rem;
+		height: 2.5rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 0.8rem;
-		border-radius: 999px;
+		font-size: 0.9rem;
+		border-radius: 8px;
 		text-decoration: none;
-		color: #1a1a1a;
+		color: var(--color-text, #333333);
+		background: white;
+		transition: all 0.2s ease;
+		font-weight: 500;
 	}
 
 	.day-empty {
 		background: transparent;
 	}
 
+	.day-cell:hover:not(.day-empty) {
+		background: var(--color-accent, #c4a77d);
+		color: white;
+	}
+
 	.day-highlighted {
-		background: #e0f2fe;
-		color: #075985;
+		background: rgba(196, 167, 125, 0.15);
+		color: var(--color-accent-dark, #a08960);
 		font-weight: 600;
 	}
 
+	.day-highlighted:hover {
+		background: var(--color-accent, #c4a77d);
+		color: white;
+	}
+
 	.day-selected {
-		background: #111827;
+		background: var(--color-primary, #1a1a1a);
 		color: #f9fafb;
 		font-weight: 600;
 	}
 
-	.day-cell:hover {
-		background: #f3f4f6;
+	.day-selected:hover {
+		background: var(--color-primary, #1a1a1a);
+		color: #f9fafb;
 	}
 
 	.calendar-hint {
-		margin-top: 0.75rem;
-		font-size: 0.85rem;
-		color: #666;
+		margin-top: 1rem;
+		font-size: 0.875rem;
+		color: var(--color-text-light, #666666);
+		font-style: italic;
 	}
 
 	.calendar-empty {
 		font-size: 0.9rem;
-		color: #666;
+		color: var(--color-text-light, #666666);
+		text-align: center;
+		padding: 2rem;
 	}
 </style>
-

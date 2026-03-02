@@ -18,24 +18,34 @@
 				<h4 class="footer-title">{$language === 'en' ? 'Services' : 'Serviços'}</h4>
 				<ul class="footer-links">
 					<li>
-						<a href="#">{$language === 'en' ? 'Luggage Transport' : 'Transporte de Bagagem'}</a>
+						<a href="/book">{$language === 'en' ? 'Luggage Transport' : 'Transporte de Bagagem'}</a>
 					</li>
-					<li><a href="#">{$language === 'en' ? 'Group Bookings' : 'Reservas de Grupo'}</a></li>
 					<li>
-						<a href="#">{$language === 'en' ? 'Custom Transfers' : 'Transferes Personalizados'}</a>
+						<a href="/group-bookings"
+							>{$language === 'en' ? 'Group Bookings' : 'Reservas de Grupo'}</a
+						>
 					</li>
-					<li><a href="#">{$language === 'en' ? 'Trail Support' : 'Apoio no Trilho'}</a></li>
+					<li>
+						<a href="/group-bookings"
+							>{$language === 'en' ? 'Custom Transfers' : 'Transferes Personalizados'}</a
+						>
+					</li>
+					<li><a href="/faq">{$language === 'en' ? 'Trail Support' : 'Apoio no Trilho'}</a></li>
 				</ul>
 			</div>
 
 			<div class="footer-column">
 				<h4 class="footer-title">{$language === 'en' ? 'Company' : 'Empresa'}</h4>
 				<ul class="footer-links">
-					<li><a href="#">{$language === 'en' ? 'About Us' : 'Sobre Nós'}</a></li>
-					<li><a href="#">{$language === 'en' ? 'Contact' : 'Contacto'}</a></li>
-					<li><a href="#">FAQ</a></li>
+					<li><a href="/about">{$language === 'en' ? 'About Us' : 'Sobre Nós'}</a></li>
 					<li>
-						<a href="#">{$language === 'en' ? 'Terms & Conditions' : 'Termos e Condições'}</a>
+						<a href="mailto:info@trakingtransfers.com"
+							>{$language === 'en' ? 'Contact' : 'Contacto'}</a
+						>
+					</li>
+					<li><a href="/faq">FAQ</a></li>
+					<li>
+						<a href="/terms">{$language === 'en' ? 'Terms & Conditions' : 'Termos e Condições'}</a>
 					</li>
 				</ul>
 			</div>
@@ -44,15 +54,49 @@
 				<h4 class="footer-title">{$language === 'en' ? 'Contact' : 'Contacto'}</h4>
 				<ul class="footer-links">
 					<li>info@trakingtransfers.com</li>
-					<li>+351 000 000 000</li>
-					<li>{$language === 'en' ? 'Southwest Portugal' : 'Sudoeste de Portugal'}</li>
+					<li>+351 966 611 837</li>
+					<li>Monte Salema, 8650-435, Vila do Bispo</li>
+					<li>RNAVT | 13137</li>
 				</ul>
+				<div class="footer-social">
+					<a
+						href="https://instagram.com/trakingtransfers"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="social-link"
+						aria-label="Instagram"
+					>
+						<svg
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+							<path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+							<line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+						</svg>
+					</a>
+					<a
+						href="https://facebook.com/trakingtransfers"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="social-link"
+						aria-label="Facebook"
+					>
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+						</svg>
+					</a>
+				</div>
 			</div>
 		</div>
 
 		<div class="footer-bottom">
 			<p class="footer-copyright">
-				&copy; 2025 Traking Transfers. {$language === 'en'
+				&copy; 2026 Traking Transfers. {$language === 'en'
 					? 'All rights reserved.'
 					: 'Todos os direitos reservados.'}
 			</p>

@@ -1,39 +1,46 @@
 <script lang="ts">
+	import { language } from '$lib/stores/language';
+	import { translations } from '$lib/translations';
 	import CustomersTable from '$lib/components/dashboard/admin/CustomersTable.svelte';
 
 	let { data, form } = $props();
+
+	const t = $derived(translations[$language]);
 </script>
 
 <div class="admin-customers">
-	<section class="content-section">
-		<div class="table-wrapper">
-			<div class="table-inner">
-				<CustomersTable customers={data.customers ?? []} {form} />
-			</div>
-		</div>
-	</section>
+	<!-- Page Header -->
+	<div class="page-header">
+		<h1 class="page-title">{t.admin_nav_customers}</h1>
+	</div>
+
+	<!-- Table Container -->
+	<div class="data-table-container">
+		<CustomersTable customers={data.customers ?? []} {form} />
+	</div>
 </div>
 
 <style>
 	.admin-customers {
-		max-width: 960px;
-		margin: 0 auto;
+		width: 100%;
 	}
 
-	.content-section {
+	.page-header {
 		margin-bottom: 2rem;
 	}
 
-	.table-wrapper {
-		background: #fff;
-		border-radius: 10px;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-		border: 1px solid rgba(0, 0, 0, 0.04);
+	.page-title {
+		font-family: var(--font-heading, 'Playfair Display', serif);
+		font-size: 2rem;
+		font-weight: 500;
+		color: var(--color-primary, #1a1a1a);
+		margin: 0;
+	}
+
+	.data-table-container {
+		background: #ffffff;
+		border-radius: 12px;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 		overflow: hidden;
 	}
-
-	.table-inner {
-		padding: 1.5rem;
-	}
 </style>
-
