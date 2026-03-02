@@ -6,7 +6,20 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		experimental: {
+			instrumentation: {
+				server: true
+			}
+		}
+	},
+
+	onwarn: (warning, handler) => {
+		const { code, message } = warning;
+		if (code?.includes('css') || code?.includes('a11y') || message?.includes('Unused CSS')) {
+			return;
+		}
+		handler(warning);
 	}
 };
 

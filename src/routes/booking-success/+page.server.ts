@@ -1,6 +1,11 @@
 import { redirect, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { bookingTable, bookingSegmentTable, userTable } from '$lib/server/db/schema';
+import {
+	bookingTable,
+	bookingSegmentTable,
+	userTable,
+	passwordResetTokenTable
+} from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { STRIPE_SECRET_KEY } from '$env/static/private';
@@ -17,14 +22,19 @@ export const load = async ({ url }) => {
 	}
 
 	try {
+		console.log('[booking-success] Loading booking for session:', sessionId);
+
 		// Retrieve the Stripe session to get the bookingId from metadata
 		const session = await stripe.checkout.sessions.retrieve(sessionId);
+		console.log('[booking-success] Stripe session retrieved. Metadata:', session.metadata);
 
 		if (!session.metadata?.bookingId) {
+			console.error('[booking-success] No bookingId in session metadata');
 			throw error(404, 'Booking not found');
 		}
 
 		const bookingId = session.metadata.bookingId;
+		console.log('[booking-success] Booking ID:', bookingId);
 
 		// Load the booking
 		const [booking] = await db
@@ -34,13 +44,23 @@ export const load = async ({ url }) => {
 			.limit(1);
 
 		if (!booking) {
+			console.error('[booking-success] Booking not found in database:', bookingId);
 			throw error(404, 'Booking not found');
 		}
+		console.log(
+			'[booking-success] Booking loaded. Status:',
+			booking.status,
+			'UserId:',
+			booking.userId
+		);
 
 		// Prefer user names over booking names for display
 		let userFirstName: string | null = null;
 		let userLastName: string | null = null;
+		let passwordResetUrl: string | null = null;
+
 		if (booking.userId) {
+			console.log('[booking-success] Loading user data for userId:', booking.userId);
 			const [user] = await db
 				.select({ firstName: userTable.firstName, lastName: userTable.lastName })
 				.from(userTable)
@@ -49,8 +69,40 @@ export const load = async ({ url }) => {
 			if (user) {
 				userFirstName = user.firstName;
 				userLastName = user.lastName;
+				console.log('[booking-success] User found:', user.firstName, user.lastName);
+
+				// Look for password reset token for this user
+				console.log('[booking-success] Looking for password reset token...');
+				const [resetToken] = await db
+					.select()
+					.from(passwordResetTokenTable)
+					.where(eq(passwordResetTokenTable.userId, booking.userId))
+					.orderBy(passwordResetTokenTable.expiresAt)
+					.limit(1);
+
+				if (resetToken) {
+					console.log('[booking-success] Password reset token found:', resetToken.id);
+					console.log('[booking-success] Token expires at:', resetToken.expiresAt);
+
+					// Check if token is still valid
+					const now = new Date();
+					if (resetToken.expiresAt > now) {
+						const origin = url.origin;
+						passwordResetUrl = `${origin}/reset-password/${resetToken.id}`;
+						console.log('[booking-success] Password reset URL generated:', passwordResetUrl);
+					} else {
+						console.log('[booking-success] Password reset token has expired');
+					}
+				} else {
+					console.log('[booking-success] No password reset token found for this user');
+				}
+			} else {
+				console.log('[booking-success] User not found for userId:', booking.userId);
 			}
+		} else {
+			console.log('[booking-success] No userId associated with booking');
 		}
+
 		const bookingWithUserNames = {
 			...booking,
 			userFirstName,
@@ -70,12 +122,18 @@ export const load = async ({ url }) => {
 			return aIdx - bIdx;
 		});
 
+		console.log(
+			'[booking-success] Returning data with passwordResetUrl:',
+			passwordResetUrl ? 'PRESENT' : 'NULL'
+		);
+
 		return {
 			booking: bookingWithUserNames,
-			segments
+			segments,
+			passwordResetUrl
 		};
 	} catch (err: any) {
-		console.error('Error loading booking:', err);
+		console.error('[booking-success] Error loading booking:', err);
 		if (err.status) {
 			throw err;
 		}

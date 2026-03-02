@@ -10,6 +10,7 @@
 	import Footer from '$lib/components/landing/Footer.svelte';
 	import { translations, type Language } from '$lib/translations';
 	import { language } from '$lib/stores/language';
+	import { logHelloWorld } from '$lib/utils/logger';
 
 	let { data } = $props();
 	let scrolled = $state(false);
@@ -21,6 +22,9 @@
 
 	onMount(() => {
 		if (browser) {
+			console.log('Hello World - Home Page Loaded');
+			logHelloWorld();
+
 			// Initialize language store
 			language.init();
 
